@@ -1834,6 +1834,16 @@ function closeQuiz(opts = {}){
     setTimeout(() => { opts.replayMap = false; finish(); }, 1050);
   } else finish();
 }
+// after a quiz: glide down so the Retake/result line sits at the top and the whole map is in view
+function scrollToMap(){
+  document.body.classList.remove("qz-open");   // let the page move while the card zooms out
+  requestAnimationFrame(() => {
+    const res = document.getElementById("quizResult");
+    const anchor = res && !res.hidden ? res : stage;
+    const y = anchor.getBoundingClientRect().top + window.scrollY - 14;
+    window.scrollTo({ top: Math.max(0, y), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
+}
 function replayMapIntro(){
   if (location.hash === "#about") return;
   stage.classList.remove("reveal"); void stage.offsetWidth; stage.classList.add("reveal");
@@ -1857,6 +1867,7 @@ nextBtn.addEventListener("click", () => {
   showResult(result);
   setMode(jobs ? "career" : "love", { quiet: true });   // jobs flow lands on the Career map
   closeQuiz({ spiral: true, replayMap: true, reset: false, focus: document.getElementById("retake") });
+  scrollToMap();
 });
 qz.addEventListener("keydown", e => {
   if (e.key === "Escape") { e.preventDefault(); closeQuiz(); return; }
