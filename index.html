@@ -1231,7 +1231,7 @@ ageSel.addEventListener("change", () => { A.age = ageSel.value; validate(); });
 document.getElementById("qzComment").addEventListener("input", e => { A.comment = e.target.value; });
 
 // --- send completed answers to the Move ♥ Me Google Sheet (Apps Script web app)
-const RESPONSES_URL = "https://script.google.com/macros/s/AKfycbygRXTJhAKwe8DD4YDQ0FVYVEtmEXL0t9TnFHi1xiE3i2nMHxrFyrLSUTHv4vyk3Vux/exec";
+const RESPONSES_URL = "https://script.google.com/macros/s/AKfycbzLx7BXcheaM9cw2nB7BH8zJ7YU24v8496YyeUmO9jRsvwsoDYGsh-USb8yimJZ_ZcI/exec";
 function sendAnswers(r){
   const payload = {
     reason: r.reason || "", age: r.age || "", sign: r.sign || "", home: r.home || "",
