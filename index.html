@@ -315,7 +315,8 @@
      transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
   .map .st:hover text.lbl, .map .st.on text.lbl{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
   /* Love map: zodiac "wallpaper / graffiti" inside each state, clipped to its outline */
-  .map .grf{pointer-events:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+  .map .grf{pointer-events:none;opacity:0;transition:transform .2s cubic-bezier(.34,1.56,.64,1), opacity .22s ease}
+  .map .st:hover .grf, .map .st.on .grf{opacity:1}   /* solid fills at rest; the graffiti shows on hover / selection */
   .map .st:hover .grf{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
   .map .st.on .grf{transform:translate(calc(var(--sh,5) * -1.2px), calc(var(--sh,5) * -1.2px))}
   body[data-mode="career"] .map .grf{display:none}
@@ -331,10 +332,10 @@
   [data-theme="dark"] .map .c3 .grf, [data-theme="dark"] .map .c4 .grf{--zb1:var(--coral);--zb2:var(--cobalt)}
   [data-theme="dark"] .map .c3 .grf use, [data-theme="dark"] .map .c4 .grf use{--zb-ln:var(--paper)}
   /* keep abbreviations readable over the pattern */
-  body:not([data-mode="career"]) .map text.lbl{paint-order:stroke;stroke-width:calc(var(--lbl,13px) * .32);stroke-linejoin:round}
-  body:not([data-mode="career"]) .map .c0 text.lbl{stroke:var(--f0)} body:not([data-mode="career"]) .map .c1 text.lbl{stroke:var(--f1)}
-  body:not([data-mode="career"]) .map .c2 text.lbl{stroke:var(--f2)} body:not([data-mode="career"]) .map .c3 text.lbl{stroke:var(--f3)}
-  body:not([data-mode="career"]) .map .c4 text.lbl{stroke:var(--f4)}
+  body:not([data-mode="career"]) .map .st:is(:hover,.on) text.lbl{paint-order:stroke;stroke-width:calc(var(--lbl,13px) * .32);stroke-linejoin:round}
+  body:not([data-mode="career"]) .map .c0:is(:hover,.on) text.lbl{stroke:var(--f0)} body:not([data-mode="career"]) .map .c1:is(:hover,.on) text.lbl{stroke:var(--f1)}
+  body:not([data-mode="career"]) .map .c2:is(:hover,.on) text.lbl{stroke:var(--f2)} body:not([data-mode="career"]) .map .c3:is(:hover,.on) text.lbl{stroke:var(--f3)}
+  body:not([data-mode="career"]) .map .c4:is(:hover,.on) text.lbl{stroke:var(--f4)}
   /* per-state badges under the abbreviation: pay rank (Career map) */
   .map .bdg{pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
   .map .st:hover .bdg{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
@@ -1592,7 +1593,7 @@ function setMode(m, opts = {}){
   const bk = document.getElementById("bdgKey");
   if (bk) bk.innerHTML = MODE === "career"
     ? `Under each state: <span class="pl">#1</span> its rank of 50 for pay across the 20 most common jobs (#1 = highest).`
-    : `${zIcon("Cancer", "swash", "coral")} Every state is wallpapered with its most common sign: Cancer, in all 50, thanks to summer birthdays.`;
+    : `${zIcon("Cancer", "swash", "coral")} Hover a state to see it wallpapered with its most common sign: Cancer, in all 50, thanks to summer birthdays.`;
 }
 document.getElementById("loveMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("love"); });
 document.getElementById("careerMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("career"); });
