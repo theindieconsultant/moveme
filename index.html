@@ -107,6 +107,8 @@
   .qz-dots{display:flex;gap:6px}
   .qz-dots i{width:28px;height:6px;border-radius:999px;background:var(--hair);transition:background .3s, width .3s}
   .qz-dots i.on{background:var(--coral)} .qz-dots i.cur{width:40px;background:var(--cobalt)}
+  .qz-step-label{white-space:nowrap}
+  @media (max-width:560px){ .qz-dots{gap:5px} .qz-dots i{width:16px} .qz-dots i.cur{width:26px} }
   .qz-step-label{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
   .qz-card .x{position:static;float:none;margin:0}
   .qz-screen{animation:qzSlide .4s cubic-bezier(.22,1,.36,1) both}
@@ -142,6 +144,11 @@
   .qz-choice small{display:block;font-size:13px;color:var(--text-subtle);margin-top:4px}
   .qz-choice[aria-checked="true"]{background:var(--coral);color:var(--ink)} .qz-choice[aria-checked="true"] small{color:var(--ink)}
   .qz-choice.jobs[aria-checked="true"]{background:var(--chartreuse)}
+  .qz-choices.scenes{gap:12px}
+  .qz-choice.scene{padding:16px 10px 14px}
+  .qz-choice.scene svg{width:56px;height:56px;margin-bottom:8px}
+  .qz-choice.scene b{font-size:17px}
+  .qz-choice.scene[aria-checked="true"]{background:var(--chartreuse)}
 
   /* type-ahead combobox */
   .combo{position:relative}
@@ -326,11 +333,15 @@
   .pin .core{fill:var(--chartreuse);stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke}
   [data-theme="dark"] .pin .core{stroke:var(--paper)}
   .pin .ring-under{fill:none;stroke:var(--coral);stroke-width:5px;vector-effect:non-scaling-stroke}
+  .pin .ring-glow{fill:none;stroke:var(--coral);stroke-width:13px;opacity:.2;filter:blur(2.5px);vector-effect:non-scaling-stroke}
+  .pin .core{transform-box:fill-box;transform-origin:center}
   .pin .ring-dots{fill:none;stroke:var(--route);stroke-width:2.2px;stroke-linecap:round;stroke-dasharray:.5 5;vector-effect:non-scaling-stroke}
   .pin .dot circle{transition:r .28s cubic-bezier(.34,1.56,.64,1)}
   @media (prefers-reduced-motion:no-preference){
     .pin .ring-dots{animation:chase 1.6s linear infinite}
     @keyframes chase{to{stroke-dashoffset:-22}}
+    .pin .core{animation:corePulse 1.8s ease-in-out infinite}
+    @keyframes corePulse{0%,100%{transform:scale(.9)}50%{transform:scale(1.14)}}
   }
   .pin.hov .core,.pin:focus-visible .core{fill:var(--coral)}
   .pin:focus-visible .ring-under{stroke:var(--focus)}
@@ -639,7 +650,7 @@
   <div class="qz-bg" id="qzBg"></div>
   <div class="qz-card" id="qzCard" role="dialog" aria-modal="true" aria-labelledby="qzTitle0">
     <div class="qz-top">
-      <div><div class="qz-dots" id="qzDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+      <div><div class="qz-dots" id="qzDots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
       <span class="qz-step-label" id="qzStepLabel"></span>
       <button class="x" id="qzClose" type="button" aria-label="Close quiz">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5 Q12 12.4 19 18.6 M18.6 5 Q12.2 11.6 5.2 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
@@ -661,7 +672,7 @@
     <!-- 1 · love or jobs -->
     <section class="qz-screen" data-step="1" hidden>
       <h2 id="qzTitle1">which would you move to another state for?</h2>
-      <div class="qz-choices" role="radiogroup" aria-labelledby="qzTitle1">
+      <div class="qz-choices" id="reasonGroup" role="radiogroup" aria-labelledby="qzTitle1">
         <button class="qz-choice love" type="button" role="radio" aria-checked="false" data-val="love">
           <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 54c-1 0-2-.3-2.8-1C15 41.6 7 34 7 23.6 7 16 12.8 10 20.2 10c4.8 0 9 2.5 11.8 6.3C34.8 12.5 39 10 43.8 10 51.2 10 57 16 57 23.6 57 34 49 41.6 34.8 53c-.8.7-1.8 1-2.8 1z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="3" stroke-linejoin="round"/></svg>
           <b>for love</b><small>I would move for the one</small>
@@ -673,13 +684,36 @@
       </div>
     </section>
 
-    <!-- 2 · places -->
+    <!-- 2 · scenery -->
     <section class="qz-screen" data-step="2" hidden>
-      <h2 id="qzTitle2">are there any states or cities you’re open to or curious about?</h2>
+      <h2 id="qzTitle2">which moves you most?</h2>
+      <div class="qz-choices scenes" id="sceneGroup" role="radiogroup" aria-labelledby="qzTitle2">
+        <button class="qz-choice scene" type="button" role="radio" aria-checked="false" data-val="Mountains">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="47" cy="16" r="7" fill="#D4F25A" stroke="#1B1B2F" stroke-width="3"/><path d="M4 54 L22 22 L32 38 L40 28 L60 54 Z" fill="#2F4BFF" stroke="#1B1B2F" stroke-width="3" stroke-linejoin="round"/><path d="M16 32.5 L22 22 L28 32 L24.5 30 L21 34 Z" fill="#F5F1E8" stroke="#1B1B2F" stroke-width="2.5" stroke-linejoin="round"/><path d="M36 33.5 L40 28 L45 34.5 L42 33 L39 36 Z" fill="#F5F1E8" stroke="#1B1B2F" stroke-width="2.5" stroke-linejoin="round"/></svg>
+          <b>mountains</b>
+        </button>
+        <button class="qz-choice scene" type="button" role="radio" aria-checked="false" data-val="Beach fronts">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="27" r="13" fill="#FF8A65" stroke="#1B1B2F" stroke-width="3"/><path d="M4 33 H60" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round"/><path d="M4 40 q7-5 14 0 t14 0 t14 0 t14 0 V48 H4 Z" fill="#2F4BFF" stroke="#1B1B2F" stroke-width="3" stroke-linejoin="round"/><path d="M4 48 H60 V56 H4 Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="3" stroke-linejoin="round"/><path d="M12 33 V31 M52 33 V31" stroke="none"/></svg>
+          <b>beach fronts</b>
+        </button>
+        <button class="qz-choice scene" type="button" role="radio" aria-checked="false" data-val="City skylines">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="7" y="28" width="14" height="27" rx="2" fill="#FF8A65" stroke="#1B1B2F" stroke-width="3"/><rect x="21" y="12" width="14" height="43" rx="2" fill="#2F4BFF" stroke="#1B1B2F" stroke-width="3"/><path d="M28 12 V5" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round"/><rect x="35" y="22" width="11" height="33" rx="2" fill="#D4F25A" stroke="#1B1B2F" stroke-width="3"/><rect x="46" y="34" width="11" height="21" rx="2" fill="#F5F1E8" stroke="#1B1B2F" stroke-width="3"/><path d="M26 20h4M26 27h4M26 34h4M26 41h4M12 35h4M12 42h4M39 29h3M39 36h3M39 43h3" stroke="#1B1B2F" stroke-width="2.5" stroke-linecap="round"/><path d="M3 55 H61" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round"/></svg>
+          <b>city skylines</b>
+        </button>
+        <button class="qz-choice scene" type="button" role="radio" aria-checked="false" data-val="Trees & Trails">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 58 C22 52 28 46 24 40 C21 35 34 32 40 30" fill="none" stroke="#FF8A65" stroke-width="5" stroke-linecap="round"/><path d="M8 58 C22 52 28 46 24 40 C21 35 34 32 40 30" fill="none" stroke="#1B1B2F" stroke-width="2" stroke-linecap="round" stroke-dasharray=".5 5"/><path d="M45 6 L57 26 H51 L59 40 H31 L39 26 H33 Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="3" stroke-linejoin="round"/><path d="M45 40 V50" stroke="#1B1B2F" stroke-width="3.5" stroke-linecap="round"/><path d="M14 18 L22 32 H18 L24 42 H4 L10 32 H6 Z" fill="#2F4BFF" stroke="#1B1B2F" stroke-width="3" stroke-linejoin="round"/><path d="M14 42 V49" stroke="#1B1B2F" stroke-width="3.5" stroke-linecap="round"/></svg>
+          <b>trees &amp; trails</b>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3 · places -->
+    <section class="qz-screen" data-step="3" hidden>
+      <h2 id="qzTitle3">are there any states or cities you’re open to or curious about?</h2>
       <div class="combo" id="placesCombo" data-mode="multi">
         <div class="combo-field">
           <span class="chips" id="placesChips" style="display:contents"></span>
-          <span class="combo-input-wrap"><input class="combo-input" id="placesInput" type="text" role="combobox" aria-expanded="false" aria-controls="placesList" aria-autocomplete="list" aria-labelledby="qzTitle2" placeholder="Type a state or city…" autocomplete="off" spellcheck="false"></span>
+          <span class="combo-input-wrap"><input class="combo-input" id="placesInput" type="text" role="combobox" aria-expanded="false" aria-controls="placesList" aria-autocomplete="list" aria-labelledby="qzTitle3" placeholder="Type a state or city…" autocomplete="off" spellcheck="false"></span>
         </div>
         <button class="combo-toggle" type="button" tabindex="-1" aria-label="Show all states"><svg viewBox="0 0 12 12"><path d="M2 4.5l4 3.5 4-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <ul class="combo-list" id="placesList" role="listbox" aria-multiselectable="true" hidden></ul>
@@ -687,19 +721,30 @@
       <p class="qz-hint">Pick as many as you like, or skip ahead. A few letters is enough.</p>
     </section>
 
-    <!-- 3 · age + sign -->
-    <section class="qz-screen" data-step="3" hidden>
-      <h2 id="qzTitle3">a little about you</h2>
+    <!-- 4 · age + where now -->
+    <section class="qz-screen" data-step="4" hidden>
+      <h2 id="qzTitle4">a little about you</h2>
       <label class="qz-q" for="ageSelect" style="display:block;margin-top:0">a. what is your age?</label>
       <select class="qz-select" id="ageSelect">
         <option value="">Choose your age range</option>
       </select>
+      <p class="qz-q" id="homeLabel">b. where in the world do you live now?</p>
+      <div class="combo" id="homeCombo" data-mode="single">
+        <div class="combo-field">
+          <span class="combo-input-wrap"><span class="combo-ghost" id="homeGhost" aria-hidden="true"></span><input class="combo-input" id="homeInput" type="text" role="combobox" aria-expanded="false" aria-controls="homeList" aria-autocomplete="both" aria-labelledby="homeLabel" placeholder="Start typing your city…" autocomplete="off" spellcheck="false"></span>
+        </div>
+        <ul class="combo-list" id="homeList" role="listbox" hidden></ul>
+      </div>
+    </section>
+
+    <!-- 5 · sign (love) or industry (jobs) -->
+    <section class="qz-screen" data-step="5" hidden>
       <div id="signBlock">
-        <p class="qz-q" id="signLabel">b. what is your zodiac sign?</p>
-        <div class="zpick" id="signPick" role="radiogroup" aria-labelledby="signLabel"></div>
+        <h2 id="qzTitle5">what is your zodiac sign?</h2>
+        <div class="zpick" id="signPick" role="radiogroup" aria-labelledby="qzTitle5"></div>
       </div>
       <div id="industryBlock" hidden>
-        <p class="qz-q" id="indLabel">b. what industry do you work in? <span class="opt">(pick all that fit)</span></p>
+        <h2 id="indLabel">what industry do you work in? <span class="opt" style="font-family:var(--sans);font-weight:500;font-size:15px;letter-spacing:0;color:var(--text-subtle)">(pick all that fit)</span></h2>
         <div class="zpick ipick" id="indPick" role="group" aria-labelledby="indLabel"></div>
         <div class="ind-other" id="indOtherWrap" hidden>
           <label class="sr-only" for="indOther">Your industry</label>
@@ -708,16 +753,10 @@
       </div>
     </section>
 
-    <!-- 4 · where now -->
-    <section class="qz-screen" data-step="4" hidden>
-      <h2 id="qzTitle4">where in the world do you live now?</h2>
-      <div class="combo" id="homeCombo" data-mode="single">
-        <div class="combo-field">
-          <span class="combo-input-wrap"><span class="combo-ghost" id="homeGhost" aria-hidden="true"></span><input class="combo-input" id="homeInput" type="text" role="combobox" aria-expanded="false" aria-controls="homeList" aria-autocomplete="both" aria-labelledby="qzTitle4" placeholder="Start typing your city…" autocomplete="off" spellcheck="false"></span>
-        </div>
-        <ul class="combo-list" id="homeList" role="listbox" hidden></ul>
-      </div>
-      <label class="qz-comment-label" for="qzComment"><span id="commentQ">Do you want to share any comments about what it’s like dating and finding love where you live?</span> <span class="opt">(optional, but this info helps everyone!)</span></label>
+    <!-- 6 · comments -->
+    <section class="qz-screen" data-step="6" hidden>
+      <h2 id="qzTitle6">anything else?</h2>
+      <label class="qz-comment-label" for="qzComment" style="margin-top:0"><span id="commentQ">Do you want to share any comments about what it’s like dating and finding love where you live?</span> <span class="opt">(optional, but this info helps everyone!)</span></label>
       <textarea class="qz-textarea" id="qzComment" maxlength="1000"></textarea>
       <p class="qz-hint">Your answers are saved anonymously to help shape Move ♥ Me. No names or emails, ever.</p>
     </section>
@@ -854,11 +893,12 @@ function buildPins(animate){
     if (animate) { g.style.animationDelay = (150 + i * 60) + "ms"; g.addEventListener("animationend", e => { if (e.target === g) { g.classList.remove("in"); g.style.animationDelay = ""; } }); }
     const dot = el("g", { class: "dot" }, g);
     const hit = el("circle", { class: "hit" }, dot);
+    const rg = el("circle", { class: "ring-glow" }, dot);
     const ru = el("circle", { class: "ring-under" }, dot), rd = el("circle", { class: "ring-dots" }, dot);
     rd.style.animationDelay = (-i * 160) + "ms";
     const ci = el("circle", { class: "core" }, dot);
     const t = el("text", {}, g); t.textContent = c.name;
-    const p = { c, g, ci, t, hit, ru, rd };
+    const p = { c, g, ci, t, hit, ru, rd, rg };
     const open = () => { cityHoverOff(p); openCity(c, g); };
     g.addEventListener("click", e => { e.stopPropagation(); open(); });
     g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
@@ -880,7 +920,7 @@ function layout(spread, scale){
     const s = byAbbr[p.c.st].s;
     const x = p.c.x + s.dx * spread, y = p.c.y + s.dy * spread;
     const k = 1 / Math.max(scale, .55);
-    [p.ci, p.hit, p.ru, p.rd].forEach(c => { c.setAttribute("cx", x); c.setAttribute("cy", y); });
+    [p.ci, p.hit, p.ru, p.rd, p.rg].forEach(c => { c.setAttribute("cx", x); c.setAttribute("cy", y); });
     setPinR(p, k);
     const left = p.c.x > 860 || p.c.name === "Chicago";
     p.t.setAttribute("text-anchor", left ? "end" : "start");
@@ -1016,12 +1056,24 @@ function placePeek(abbr){
   const sr = stage.getBoundingClientRect();
   const r = byAbbr[abbr].g.querySelector(".fill").getBoundingClientRect();
   const pw = peek.offsetWidth || 300, ph = peek.offsetHeight || 330, gap = 16;
-  let x = r.right - sr.left + gap;
-  if (x + pw > sr.width) x = r.left - sr.left - pw - gap;
-  if (x < 0) x = Math.min(sr.width - pw, Math.max(0, r.left - sr.left + r.width / 2 - pw / 2));
-  let y = r.top - sr.top + r.height / 2 - ph / 2;
-  y = Math.max(-40, Math.min(y, sr.height - ph + 40));
-  peek.style.left = x + "px"; peek.style.top = y + "px";
+  const L = r.left - sr.left, R = r.right - sr.left, T = r.top - sr.top, B = r.bottom - sr.top;
+  const clampX = x => Math.max(0, Math.min(x, sr.width - pw)), clampY = y => Math.max(-40, Math.min(y, sr.height - ph + 40));
+  // candidate spots around the state; pick the one that covers the fewest hot spots (this state's count most)
+  const mid = T + (B - T) / 2 - ph / 2, cx = L + (R - L) / 2 - pw / 2;
+  const cands = [[R + gap, mid], [L - pw - gap, mid], [R + gap, T - 20], [L - pw - gap, T - 20], [R + gap, B - ph + 20], [L - pw - gap, B - ph + 20],
+    [cx, B + gap], [cx, T - ph - gap], [R + gap, B + gap - ph / 2], [L - pw - gap, T - ph / 2]];
+  const hot = pinEls.map(p => { const b = p.ci.getBoundingClientRect(); return { x: b.left - sr.left + b.width / 2, y: b.top - sr.top + b.height / 2, mine: p.c.st === abbr }; });
+  let best = null;
+  cands.forEach(([x0, y0], i) => {
+    const x = clampX(x0), y = clampY(y0), pad = 22;
+    let score = i * .01 + (x !== x0 ? .5 : 0);
+    hot.forEach(h => { if (h.x > x - pad && h.x < x + pw + pad && h.y > y - pad && h.y < y + ph + pad) score += h.mine ? 10 : 3; });
+    // covering the state you're pointing at is worse than covering its neighbours
+    const ox = Math.max(0, Math.min(x + pw, R) - Math.max(x, L)), oy = Math.max(0, Math.min(y + ph, B) - Math.max(y, T));
+    score += (ox * oy) / ((R - L) * (B - T) || 1) * 4;
+    if (!best || score < best.score) best = { x, y, score };
+  });
+  peek.style.left = best.x + "px"; peek.style.top = best.y + "px";
 }
 
 function showPeek(abbr, opts = {}){
@@ -1389,7 +1441,8 @@ const qz = document.getElementById("quiz"), qzCard = document.getElementById("qz
 const screens = [...qz.querySelectorAll(".qz-screen")];
 const nextBtn = document.getElementById("qzNext"), backBtn = document.getElementById("qzBack");
 let step = 0, lastFocusQz = null;
-const blank = () => ({ reason: null, places: [], age: "", sign: null, industries: [], industryOther: "", home: "", comment: "" });
+const LAST = 6;
+const blank = () => ({ reason: null, scene: null, places: [], age: "", sign: null, industries: [], industryOther: "", home: "", comment: "" });
 let A = blank();
 
 // --- build static pieces
@@ -1454,7 +1507,7 @@ function makeCombo(root, opts){
     if (opts.multi) { input.value = ""; render(); input.focus(); } else { close(); }
   }
   input.addEventListener("input", () => { open(); render(); opts.onType && opts.onType(input.value); });
-  input.addEventListener("focus", () => { render(); if (opts.multi || input.value) open(); });
+  input.addEventListener("focus", () => { render(); if (input.value && !opts.multi) open(); });
   input.addEventListener("blur", () => setTimeout(() => { if (!root.contains(document.activeElement)) close(); }, 120));
   input.addEventListener("keydown", e => {
     if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) { open(); render(); } active = Math.min(items.length - 1, active + 1); paintActive(); }
@@ -1469,7 +1522,7 @@ function makeCombo(root, opts){
   list.addEventListener("mousedown", e => e.preventDefault());
   list.addEventListener("click", e => { const li = e.target.closest('[role="option"]'); if (li) pick(+li.dataset.i); });
   list.addEventListener("mousemove", e => { const li = e.target.closest('[role="option"]'); if (li && +li.dataset.i !== active) { active = +li.dataset.i; paintActive(); } });
-  field.addEventListener("click", e => { if (!e.target.closest(".chip button")) input.focus(); });
+  field.addEventListener("click", e => { if (e.target.closest(".chip button")) return; input.focus(); if (opts.multi && list.hidden) { open(); render(); } });
   if (toggle) { toggle.addEventListener("mousedown", e => e.preventDefault()); toggle.addEventListener("click", () => { if (list.hidden) { input.focus(); open(); render(); } else close(); }); }
   return { render, close, input };
 }
@@ -1513,15 +1566,18 @@ document.getElementById("homeInput").addEventListener("change", e => { /* typed 
 document.getElementById("homeInput").addEventListener("blur", e => { const v = e.target.value.trim(); if (v && !A.home) { const m = CITIES.find(c => c.label.toLowerCase() === v.toLowerCase()); A.home = m ? m.label : v; if (m) e.target.value = m.label; validate(); } });
 
 // choices
-qz.querySelectorAll(".qz-choice").forEach(b => b.addEventListener("click", () => {
-  A.reason = b.dataset.val; qz.querySelectorAll(".qz-choice").forEach(x => x.setAttribute("aria-checked", x === b)); validate();
+document.querySelectorAll("#reasonGroup .qz-choice").forEach(b => b.addEventListener("click", () => {
+  A.reason = b.dataset.val; document.querySelectorAll("#reasonGroup .qz-choice").forEach(x => x.setAttribute("aria-checked", x === b)); validate();
+}));
+document.querySelectorAll("#sceneGroup .qz-choice").forEach(b => b.addEventListener("click", () => {
+  A.scene = b.dataset.val; document.querySelectorAll("#sceneGroup .qz-choice").forEach(x => x.setAttribute("aria-checked", x === b)); validate();
 }));
 document.getElementById("signPick").addEventListener("click", e => {
   const b = e.target.closest(".zopt"); if (!b) return; A.sign = b.dataset.sign;
-  document.querySelectorAll(".zopt").forEach(x => x.setAttribute("aria-checked", x === b)); validate();
+  document.querySelectorAll("#signPick .zopt").forEach(x => x.setAttribute("aria-checked", x === b)); validate();
 });
 // radio groups: arrow keys move the choice
-[qz.querySelector(".qz-choices"), document.getElementById("signPick")].forEach(g => g.addEventListener("keydown", e => {
+[document.getElementById("reasonGroup"), document.getElementById("sceneGroup"), document.getElementById("signPick")].forEach(g => g.addEventListener("keydown", e => {
   const opts = [...g.querySelectorAll('[role="radio"]')], i = opts.indexOf(document.activeElement); if (i < 0) return;
   const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!d) return;
   e.preventDefault(); const n = opts[(i + d + opts.length) % opts.length]; n.focus(); n.click();
@@ -1533,7 +1589,7 @@ document.getElementById("qzComment").addEventListener("input", e => { A.comment 
 const RESPONSES_URL = "https://script.google.com/macros/s/AKfycbzLx7BXcheaM9cw2nB7BH8zJ7YU24v8496YyeUmO9jRsvwsoDYGsh-USb8yimJZ_ZcI/exec";
 function sendAnswers(r){
   const payload = {
-    reason: r.reason || "", age: r.age || "", sign: r.sign || "", industries: industryLabels(r), home: r.home || "",
+    reason: r.reason || "", scene: r.scene || "", age: r.age || "", sign: r.sign || "", industries: industryLabels(r), home: r.home || "",
     places: (r.places || []).map(p => p.label), comment: (r.comment || "").slice(0, 1000)
   };
   // text/plain + no-cors keeps this a "simple" request, which Apps Script accepts from any site.
@@ -1544,10 +1600,12 @@ function sendAnswers(r){
 // --- flow
 function valid(s){
   if (s === 1) return !!A.reason;
-  if (s === 3) return A.reason === "jobs"
-    ? !!(A.age && A.industries.length && (!A.industries.includes("Other") || A.industryOther.trim()))
-    : !!(A.age && A.sign);
-  return true;   // places (2) and home/comments (4) are optional
+  if (s === 2) return !!A.scene;
+  if (s === 4) return !!A.age;
+  if (s === 5) return A.reason === "jobs"
+    ? !!(A.industries.length && (!A.industries.includes("Other") || A.industryOther.trim()))
+    : !!A.sign;
+  return true;   // places (3), home (4) and comments (6) are optional
 }
 function validate(){
   const ok = valid(step);
@@ -1562,8 +1620,8 @@ function show(s, dir = 1){
   document.getElementById("qzSkip").hidden = !q;
   document.getElementById("qzDots").parentElement.style.visibility = q ? "visible" : "hidden";
   [...document.querySelectorAll("#qzDots i")].forEach((d, i) => { d.classList.toggle("on", i < s - 1); d.classList.toggle("cur", i === s - 1); });
-  document.getElementById("qzStepLabel").textContent = q ? `${s} of 4` : "";
-  qzCard.setAttribute("aria-labelledby", "qzTitle" + s);
+  document.getElementById("qzStepLabel").textContent = q ? `${s} of ${LAST}` : "";
+  qzCard.setAttribute("aria-labelledby", s === 5 && A.reason === "jobs" ? "indLabel" : "qzTitle" + s);
   const jobs = A.reason === "jobs";
   document.getElementById("signBlock").hidden = jobs;
   document.getElementById("industryBlock").hidden = !jobs;
@@ -1571,11 +1629,14 @@ function show(s, dir = 1){
     ? "Do you want to share any comments about what career and finding jobs is like where you live?"
     : "Do you want to share any comments about what it’s like dating and finding love where you live?";
   backBtn.style.visibility = s > 1 ? "visible" : "hidden";
-  nextBtn.innerHTML = s === 4 ? 'All done <span class="arr" aria-hidden="true">→</span>' : 'Next <span class="arr" aria-hidden="true">→</span>';
+  nextBtn.innerHTML = s === LAST ? 'All done <span class="arr" aria-hidden="true">→</span>' : 'Next <span class="arr" aria-hidden="true">→</span>';
   validate();
   qzCard.scrollTop = 0;
   const first = s === 0 ? document.getElementById("qzStart") : s === 1 ? qz.querySelector('.qz-choice[aria-checked="true"]') || qz.querySelector(".qz-choice")
-    : s === 2 ? places.input : s === 3 ? ageSel : home.input;
+    : s === 2 ? qz.querySelector('#sceneGroup [aria-checked="true"]') || qz.querySelector("#sceneGroup .qz-choice")
+    : s === 3 ? null : s === 4 ? ageSel : s === 5 ? (A.reason === "jobs" ? qz.querySelector("#indPick .zopt") : qz.querySelector('#signPick [aria-checked="true"]') || qz.querySelector("#signPick .zopt"))
+    : document.getElementById("qzComment");
+  if (s === 3) places.close();   // the state/city list starts closed; it opens when you type or tap the field
   setTimeout(() => first && first.focus({ preventScroll: true }), 60);
 }
 function resetQuiz(){
@@ -1624,10 +1685,10 @@ document.getElementById("qzSkip").addEventListener("click", () => closeQuiz());
 backBtn.addEventListener("click", () => show(Math.max(1, step - 1), -1));
 nextBtn.addEventListener("click", () => {
   if (!valid(step)) { nextBtn.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 260 }); return; }
-  if (step < 4) return show(step + 1);
+  if (step < LAST) return show(step + 1);
   // all done
   const jobs = A.reason === "jobs";
-  const result = { reason: A.reason, sign: jobs ? null : A.sign, industries: jobs ? A.industries : [], industryOther: jobs ? A.industryOther : "",
+  const result = { reason: A.reason, scene: A.scene, sign: jobs ? null : A.sign, industries: jobs ? A.industries : [], industryOther: jobs ? A.industryOther : "",
     places: A.places, age: A.age, home: A.home, comment: A.comment, at: new Date().toISOString() };
   LS.set("mm-quiz", result);
   sendAnswers(result);
@@ -1707,13 +1768,13 @@ function stateShape(c, svgEl, wrapEl, padFrac){
   svgEl.setAttribute("viewBox", `${bb.x - pad} ${bb.y - pad} ${bb.width + pad * 2 + 6 * k} ${bb.height + pad * 2 + 6 * k}`);
   svgEl.innerHTML =
     `<path class="s-shadow" d="${s.d}" transform="translate(${5 * k} ${5 * k})"/><path class="s-fill" d="${s.d}"/>` +
-    `<g class="pin" style="pointer-events:none"><g class="dot"><circle class="ring-under" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="ring-dots" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="core" cx="${c.x}" cy="${c.y}" r="${4.5 * k}"/></g></g>`;
+    `<g class="pin" style="pointer-events:none"><g class="dot"><circle class="ring-glow" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="ring-under" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="ring-dots" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="core" cx="${c.x}" cy="${c.y}" r="${4.5 * k}"/></g></g>`;
 }
 const cpeek = document.getElementById("cpeek");
 // hovered/focused hot spots grow their dot 250% so it's clear you're on the city, not the state
 function setPinR(p, k = p.k){
   const m = p.hovered ? 2.5 : 1;
-  p.ci.style.r = 5 * k * m; p.ru.style.r = p.rd.style.r = 10 * k * m; p.hit.style.r = 16 * k * m;
+  p.ci.style.r = 5 * k * m; p.ru.style.r = p.rd.style.r = p.rg.style.r = 10 * k * m; p.hit.style.r = 16 * k * m;
 }
 let cpHover = null;
 function cityHoverOn(p){
