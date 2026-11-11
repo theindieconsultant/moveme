@@ -320,23 +320,34 @@
   .route-under{fill:none;stroke:var(--coral);stroke-width:calc(var(--route-w,3px) * 3.2);stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.9;pointer-events:none}
   [data-theme="dark"] .route-under{opacity:.8}
   .route,.route-under,.heart{display:none}
-  /* hot spots: neon core + chunky coral ring with the black marching dots, pulsing */
+  /* hot spots: neon core + chunky coral ring; the black dots chase each other around it */
   .pin{cursor:pointer;outline:none}
   .pin .hit{fill:transparent;stroke:none}
   .pin .core{fill:var(--chartreuse);stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke}
   [data-theme="dark"] .pin .core{stroke:var(--paper)}
   .pin .ring-under{fill:none;stroke:var(--coral);stroke-width:5px;vector-effect:non-scaling-stroke}
-  .pin .ring-dots{fill:none;stroke:var(--route);stroke-width:2px;stroke-linecap:round;stroke-dasharray:.5 5;vector-effect:non-scaling-stroke}
-  .pin .pulse{transform-box:fill-box;transform-origin:center}
+  .pin .ring-dots{fill:none;stroke:var(--route);stroke-width:2.2px;stroke-linecap:round;stroke-dasharray:.5 5;vector-effect:non-scaling-stroke}
+  .pin .dot circle{transition:r .28s cubic-bezier(.34,1.56,.64,1)}
   @media (prefers-reduced-motion:no-preference){
-    .pin .pulse{animation:pinPulse 1.6s ease-in-out infinite}
-    .pin .ring-dots{animation:march 1.2s linear infinite}
-    @keyframes pinPulse{0%,100%{transform:scale(.85);opacity:1}50%{transform:scale(1.35);opacity:.75}}
+    .pin .ring-dots{animation:chase 1.6s linear infinite}
+    @keyframes chase{to{stroke-dashoffset:-22}}
   }
-  .pin:hover .core,.pin:focus-visible .core{fill:var(--coral)}
+  .pin.hov .core,.pin:focus-visible .core{fill:var(--coral)}
   .pin:focus-visible .ring-under{stroke:var(--focus)}
-  .pin text{transition:font-size .45s cubic-bezier(.34,1.56,.64,1)}
+  .pin text{transition:font-size .35s cubic-bezier(.34,1.56,.64,1)}
+  .pin.hov text,.pin:focus-visible text{font-size:calc(var(--pin,12px) * 4);display:inline !important}
   .pin.big text{font-size:calc(var(--pin,12px) * 5);display:inline !important}
+  /* city hover card: small, coral-shadowed, tilted the other way so it reads as a city, not the state */
+  .cpeek{position:absolute;z-index:21;width:200px;background:var(--surface);color:var(--text);border:2px solid var(--border);border-radius:16px;
+    box-shadow:4px 4px 0 var(--coral);padding:12px 14px 12px;opacity:0;pointer-events:none;
+    transform:translateY(6px) rotate(1.5deg) scale(.94);transition:opacity .16s ease, transform .26s cubic-bezier(.34,1.56,.64,1)}
+  .cpeek.show{opacity:1;transform:translateY(0) rotate(1.5deg) scale(1)}
+  .cpeek .over{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2-text);margin:0}
+  .cpeek h3{font-family:var(--display);font-weight:600;font-size:19px;line-height:1.1;margin:2px 0 8px;text-transform:lowercase}
+  .cpeek .cm-shape{max-width:none;margin:0}
+  .cpeek svg{width:100%;height:110px;display:block;overflow:visible}
+  .cpeek .hint{font-size:12px;margin:8px 0 0;color:var(--muted,inherit);opacity:.8}
+  @media (hover:none){ .cpeek{display:none} }
   .key i{width:12px !important;height:12px !important;border:2.5px dotted var(--ink) !important;border-radius:50%;background:var(--chartreuse);box-shadow:0 0 0 2px var(--coral);margin:0 8px 0 4px !important;vertical-align:-1px !important}
   [data-theme="dark"] .key i{border-color:var(--paper) !important}
   .pin text{font-family:var(--sans);font-weight:700;font-size:var(--pin,12px);fill:var(--text);paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
@@ -597,6 +608,7 @@
   <div class="stage" id="stage">
     <div class="now" id="now" aria-hidden="true"><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span></div>
     <svg class="map intro" id="map" role="group" aria-label="Map of the United States. Hover or tap a state for its love snapshot."></svg>
+    <div class="cpeek" id="cpeek" aria-hidden="true"><p class="over" id="cpOver">hot spot</p><h3 id="cpName">city</h3><div class="cm-shape" id="cpShapeWrap"><svg id="cpShape" preserveAspectRatio="xMidYMid meet"></svg></div><p class="hint">Click for 3 local facts</p></div>
     <div class="peek" id="peek" role="dialog" aria-label="State love snapshot">
       <p class="over" id="pOver">love snapshot</p>
       <h2 id="pName">colorado</h2>
@@ -839,17 +851,21 @@ function buildPins(animate){
   pins.innerHTML = "";
   pinEls = ROUTES[routeIdx].cities.map((c, i) => {
     const g = el("g", { class: "pin" + (animate ? " in" : ""), tabindex: "0", role: "button", "aria-label": `${c.name}, ${c.st}: open hot spot` }, pins);
-    if (animate) g.style.animationDelay = (150 + i * 60) + "ms";
-    const hit = el("circle", { class: "hit" }, g);
-    const pulse = el("g", { class: "pulse" }, g);
-    pulse.style.animationDelay = (-i * 160) + "ms";
-    const ru = el("circle", { class: "ring-under" }, pulse), rd = el("circle", { class: "ring-dots" }, pulse);
-    const ci = el("circle", { class: "core" }, g);
+    if (animate) { g.style.animationDelay = (150 + i * 60) + "ms"; g.addEventListener("animationend", e => { if (e.target === g) { g.classList.remove("in"); g.style.animationDelay = ""; } }); }
+    const dot = el("g", { class: "dot" }, g);
+    const hit = el("circle", { class: "hit" }, dot);
+    const ru = el("circle", { class: "ring-under" }, dot), rd = el("circle", { class: "ring-dots" }, dot);
+    rd.style.animationDelay = (-i * 160) + "ms";
+    const ci = el("circle", { class: "core" }, dot);
     const t = el("text", {}, g); t.textContent = c.name;
-    const open = () => openCity(c, g);
+    const p = { c, g, ci, t, hit, ru, rd };
+    const open = () => { cityHoverOff(p); openCity(c, g); };
     g.addEventListener("click", e => { e.stopPropagation(); open(); });
     g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
-    return { c, g, ci, t, hit, ru, rd };
+    g.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") cityHoverOn(p); });
+    g.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") cityHoverOff(p); });
+    g.addEventListener("focus", () => cityHoverOn(p)); g.addEventListener("blur", () => cityHoverOff(p));
+    return p;
   });
 }
 buildPins(false);
@@ -865,10 +881,11 @@ function layout(spread, scale){
     const x = p.c.x + s.dx * spread, y = p.c.y + s.dy * spread;
     const k = 1 / Math.max(scale, .55);
     [p.ci, p.hit, p.ru, p.rd].forEach(c => { c.setAttribute("cx", x); c.setAttribute("cy", y); });
-    p.ci.setAttribute("r", 5 * k); p.ru.setAttribute("r", 10 * k); p.rd.setAttribute("r", 10 * k); p.hit.setAttribute("r", 16 * k);
+    setPinR(p, k);
     const left = p.c.x > 860 || p.c.name === "Chicago";
     p.t.setAttribute("text-anchor", left ? "end" : "start");
-    p.t.setAttribute("x", left ? x - 9 / scale : x + 9 / scale); p.t.setAttribute("y", y + (p.c.x > 860 ? -12 : -8) / scale);
+    p.x = x; p.y = y; p.k = k; p.left = left; p.tx = left ? x - 9 / scale : x + 9 / scale;
+    p.t.setAttribute("x", p.hovered ? (left ? x - 30 * k : x + 30 * k) : p.tx); p.t.setAttribute("y", y + (p.c.x > 860 ? -12 : -8) / scale);
     // skip a label that would sit on top of one already placed (e.g. Bremerton next to Seattle)
     const near = placed.some(([px, py]) => Math.abs(px - x) < 60 / Math.max(scale, .6) * .5 && Math.abs(py - y) < 16);
     p.t.style.display = near ? "none" : ""; if (!near) placed.push([x, y]);
@@ -1682,6 +1699,52 @@ function cityFacts(c){
   for (const e of extra) { if (out.length >= 3) break; if (e) out.push(e); }
   return out.slice(0, 3);
 }
+// state outline exactly as drawn on the map, with the city marked (city modal + city hover card)
+function stateShape(c, svgEl, wrapEl, padFrac){
+  const s = byAbbr[c.st].s, fill = byAbbr[c.st].g.querySelector(".fill"), bb = fill.getBBox(), pad = Math.max(bb.width, bb.height) * padFrac;
+  wrapEl.className = `cm-shape c${s.c}`;
+  const k = Math.max(bb.width, bb.height) / 160;
+  svgEl.setAttribute("viewBox", `${bb.x - pad} ${bb.y - pad} ${bb.width + pad * 2 + 6 * k} ${bb.height + pad * 2 + 6 * k}`);
+  svgEl.innerHTML =
+    `<path class="s-shadow" d="${s.d}" transform="translate(${5 * k} ${5 * k})"/><path class="s-fill" d="${s.d}"/>` +
+    `<g class="pin" style="pointer-events:none"><g class="dot"><circle class="ring-under" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="ring-dots" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="core" cx="${c.x}" cy="${c.y}" r="${4.5 * k}"/></g></g>`;
+}
+const cpeek = document.getElementById("cpeek");
+// hovered/focused hot spots grow their dot 250% so it's clear you're on the city, not the state
+function setPinR(p, k = p.k){
+  const m = p.hovered ? 2.5 : 1;
+  p.ci.style.r = 5 * k * m; p.ru.style.r = p.rd.style.r = 10 * k * m; p.hit.style.r = 16 * k * m;
+}
+let cpHover = null;
+function cityHoverOn(p){
+  if (cpHover && cpHover !== p) cityHoverOff(cpHover);
+  if (cpHover === p && p.hovered) return;   // already on (mouse hover then focus from the click): don't touch the DOM mid-click
+  cpHover = p; p.hovered = true;
+  // a city, not the state: drop the state snapshot right away
+  if (!pinned && floating()) { clearTimeout(hideT); peek.classList.remove("show"); if (current) { byAbbr[current].g.classList.remove("on"); current = null; } }
+  p.g.classList.add("hov"); if (p.g.nextSibling) p.g.parentNode.appendChild(p.g);
+  if (p.x != null) { p.t.setAttribute("x", p.left ? p.x - 30 * p.k : p.x + 30 * p.k); setPinR(p); }
+  if (!floating()) return;
+  const s = byAbbr[p.c.st].s;
+  document.getElementById("cpOver").textContent = `${MODE === "career" ? "career" : "love"} hot spot · ${s.abbr}`;
+  document.getElementById("cpName").textContent = p.c.name;
+  stateShape(p.c, document.getElementById("cpShape"), document.getElementById("cpShapeWrap"), .06);
+  cpeek.classList.add("show");
+  // sit beside the dot, on the side away from the label
+  const sr = stage.getBoundingClientRect(), r = p.ci.getBoundingClientRect();
+  const cx = r.left + r.width / 2 - sr.left, cy = r.top + r.height / 2 - sr.top;
+  const pw = cpeek.offsetWidth || 200, ph = cpeek.offsetHeight || 190, gap = 34;
+  let x = p.left ? cx + gap : cx - pw - gap;
+  if (x < 0) x = cx + gap; if (x + pw > sr.width) x = cx - pw - gap;
+  let y = Math.max(-20, Math.min(cy - ph / 2, sr.height - ph + 20));
+  cpeek.style.left = x + "px"; cpeek.style.top = y + "px";
+}
+function cityHoverOff(p){
+  p.hovered = false; p.g.classList.remove("hov");
+  if (p.tx != null) { p.t.setAttribute("x", p.tx); setPinR(p); }
+  if (cpHover === p) { cpHover = null; cpeek.classList.remove("show"); }
+}
+
 function openCity(c, pinG){
   const s = byAbbr[c.st].s, place = `${c.name}, ${s.name}`;
   cmLastFocus = document.activeElement;
@@ -1690,14 +1753,8 @@ function openCity(c, pinG){
   document.getElementById("cmOver").textContent = `${MODE === "career" ? "career" : "love"} hot spot · ${s.name}`;
   document.getElementById("cmName").textContent = c.name;
   // the state exactly as drawn on the map, with the city marked
-  const fill = byAbbr[c.st].g.querySelector(".fill"), bb = fill.getBBox(), pad = Math.max(bb.width, bb.height) * .08;
-  const wrap = document.getElementById("cmShapeWrap"); wrap.className = `cm-shape c${s.c}`;
-  const k = Math.max(bb.width, bb.height) / 160;
-  document.getElementById("cmShape").setAttribute("viewBox", `${bb.x - pad} ${bb.y - pad} ${bb.width + pad * 2 + 6 * k} ${bb.height + pad * 2 + 6 * k}`);
+  stateShape(c, document.getElementById("cmShape"), document.getElementById("cmShapeWrap"), .08);
   document.getElementById("cmShape").setAttribute("aria-label", `Outline of ${s.name} with ${c.name} marked`);
-  document.getElementById("cmShape").innerHTML =
-    `<path class="s-shadow" d="${s.d}" transform="translate(${5 * k} ${5 * k})"/><path class="s-fill" d="${s.d}"/>` +
-    `<g class="pin" style="pointer-events:none"><g class="pulse"><circle class="ring-under" cx="${c.x}" cy="${c.y}" r="${9 * k}"/><circle class="ring-dots" cx="${c.x}" cy="${c.y}" r="${9 * k}"/></g><circle class="core" cx="${c.x}" cy="${c.y}" r="${4.5 * k}"/></g>`;
   document.getElementById("cmFacts").innerHTML = cityFacts(c).map((f, i) => {
     const m = f.match(/^(.*?)\s*\(([^)]+)\)$/);
     return `<li><span class="n" aria-hidden="true">${i + 1}</span><span>${m ? `${m[1]} <span class="src">(${m[2]})</span>` : f}</span></li>`;
