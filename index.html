@@ -209,6 +209,8 @@
   .quiz-result > *{vertical-align:middle}
   .quiz-result .retake{margin-right:10px}
   .quiz-result #resIcon{display:inline-block;margin:0 4px}
+  .quiz-result #resIndIcon{display:inline-block;margin:0 6px 0 0}
+  .quiz-result #resIndIcon .ico{width:1.6em;height:1.6em;vertical-align:middle;--ln:1.7}
   .quiz-result .sep{margin:0 6px}
   .quiz-result[hidden]{display:none}
   .quiz-result .zi{width:1.5em;height:1.5em;vertical-align:middle}
@@ -554,6 +556,12 @@
   @media (prefers-reduced-motion:no-preference){ #nowName::after{animation:dotmarch .6s linear infinite} }
   @keyframes dotmarch{to{background-position:-6px 50%}}
   .now{padding-top:5px;padding-bottom:5px}
+  button.now{cursor:pointer;margin:0;text-align:left;transition:box-shadow .2s, translate .2s}
+  button.now:hover{box-shadow:4px 4px 0 var(--shadow)}
+  button.now:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+  .now .tip{bottom:calc(100% + 10px)}
+  .now:hover .tip,.now:focus-visible .tip{opacity:1;transform:translate(-50%,0)}
+  @media (hover:none){ .now .tip{display:none} }
   .now.pop{animation:nowpop .45s cubic-bezier(.34,1.56,.64,1)}
   @keyframes nowpop{from{transform:rotate(-1.5deg) scale(.8);opacity:0}}
   @media (max-width:760px){ .now{position:relative;left:auto;top:auto;translate:none;white-space:normal;margin:0 0 10px;font-size:13px} }
@@ -612,12 +620,12 @@
       <div class="quiz-result" id="quizResult" hidden>
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button>
         <span id="resLove"><span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span></span>
-        <span id="resJobs" hidden><span>You work in <b id="resInd"></b></span></span>
+        <span id="resJobs" hidden><span id="resIndIcon" aria-hidden="true"></span><span>You work in <b id="resInd"></b></span></span>
       </div>
     </div>
   </header>
   <div class="stage" id="stage">
-    <div class="now" id="now" aria-hidden="true"><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span></div>
+    <button class="now" id="now" type="button" aria-label="Refresh for 10 new hot spots" aria-describedby="nowTip"><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span><span class="tip" id="nowTip" role="tooltip">refresh for 10 new hotspots</span></button>
     <svg class="map intro" id="map" role="group" aria-label="Map of the United States. Hover or tap a state for its love snapshot."></svg>
     <div class="cpeek" id="cpeek" aria-hidden="true"><p class="over" id="cpOver">hot spot</p><h3 id="cpName">city</h3><div class="cm-shape" id="cpShapeWrap"><svg id="cpShape" preserveAspectRatio="xMidYMid meet"></svg></div><p class="hint">Click for 3 local facts</p></div>
     <div class="peek" id="peek" role="dialog" aria-label="State love snapshot">
@@ -1376,6 +1384,8 @@ refreshBtn.addEventListener("animationend", () => refreshBtn.classList.remove("s
 const footBtn = document.getElementById("footRefresh");
 footBtn.addEventListener("click", () => { refreshBtn.click(); footBtn.classList.remove("spin"); void footBtn.offsetWidth; footBtn.classList.add("spin"); });
 footBtn.addEventListener("animationend", () => footBtn.classList.remove("spin"));
+// the "#1 of 20" chip on the map refreshes too
+nowEl.addEventListener("click", () => refreshBtn.click());
 // ---------- Love map / Career map ----------
 let MODE = "love";
 function setMode(m, opts = {}){
@@ -1714,6 +1724,8 @@ function showResult(r){
   document.getElementById("resLove").hidden = jobs; document.getElementById("resJobs").hidden = !jobs;
   if (jobs) {
     const inds = industryLabels(r);
+    const ic = (INDUSTRIES.find(([n]) => n === (r.industries || [])[0]) || ["", "other"])[1];
+    document.getElementById("resIndIcon").innerHTML = `<svg class="ico" aria-hidden="true"><use href="#i-${ic}"/></svg>`;
     document.getElementById("resInd").textContent = inds.length > 1 ? inds.slice(0, -1).join(", ") + " and " + inds[inds.length - 1] : inds.join("");
     cta.hidden = true; resEl.hidden = false; document.getElementById("lede").hidden = true; return;
   }
