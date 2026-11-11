@@ -622,7 +622,7 @@
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
-      <p class="lede" id="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
+      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
       <div class="quiz-result" id="quizResult" hidden>
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button>
         <span id="resLove"><span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span></span>
@@ -1766,7 +1766,14 @@ qz.addEventListener("keydown", e => {
 const cta = document.getElementById("quizCta"), resEl = document.getElementById("quizResult");
 function showResult(r){
   const jobs = r && r.reason === "jobs";
-  if (!r || (!jobs && !r.sign)) { cta.hidden = false; resEl.hidden = true; document.getElementById("lede").hidden = false; return; }
+  if (!r || (!jobs && !r.sign)) {
+    // once one journey is done, the other map's intro speaks only to that map
+    const lt = document.getElementById("ledeText");
+    if (MODE === "career" && getRes("love")) lt.textContent = "Your dreamjob might be 1,000 miles away. Hover & tap a state for its career snapshot.";
+    else if (MODE === "love" && getRes("jobs")) lt.textContent = "Your person might be 1,000 miles away. Hover & tap a state for its love snapshot.";
+    else lt.textContent = "Your person might be 1,000 miles away. So might your dream job. Hover & tap a state for its love and career snapshot.";
+    cta.hidden = false; resEl.hidden = true; document.getElementById("lede").hidden = false; return;
+  }
   document.getElementById("resLove").hidden = jobs; document.getElementById("resJobs").hidden = !jobs;
   if (jobs) {
     const inds = industryLabels(r);
