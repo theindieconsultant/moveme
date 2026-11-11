@@ -557,7 +557,6 @@
     <section class="qz-screen" data-step="0">
       <p class="eyebrow">Welcome to Move ♥ Me</p>
       <h2 class="big" id="qzTitle0">for love, for work, or <span class="hl">both</span>.</h2>
-      <p>This is for anyone who’d move for love, a job, or maybe both. I’m willing to bet people are getting a bit more bold, and that young people, career switchers, divorcees and workaholics ready to settle down are all just as likely to jump state borders.</p>
       <p>We love love, we love our careers. But both scenes are bleak at the moment (iykyk)..</p>
       <p class="strong" style="color:var(--text);font-weight:500">Are you someone who’d book a trip for a date, a job interview, both maybe? Explore this map to see the places in America most likely to move you..</p>
       <div class="qz-actions">
@@ -1318,7 +1317,14 @@ document.getElementById("quizLink").addEventListener("click", e => { e.preventDe
 document.getElementById("retake").addEventListener("click", () => { LS.del("mm-quiz"); showResult(null); openQuiz(); });
 showResult(LS.get("mm-quiz"));
 // first visit: open the quiz once the map has popped in
-if (!LS.get("mm-quiz-seen") && !LS.get("mm-quiz") && location.hash !== "#about") setTimeout(openQuiz, 1400);
+// First visit: pop the quiz up about 6 seconds in. If they're on About or reading a state's sheet
+// at that moment, wait until they're back on the map with nothing open.
+function tryAutoOpen(){
+  if (!qz.hidden || LS.get("mm-quiz")) return;
+  if (location.hash === "#about" || sheet.classList.contains("open")) { setTimeout(tryAutoOpen, 1500); return; }
+  openQuiz();
+}
+if (!LS.get("mm-quiz-seen") && !LS.get("mm-quiz")) setTimeout(tryAutoOpen, 6000);
 
 // theme toggle
 const btn = document.getElementById("theme"), lab = document.getElementById("themeLabel");
