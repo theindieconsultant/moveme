@@ -962,7 +962,7 @@ function buildPins(animate){
     g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
     // with a state card open, a hot spot only takes over once the cursor pauses on it,
     // so passing over one on the way to "More info" doesn't close the card
-    g.addEventListener("pointerenter", e => { if (e.pointerType !== "mouse") return; clearTimeout(p.dwell);
+    g.addEventListener("pointerenter", e => { if (e.pointerType !== "mouse" || hoverHold) return; clearTimeout(p.dwell);
       if (current && peek.classList.contains("show") && !pinned) p.dwell = setTimeout(() => cityHoverOn(p), 180); else cityHoverOn(p); });
     g.addEventListener("pointerleave", e => { if (e.pointerType !== "mouse") return; clearTimeout(p.dwell); cityHoverOff(p); });
     g.addEventListener("focus", () => cityHoverOn(p)); g.addEventListener("blur", () => cityHoverOff(p));
@@ -1157,7 +1157,29 @@ function showPeek(abbr, opts = {}){
 // neighbouring states. "Toward" = inside the shape spanned by where the cursor left the state and the card.
 let lastPt = { x: -1, y: -1 }, exitPt = null, exitAt = 0, switchT = null, pendingAbbr = null, shownAt = 0;
 // capture phase, so every hover handler below sees the current cursor position
-["mousemove", "mouseover", "mouseout"].forEach(t => document.addEventListener(t, e => { lastPt = { x: e.clientX, y: e.clientY }; }, { capture: true, passive: true }));
+// After the quiz closes the page scrolls under a still cursor, which makes browsers fire hover events by themselves.
+// Hovers stay off until the person really moves the mouse; then whatever is under the cursor wakes up.
+let hoverHold = false, holdPt = null;
+function holdHovers(){
+  hoverHold = true; holdPt = null;
+  pinned = false; clearTimeout(hideT); peek.classList.remove("show");
+  if (current) { byAbbr[current].g.classList.remove("on"); current = null; }
+  if (typeof cpHover !== "undefined" && cpHover) cityHoverOff(cpHover);
+}
+function releaseHovers(x, y){
+  hoverHold = false;
+  const el = document.elementFromPoint(x, y); if (!el) return;
+  const pin = el.closest("#map .pin"), st = el.closest(".st");
+  if (pin) { const p = pinEls.find(q => q.g === pin); if (p) cityHoverOn(p); }
+  else if (st && floating()) hoverState(st.dataset.abbr);
+}
+["mousemove", "mouseover", "mouseout"].forEach(t => document.addEventListener(t, e => {
+  lastPt = { x: e.clientX, y: e.clientY };
+  if (hoverHold && t === "mousemove") {
+    if (!holdPt) holdPt = { x: e.clientX, y: e.clientY };   // first (possibly synthetic) position after the scroll
+    else if (Math.abs(e.clientX - holdPt.x) + Math.abs(e.clientY - holdPt.y) > 3) releaseHovers(e.clientX, e.clientY);
+  }
+}, { capture: true, passive: true }));
 function inTri(p, a, b, c){
   const d = (p1, p2, p3) => (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
   const d1 = d(p, a, b), d2 = d(p, b, c), d3 = d(p, c, a);
@@ -1192,7 +1214,7 @@ function hoverState(abbr){
   showPeek(abbr);
 }
 
-stLayer.addEventListener("mouseover", e => { const g = e.target.closest(".st"); if (g && floating() && !pinned) hoverState(g.dataset.abbr); });
+stLayer.addEventListener("mouseover", e => { if (hoverHold) return; const g = e.target.closest(".st"); if (g && floating() && !pinned) hoverState(g.dataset.abbr); });
 stLayer.addEventListener("mousemove", e => {
   // left the safe zone while over another state: switch right away
   if (pendingAbbr && !inSafeZone(lastPt)) { const a = pendingAbbr; pendingAbbr = null; clearTimeout(switchT); if (!pinned) showPeek(a); }
@@ -1837,6 +1859,7 @@ function closeQuiz(opts = {}){
 // after a quiz: glide down so the Retake/result line sits at the top and the whole map is in view
 function scrollToMap(){
   document.body.classList.remove("qz-open");   // let the page move while the card zooms out
+  holdHovers();
   requestAnimationFrame(() => {
     const res = document.getElementById("quizResult");
     const anchor = res && !res.hidden ? res : stage;
