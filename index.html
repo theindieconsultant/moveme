@@ -6,7 +6,7 @@
 <title>fifty states of maybe · Move ♥ Me</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Unbounded:wght@600;700&family=Homemade+Apple&display=swap" rel="stylesheet">
 <style>
   :root{
     --cobalt:#2F4BFF; --chartreuse:#D4F25A; --coral:#FF8A65; --ink:#1B1B2F; --paper:#F5F1E8;
@@ -57,6 +57,13 @@
   .btn-cta{background:var(--cobalt);color:#fff;text-decoration:none;padding:14px 20px;margin-top:8px}
   .btn-cta:hover{background:#1F36D6}
   [data-theme="dark"] .btn-cta:hover{background:#4A62FF}
+  .about .signature{font:400 clamp(26px,3.4vw,32px)/1.4 "Homemade Apple", cursive;color:var(--ink);margin:28px 0 0;transform:rotate(-4deg);transform-origin:left center}
+  [data-theme="dark"] .about .signature{color:var(--paper)}
+  .about .credit{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.9;color:var(--text-subtle);
+    margin:36px 0 0;padding-top:20px;border-top:1px solid var(--hair)}
+  .about .credit a{color:inherit;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
+  .about .credit a:hover{color:var(--text)}
+  .about .credit a:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
   .page[hidden]{display:none}
   .maplink{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;transition:color .2s}
   .maplink:hover,.maplink[aria-current="page"]{color:var(--text)}
@@ -335,10 +342,12 @@
   <p class="eyebrow">About Move ♥ Me</p>
   <h1>for love, for work, or <span class="hl">both</span>.</h1>
   <p>This experience is for those who want to find love, or a job, or maybe both. Studies probably show that people are willing to move for love, or move for a job. And now more than ever, I’m willing to bet people are getting a bit more desperate, a lot more bold. I believe many young people are willing to move to a new state to find love and start a relationship, or find jobs and start their career. Heck, mid-career job switchers, divorcees, recent widowers, and workaholics finally looking to settle down, are all just as likely to jump state borders.</p>
-  <p>We love love, we love our careers. But both the job market and the dating scene are bleek at the moment (iykyk)..</p>
+  <p>We love love, we love our careers. But both the job market and the dating scene are bleak at the moment (iykyk)..</p>
   <p>This tool was created for the curious love seekers and career builders. The ones who’d actually book a trip for a date, or a job interview, or both.</p>
-  <p class="strong">Are you one of them? Check out this map and take the Move ♥ Me intro quiz to see where in the world (well, in America) you are most likely to be moved by..</p>
+  <p class="strong">Are you one of them? Check out this map and take the Move ♥ Me intro quiz to see what places in the world (well, in America) are most likely to move you..</p>
   <a class="btn btn-cta" href="#" id="exploreMap">Explore the map</a>
+  <p class="signature" aria-label="xoxo, Heatherlee">xoxo Heatherlee</p>
+  <p class="credit">Made with love ♥ by Heatherlee Nguyen ✌🏽@<a href="https://www.linkedin.com/company/the-indie-consultant/posts/" target="_blank" rel="noopener">TheIndieConsultant</a> <span aria-hidden="true">|</span> 📍 Minneapolis-St. Paul, MN</p>
 </main>
 
 <div class="page" id="mapView">
