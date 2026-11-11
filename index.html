@@ -32,6 +32,32 @@
   .page{max-width:1240px;margin:0 auto;padding:clamp(16px,4vw,48px) clamp(12px,4vw,48px) 48px}
 
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:clamp(8px,2vw,24px)}
+  /* site header */
+  .site{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;margin:0;
+    padding:clamp(10px,1.6vw,16px) clamp(16px,2.6vw,24px);border-bottom:2px solid var(--border)}
+  .logo{display:inline-flex;align-items:center;gap:.08em;font:600 clamp(34px,4.4vw,48px)/1 var(--display);letter-spacing:-.02em;color:var(--text);text-decoration:none}
+  .logo-heart{width:.78em;height:.78em;fill:var(--cobalt);margin:0 .06em;transform:translateY(.04em)}
+  [data-theme="dark"] .logo-heart{fill:var(--chartreuse)}
+  .logo:focus-visible{outline:2px solid var(--focus);outline-offset:4px;border-radius:8px}
+  .site-nav{display:flex;align-items:center;gap:8px}
+  .navlink{font:700 15px/1 var(--sans);color:var(--text);text-decoration:none;padding:10px 12px;border-radius:12px;transition:background .15s}
+  .navlink:hover{background:var(--surface-muted,#ECECF0)}
+  .navlink[aria-current="page"]{background:#ECECF0}
+  [data-theme="dark"] .navlink:hover,[data-theme="dark"] .navlink[aria-current="page"]{background:#32323C}
+  .navlink:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .site-nav .toggle{margin-left:6px}
+
+  /* about view */
+  .about{max-width:680px;margin:0 auto;padding:clamp(28px,6vw,52px) clamp(16px,4vw,24px) 72px}
+  .about[hidden]{display:none}
+  .about h1{font-size:clamp(36px,6vw,60px);line-height:1.04;max-width:none;margin:0 0 clamp(24px,4vw,36px)}
+  .about p{font-size:clamp(16px,1.6vw,17px);line-height:1.7;color:var(--text-muted);margin:0 0 18px}
+  .about p.eyebrow{font-size:12px;line-height:1.3;color:var(--text-subtle);margin:0 0 8px}
+  .about p.strong{color:var(--text);font-weight:500}
+  .btn-cta{background:var(--cobalt);color:#fff;text-decoration:none;padding:14px 20px;margin-top:8px}
+  .btn-cta:hover{background:#1F36D6}
+  [data-theme="dark"] .btn-cta:hover{background:#4A62FF}
+  .page[hidden]{display:none}
   .maplink{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;transition:color .2s}
   .maplink:hover,.maplink[aria-current="page"]{color:var(--text)}
   .maplink:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
@@ -104,9 +130,9 @@
 
   /* layout */
   .page{position:relative}
-  header .toggle{position:absolute;top:clamp(16px,4vw,48px);right:clamp(12px,4vw,48px)}
+
   .stage{margin-top:clamp(8px,2vw,24px)}
-  @media (max-width:760px){ header .toggle{position:static;margin-top:16px} }
+
 
   .tag{font-size:13px;font-weight:700;line-height:1;padding:6px 10px;border-radius:999px;border:2px solid var(--border);color:var(--ink);white-space:nowrap}
   .tag.cob{background:var(--cobalt);color:#fff} .tag.chr{background:var(--chartreuse)} .tag.cor{background:var(--coral)}
@@ -296,14 +322,32 @@
 <script>
   (function(){var t='light';try{t=localStorage.getItem('mm-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}document.documentElement.setAttribute('data-theme',t)})();
 </script>
-<div class="page">
+<header class="site">
+  <a class="logo" href="#" id="logoLink" aria-label="move ♥ me, home"><span>move</span><svg class="logo-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.2c-.4 0-.8-.1-1.1-.4C5.6 16.4 2 13.2 2 8.9 2 5.9 4.3 3.6 7.2 3.6c1.9 0 3.6 1 4.8 2.5 1.2-1.5 2.9-2.5 4.8-2.5 2.9 0 5.2 2.3 5.2 5.3 0 4.3-3.6 7.5-8.9 11.9-.3.3-.7.4-1.1.4z"/></svg><span>me</span></a>
+  <nav class="site-nav" aria-label="Main">
+    <a href="#" id="navMap" class="navlink">Map</a>
+    <a href="#about" id="navAbout" class="navlink">About</a>
+    <button class="toggle" id="theme" type="button" aria-label="Switch color mode"><span class="dot"></span><span id="themeLabel">dark mode</span></button>
+  </nav>
+</header>
+
+<main class="about" id="about" hidden>
+  <p class="eyebrow">About Move ♥ Me</p>
+  <h1>for love, for work, or <span class="hl">both</span>.</h1>
+  <p>This experience is for those who want to find love, or a job, or maybe both. Studies probably show that people are willing to move for love, or move for a job. And now more than ever, I’m willing to bet people are getting a bit more desperate, a lot more bold. I believe many young people are willing to move to a new state to find love and start a relationship, or find jobs and start their career. Heck, mid-career job switchers, divorcees, recent widowers, and workaholics finally looking to settle down, are all just as likely to jump state borders.</p>
+  <p>We love love, we love our careers. But both the job market and the dating scene are bleek at the moment (iykyk)..</p>
+  <p>This tool was created for the curious love seekers and career builders. The ones who’d actually book a trip for a date, or a job interview, or both.</p>
+  <p class="strong">Are you one of them? Check out this map and take the Move ♥ Me intro quiz to see where in the world (well, in America) you are most likely to be moved by..</p>
+  <a class="btn btn-cta" href="#" id="exploreMap">Explore the map</a>
+</main>
+
+<div class="page" id="mapView">
   <header>
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap" title="Career map coming soon">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
       <p class="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. Or <a class="quiz" href="#quiz" id="quiz" title="Quiz coming soon">start with a quick quiz</a>.</p>
     </div>
-    <button class="toggle" id="theme" type="button" aria-label="Switch color mode"><span class="dot"></span><span id="themeLabel">dark mode</span></button>
   </header>
   <div class="stage" id="stage">
     <div class="now" id="now" aria-hidden="true"><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span></div>
@@ -754,6 +798,23 @@ document.getElementById("quiz").addEventListener("click", e => e.preventDefault(
 // Love Map is this page; Career Map is a placeholder until that experience is built.
 document.getElementById("loveMap").addEventListener("click", e => e.preventDefault());
 document.getElementById("careerMap").addEventListener("click", e => e.preventDefault());
+
+// views: the map (default) and #about
+const aboutView = document.getElementById("about"), mapView = document.getElementById("mapView");
+function routeView(){
+  const about = location.hash === "#about";
+  aboutView.hidden = !about; mapView.hidden = about;
+  document.getElementById("navAbout").toggleAttribute("aria-current", about);
+  document.getElementById("navMap").toggleAttribute("aria-current", !about);
+  if (about) { document.getElementById("navAbout").setAttribute("aria-current", "page"); closeSheet && closeSheet(); }
+  else { document.getElementById("navMap").setAttribute("aria-current", "page"); requestAnimationFrame(resize); }
+  document.title = about ? "about · Move ♥ Me" : "fifty states of maybe · Move ♥ Me";
+}
+function goMap(e){ e.preventDefault(); if (location.hash) history.pushState(null, "", location.pathname + location.search); routeView(); window.scrollTo(0, 0); }
+["navMap", "logoLink", "exploreMap"].forEach(id => document.getElementById(id).addEventListener("click", goMap));
+window.addEventListener("hashchange", () => { routeView(); window.scrollTo(0, 0); });
+window.addEventListener("popstate", routeView);
+routeView();
 
 // theme toggle
 const btn = document.getElementById("theme"), lab = document.getElementById("themeLabel");
