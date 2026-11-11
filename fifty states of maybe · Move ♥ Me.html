@@ -32,6 +32,9 @@
   .page{max-width:1240px;margin:0 auto;padding:clamp(16px,4vw,48px) clamp(12px,4vw,48px) 48px}
 
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:clamp(8px,2vw,24px)}
+  .maplink{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;transition:color .2s}
+  .maplink:hover,.maplink[aria-current="page"]{color:var(--text)}
+  .maplink:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
   .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle);margin:0 0 8px}
   h1{font-family:var(--display);font-weight:600;text-transform:lowercase;letter-spacing:-.02em;line-height:1.05;margin:0;
      font-size:clamp(30px,6.2vw,72px);max-width:12ch}
@@ -76,7 +79,7 @@
   .map.tight .lbl.sm{display:none}
   .map.tiny .lbl{display:none}
 
-  /* road trip route */
+  /* hot-spot route */
   .route{fill:none;stroke:var(--route);stroke-width:var(--route-w,3px);stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;
      stroke-dasharray:1 10;pointer-events:none}
   .route-under{fill:none;stroke:var(--coral);stroke-width:calc(var(--route-w,3px) * 3.2);stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.9;pointer-events:none}
@@ -243,6 +246,40 @@
   .note{font-size:13px;color:var(--text-subtle)}
   body.locked{overflow:hidden}
   footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:28px;padding-top:16px;border-top:1px solid var(--hair);font-size:13px;color:var(--text-subtle)}
+  .quiz{color:var(--text);font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--coral);transition:text-decoration-color .2s, color .2s}
+  .quiz:hover{text-decoration-color:var(--text)}
+  .quiz:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+  .refresh-wrap{position:relative;display:inline-block;width:.785em;height:.766em;vertical-align:-.1em;letter-spacing:0}
+  .refresh{font-size:inherit;position:absolute;left:.0095em;top:0;width:.766em;height:.766em;padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:50%;
+    transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+  .refresh svg{width:100%;height:100%;overflow:visible}
+  .refresh path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .refresh .r-under,.refresh .r-head{stroke:var(--coral);stroke-width:9}
+  .refresh .r-dots,.refresh .r-head-dots{stroke:var(--route);stroke-width:3;stroke-dasharray:.5 6.5}
+  .refresh:hover{transform:rotate(-25deg) scale(1.06)}
+  .refresh.spin{animation:spin .7s cubic-bezier(.34,1.3,.64,1)}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  .refresh:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+  .tip{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translate(-50%,6px);white-space:nowrap;pointer-events:none;opacity:0;z-index:5;
+    font:700 13px/1 var(--sans);letter-spacing:0;text-transform:none;background:var(--ink);color:var(--paper);padding:8px 12px;border-radius:999px;transition:opacity .15s, transform .2s cubic-bezier(.34,1.56,.64,1)}
+  .tip::after{content:"";position:absolute;left:50%;top:100%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--ink)}
+  [data-theme="dark"] .tip{background:var(--paper);color:var(--ink)} [data-theme="dark"] .tip::after{border-top-color:var(--paper)}
+  .refresh-wrap:hover .tip,.refresh:focus-visible + .tip{opacity:1;transform:translate(-50%,0)}
+
+  .now{position:absolute;left:70%;top:1%;z-index:4;translate:-50% 0;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;
+    background:var(--surface);border:2px solid var(--border);border-radius:999px;padding:6px 14px 6px 6px;box-shadow:2px 2px 0 var(--shadow);
+    font:700 14px/1.2 var(--sans);color:var(--text);transform:rotate(-1.5deg)}
+  .now-n{background:var(--coral);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:3px 9px;font:600 12px/1.2 var(--display);white-space:nowrap}
+  .now.pop{animation:nowpop .45s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes nowpop{from{transform:rotate(-1.5deg) scale(.8);opacity:0}}
+  @media (max-width:760px){ .now{position:relative;left:auto;top:auto;translate:none;white-space:normal;margin:0 0 10px;font-size:13px} }
+  .pin.in{animation:pinin .5s cubic-bezier(.34,1.56,.64,1) both;transform-box:fill-box;transform-origin:center}
+  @keyframes pinin{from{opacity:0;transform:scale(.2)}}
+  .route-under.drawin{animation:drawin .9s cubic-bezier(.22,1,.36,1) both}
+  @keyframes drawin{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+  @media (prefers-reduced-motion:no-preference){
+    .refresh .r-dots,.refresh .r-head-dots{animation:march 1.2s linear infinite}
+  }
   .key{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .key i{display:inline-block;width:22px;height:0;border-top:3px dotted var(--route);vertical-align:middle;margin-right:6px}
 </style>
@@ -254,16 +291,17 @@
 <div class="page">
   <header>
     <div>
-      <p class="eyebrow">Move ♥ Me · the dating map</p>
-      <h1>fifty states of <span class="hl">maybe</span>.</h1>
-      <p class="lede">Your person might be 1,000 miles away. So might your dream job. Hover or tap a state for its dating snapshot.</p>
+      <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap" title="Career map coming soon">Career Map</a></p>
+      <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
+      <p class="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. Or <a class="quiz" href="#quiz" id="quiz" title="Quiz coming soon">start with a quick quiz</a>.</p>
     </div>
     <button class="toggle" id="theme" type="button" aria-label="Switch color mode"><span class="dot"></span><span id="themeLabel">dark mode</span></button>
   </header>
   <div class="stage" id="stage">
-    <svg class="map intro" id="map" role="group" aria-label="Map of the United States. Hover or tap a state for its dating snapshot."></svg>
-    <div class="peek" id="peek" role="dialog" aria-label="State dating snapshot">
-      <p class="over">dating snapshot</p>
+    <div class="now" id="now" aria-hidden="true"><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span></div>
+    <svg class="map intro" id="map" role="group" aria-label="Map of the United States. Hover or tap a state for its love snapshot."></svg>
+    <div class="peek" id="peek" role="dialog" aria-label="State love snapshot">
+      <p class="over">love snapshot</p>
       <h2 id="pName">colorado</h2>
       <div class="stat">
         <svg class="ico" aria-hidden="true"><use href="#i-people"/></svg>
@@ -282,7 +320,7 @@
   </div>
 
   <footer>
-    <span class="key"><span><i></i>road trip: Seattle to New York</span></span>
+    <span class="key" aria-live="polite"><span><i></i><span id="routeLabel">10 hot spots, for inspiration: #1 best cities for singles (WalletHub, 2026)</span></span></span>
     <span>move ♥ me</span>
   </footer>
 </div>
@@ -360,29 +398,39 @@ DATA.states.filter(s => s.callout).forEach(s => {
   g.addEventListener("mouseleave", () => { if (current !== s.abbr) byAbbr[s.abbr].g.classList.remove("on"); });
 });
 
-// road trip route + pins + one heart
-const routeUnder = el("path", { class: "route-under" }, svg);
+// route + pins + one heart: the refresh button cycles the 20 top-ten city lists (inspiration, not a route).
+const CLUSTERS = [{"n":1,"name":"best cities for singles","cat":"love","source":"WalletHub, 2026","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Denver","st":"CO","x":342.9,"y":273.9},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"St. Louis","st":"MO","x":599.8,"y":303.6},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2}]},{"n":2,"name":"best date-night cities","cat":"love","source":"WalletHub, 2026","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Denver","st":"CO","x":342.9,"y":273.9},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3}]},{"n":3,"name":"cities with the most singles","cat":"love","source":"SmartAsset, 2026","cities":[{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"Milwaukee","st":"WI","x":631.3,"y":200.1},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Detroit","st":"MI","x":713.2,"y":207.3},{"name":"Cleveland","st":"OH","x":738.3,"y":222.8},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Rochester","st":"NY","x":798.8,"y":173.9},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":4,"name":"where the singles ratio tips one way","cat":"love","source":"SmartAsset, 2026","cities":[{"name":"Anchorage","st":"AK","x":112.3,"y":544.3},{"name":"Vancouver","st":"WA","x":80.4,"y":87.7},{"name":"Fremont","st":"CA","x":40.8,"y":268.5},{"name":"Fresno","st":"CA","x":74.1,"y":296.7},{"name":"Oxnard","st":"CA","x":70.7,"y":355.8},{"name":"Anaheim","st":"CA","x":91.7,"y":369.3},{"name":"Paradise","st":"NV","x":152.6,"y":329.8},{"name":"Aurora","st":"CO","x":345.5,"y":274.4},{"name":"Colorado Springs","st":"CO","x":343.8,"y":294.8},{"name":"Fayetteville","st":"NC","x":811.6,"y":360.2}]},{"n":5,"name":"where it tips the other way","cat":"love","source":"SmartAsset, 2026","cities":[{"name":"New Orleans","st":"LA","x":614.4,"y":501.3},{"name":"Memphis","st":"TN","x":607.4,"y":382.9},{"name":"Mobile","st":"AL","x":652.8,"y":481.6},{"name":"Milwaukee","st":"WI","x":631.3,"y":200.1},{"name":"Birmingham","st":"AL","x":670.4,"y":415.3},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Baltimore","st":"MD","x":832.9,"y":257.2},{"name":"Philadelphia","st":"PA","x":854.2,"y":237.1},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":6,"name":"most diverse cities","cat":"life","source":"WalletHub, 2026","cities":[{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"Arlington","st":"TX","x":477,"y":441.4},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"Charlotte","st":"NC","x":775.3,"y":362.4},{"name":"Germantown","st":"MD","x":822.2,"y":262.2},{"name":"Gaithersburg","st":"MD","x":823.5,"y":262.6},{"name":"Silver Spring","st":"MD","x":827.2,"y":265.4},{"name":"Jersey City","st":"NJ","x":868.4,"y":215.7},{"name":"New York","st":"NY","x":869.7,"y":215.7},{"name":"Danbury","st":"CT","x":875.2,"y":198.4}]},{"n":7,"name":"most LGBTQ+-friendly cities","cat":"love","source":"ConsumerAffairs, 2024","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"Tacoma","st":"WA","x":93.8,"y":53.5},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Reno","st":"NV","x":89.5,"y":234.6},{"name":"Spokane","st":"WA","x":171.1,"y":63.9},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Henderson","st":"NV","x":155.3,"y":331.6},{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Providence","st":"RI","x":906.1,"y":180.4}]},{"n":8,"name":"best cities for sports fans","cat":"life","source":"WalletHub, 2025","cities":[{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"Dallas","st":"TX","x":482.9,"y":440.5},{"name":"Kansas City","st":"MO","x":522.8,"y":295.7},{"name":"Miami","st":"FL","x":822.7,"y":572.5},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Philadelphia","st":"PA","x":854.2,"y":237.1},{"name":"New York","st":"NY","x":869.7,"y":215.7},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":9,"name":"most fun cities","cat":"life","source":"WalletHub, 2026","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"New Orleans","st":"LA","x":614.4,"y":501.3},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Miami","st":"FL","x":822.7,"y":572.5}]},{"n":10,"name":"best foodie cities","cat":"life","source":"WalletHub, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Sacramento","st":"CA","x":55.6,"y":248},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Miami","st":"FL","x":822.7,"y":572.5}]},{"n":11,"name":"highest-paying cities (tech)","cat":"work","source":"CompTIA, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"San Jose","st":"CA","x":41.1,"y":273.6},{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Baltimore","st":"MD","x":832.9,"y":257.2},{"name":"New York","st":"NY","x":869.7,"y":215.7},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":12,"name":"best cities to find a job","cat":"work","source":"WalletHub, 2026","cities":[{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Plano","st":"TX","x":484.8,"y":435},{"name":"Huntsville","st":"AL","x":671.8,"y":387.3},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Columbia","st":"MD","x":829.1,"y":260},{"name":"South Burlington","st":"VT","x":863.2,"y":129.2},{"name":"Portland","st":"ME","x":913.6,"y":135}]},{"n":13,"name":"best cities to start a career","cat":"work","source":"WalletHub, 2026","cities":[{"name":"Salt Lake City","st":"UT","x":228.5,"y":235.3},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Knoxville","st":"TN","x":717.2,"y":353.8},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Columbia","st":"SC","x":776.3,"y":390.7},{"name":"Miami","st":"FL","x":822.7,"y":572.5},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Charleston","st":"SC","x":801.3,"y":414.9}]},{"n":14,"name":"happiest cities","cat":"life","source":"WalletHub, 2026","cities":[{"name":"Fremont","st":"CA","x":40.8,"y":268.5},{"name":"San Jose","st":"CA","x":41.1,"y":273.6},{"name":"Irvine","st":"CA","x":92.5,"y":373.1},{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Gilbert","st":"AZ","x":202.2,"y":402.8},{"name":"Bismarck","st":"ND","x":423.5,"y":118.3},{"name":"Fargo","st":"ND","x":485.7,"y":118.5},{"name":"Overland Park","st":"KS","x":521.2,"y":298.4},{"name":"Charleston","st":"SC","x":801.3,"y":414.9},{"name":"South Burlington","st":"VT","x":863.2,"y":129.2}]},{"n":15,"name":"biggest cities","cat":"life","source":"U.S. Census Bureau, 2025","cities":[{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Phoenix","st":"AZ","x":197.2,"y":399.8},{"name":"San Antonio","st":"TX","x":448.7,"y":516.2},{"name":"Fort Worth","st":"TX","x":472.8,"y":440.9},{"name":"Dallas","st":"TX","x":482.9,"y":440.5},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"Chicago","st":"IL","x":638.2,"y":226.1},{"name":"Philadelphia","st":"PA","x":854.2,"y":237.1},{"name":"New York","st":"NY","x":869.7,"y":215.7}]},{"n":16,"name":"fastest-growing cities","cat":"work","source":"U.S. Census Bureau, 2025","cities":[{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"San Antonio","st":"TX","x":448.7,"y":516.2},{"name":"Fort Worth","st":"TX","x":472.8,"y":440.9},{"name":"Celina","st":"TX","x":483.3,"y":428},{"name":"McKinney","st":"TX","x":486,"y":430.9},{"name":"Fulshear","st":"TX","x":500,"y":510.8},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"Nashville","st":"TN","x":665.1,"y":355},{"name":"Charlotte","st":"NC","x":775.3,"y":362.4},{"name":"Port St. Lucie","st":"FL","x":813.9,"y":539.5}]},{"n":17,"name":"best park systems","cat":"life","source":"Trust for Public Land, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Irvine","st":"CA","x":92.5,"y":373.1},{"name":"Denver","st":"CO","x":342.9,"y":273.9},{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"St. Paul","st":"MN","x":544.7,"y":161.5},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Arlington","st":"VA","x":826.4,"y":268.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3}]},{"n":18,"name":"most pet-friendly cities","cat":"life","source":"WalletHub, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"St. Louis","st":"MO","x":599.8,"y":303.6},{"name":"Birmingham","st":"AL","x":670.4,"y":415.3},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Lexington","st":"KY","x":701,"y":307.8},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6}]},{"n":19,"name":"hottest music scenes","cat":"life","source":"Spin Genie, 2025","cities":[{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"New Orleans","st":"LA","x":614.4,"y":501.3},{"name":"Nashville","st":"TN","x":665.1,"y":355},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Miami","st":"FL","x":822.7,"y":572.5},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":20,"name":"best cities for women","cat":"work","source":"WalletHub, 2026","cities":[{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Fremont","st":"CA","x":40.8,"y":268.5},{"name":"Santa Clarita","st":"CA","x":83.2,"y":354.3},{"name":"Gilbert","st":"AZ","x":202.2,"y":402.8},{"name":"Overland Park","st":"KS","x":521.2,"y":298.4},{"name":"Raleigh","st":"NC","x":812.9,"y":343.1},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Columbia","st":"MD","x":829.1,"y":260},{"name":"South Burlington","st":"VT","x":863.2,"y":129.2}]}];
+const ROUTES = CLUSTERS.map(c => ({ ...c, label: `#${c.n} ${c.name} (${c.source})` }));
+let routeIdx = 0;   // starts on #1, best cities for singles
+const routeUnder = el("path", { class: "route-under", pathLength: "1" }, svg);
 const route = el("path", { class: "route draw" }, svg);
 const pins = el("g", {}, svg);
-const pinEls = DATA.cities.map(c => {
-  const g = el("g", { class: "pin" }, pins);
-  const ci = el("circle", { r: 5 }, g);
-  const t = el("text", {}, g); t.textContent = c.name;
-  return { c, g, ci, t };
-});
+let pinEls = [];
+function buildPins(animate){
+  pins.innerHTML = "";
+  pinEls = ROUTES[routeIdx].cities.map((c, i) => {
+    const g = el("g", { class: "pin" + (animate ? " in" : "") }, pins);
+    if (animate) g.style.animationDelay = (150 + i * 60) + "ms";
+    const ci = el("circle", { r: 5 }, g);
+    const t = el("text", {}, g); t.textContent = c.name;
+    return { c, g, ci, t };
+  });
+}
+buildPins(false);
 const heartWrap = el("g", {}, svg);
 const heart = el("g", { class: "heart" }, heartWrap);
 el("path", { d: "M0 6 C-3 2 -12 0 -12 -7 C-12 -12 -6 -14 0 -9 C6 -14 12 -12 12 -7 C12 0 3 2 0 6 Z" }, heart);
 
+let lastSpread = 1, lastScale = 1;
 function layout(spread, scale){
   const pts = pinEls.map(p => {
     const s = byAbbr[p.c.st].s;
     const x = p.c.x + s.dx * spread, y = p.c.y + s.dy * spread;
     p.ci.setAttribute("cx", x); p.ci.setAttribute("cy", y);
     p.ci.setAttribute("r", 5.5 / Math.max(scale, .55));
-    const left = p.c.name === "New York" || p.c.name === "Chicago";
+    const left = p.c.x > 860 || p.c.name === "Chicago";
     p.t.setAttribute("text-anchor", left ? "end" : "start");
-    p.t.setAttribute("x", left ? x - 9 / scale : x + 9 / scale); p.t.setAttribute("y", y + (p.c.name === "New York" ? -12 : -8) / scale);
+    p.t.setAttribute("x", left ? x - 9 / scale : x + 9 / scale); p.t.setAttribute("y", y + (p.c.x > 860 ? -12 : -8) / scale);
     return [x, y];
   });
   // smooth curve through the cities
@@ -393,6 +441,7 @@ function layout(spread, scale){
     d += ` Q${mx},${my} ${x1},${y1}`;
   }
   route.setAttribute("d", d); routeUnder.setAttribute("d", d);
+  lastSpread = spread; lastScale = scale;
   const [hx, hy] = pts[pts.length - 1];
   heartWrap.setAttribute("transform", `translate(${hx},${hy - 16/scale}) scale(${Math.max(1, 1/scale) * 1.15})`);
   DATA.states.filter(s => s._co).forEach(s => {
@@ -672,6 +721,31 @@ document.addEventListener("keydown", e => {
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
 });
+
+// refresh: cycle the 10-city lists
+const nowEl = document.getElementById("now");
+function showRoute(){
+  const r = ROUTES[routeIdx];
+  buildPins(true);
+  layout(lastSpread, lastScale);
+  routeUnder.classList.remove("drawin"); routeUnder.style.strokeDasharray = "1 1"; void routeUnder.getBoundingClientRect(); routeUnder.classList.add("drawin");
+  document.getElementById("routeLabel").textContent = "10 hot spots, for inspiration: " + r.label;
+  document.getElementById("nowN").textContent = `#${r.n} of 20`;
+  document.getElementById("nowName").textContent = r.name;
+  nowEl.classList.remove("pop"); void nowEl.offsetWidth; nowEl.classList.add("pop");
+}
+routeUnder.addEventListener("animationend", () => { routeUnder.classList.remove("drawin"); routeUnder.style.strokeDasharray = ""; });
+const refreshBtn = document.getElementById("refresh");
+refreshBtn.addEventListener("click", () => {
+  routeIdx = (routeIdx + 1) % ROUTES.length;    // #1 → #20, then back to #1
+  refreshBtn.classList.remove("spin"); void refreshBtn.offsetWidth; refreshBtn.classList.add("spin");
+  showRoute();
+});
+refreshBtn.addEventListener("animationend", () => refreshBtn.classList.remove("spin"));
+document.getElementById("quiz").addEventListener("click", e => e.preventDefault());
+// Love Map is this page; Career Map is a placeholder until that experience is built.
+document.getElementById("loveMap").addEventListener("click", e => e.preventDefault());
+document.getElementById("careerMap").addEventListener("click", e => e.preventDefault());
 
 // theme toggle
 const btn = document.getElementById("theme"), lab = document.getElementById("themeLabel");
