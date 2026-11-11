@@ -323,6 +323,13 @@
   .map .st .fill.edge{fill:none !important;pointer-events:none}
   symbol .zb-b{fill:var(--zb-fill);fill-opacity:1}
   symbol .zb-l{stroke:var(--zb-ln)}
+  symbol .zb-f{fill:var(--zb-ln)}
+  symbol .zb-c{stroke:var(--zb-fill)} symbol .zb-cf{fill:var(--zb-fill)}
+  /* pets & partners: icon beside each bar */
+  .pet-bars .pet-row{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center}
+  .pet-ico{width:44px;height:44px;overflow:visible;--zb-ln:var(--ink)}
+  .pet-ico.dog{--zb-fill:var(--cobalt)} .pet-ico.cat{--zb-fill:var(--coral)} .pet-ico.free{--zb-fill:#C9C9D1}
+  .pet-ico.dog use{--zb-ln:var(--ink)}
   .map .grf use{--zb-fill:var(--zb1);--zb-ln:var(--ink)} .map .grf use.alt{--zb-fill:var(--zb2)}
   .map .c0 .grf{--zb1:var(--chartreuse);--zb2:var(--coral)}
   .map .c1 .grf{--zb1:var(--coral);--zb2:#FFFFFF}
@@ -350,6 +357,7 @@
   .bdg-key .pl{display:inline-block;padding:1px 8px;border:1.5px solid var(--ink);border-radius:999px;background:var(--surface);color:var(--text);font-weight:800;font-size:12px}
   [data-theme="dark"] .bdg-key .pl{border-color:var(--paper)}
   .bdg-key .zi{display:inline-block;width:18px;height:18px;vertical-align:-4px}
+  .bdg-key .pet-ico{width:22px;height:22px;margin-right:-2px}
   @media (max-width:760px){ .bdg-key{display:none} }
   .map.tiny .bdg{display:none}
   .map .callouts{transition:opacity .3s}
@@ -1468,7 +1476,10 @@ function buildSheet(abbr){
       <p class="note">Nobody records zodiac signs, so these come from US birth-date patterns. Late-summer birthdays are the most common everywhere, so Cancer leads in every state.</p>`);
 
     html += acc("a4", "pets & partners", `
-      <div class="bars">${bar("Homes with a dog", d.dog, 70, "", R.us.dog, d.dog + "%")}${bar("Homes with a cat", d.cat, 70, "cor", R.us.cat, d.cat + "%")}${bar("Pet-free homes", d.free, 70, "gry", R.us.petFree, d.free + "%")}</div>
+      <div class="bars pet-bars">
+        <div class="pet-row">${petIcon("dog", "face", "b")}${bar("Homes with a dog", d.dog, 70, "", R.us.dog, d.dog + "%")}</div>
+        <div class="pet-row">${petIcon("cat", "face", "b")}${bar("Homes with a cat", d.cat, 70, "cor", R.us.cat, d.cat + "%")}</div>
+        <div class="pet-row">${petIcon("free", "nopaw", "b")}${bar("Pet-free homes", d.free, 70, "gry", R.us.petFree, d.free + "%")}</div></div>
       <p class="legend">Dashed line = US average. Dog and cat homes overlap.</p>
       <p class="note">${d.petNote ? d.petNote + " " : ""}Pet data is from 2016, the latest state-level survey, so today's numbers are likely a bit higher.</p>`);
 
@@ -1593,7 +1604,7 @@ function setMode(m, opts = {}){
   const bk = document.getElementById("bdgKey");
   if (bk) bk.innerHTML = MODE === "career"
     ? `Under each state: <span class="pl">#1</span> its rank of 50 for pay across the 20 most common jobs (#1 = highest).`
-    : `${zIcon("Cancer", "swash", "coral")} Hover a state to see it wallpapered with its most common sign: Cancer, in all 50, thanks to summer birthdays.`;
+    : `${petIcon("dog", "face", "b", "key")}${petIcon("cat", "face", "b", "key")}${petIcon("free", "nopaw", "b", "key")} Hover a state to see its pets: dogs, cats and pet-free homes, mixed by how common each one is there.`;
 }
 document.getElementById("loveMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("love"); });
 document.getElementById("careerMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("career"); });
@@ -1983,19 +1994,11 @@ var BADGES = [];
 const SINGLE_RANK = (() => { const r = {}; Object.entries(R.states).filter(([, d]) => d && d.singlePct != null).sort((a, b) => b[1].singlePct - a[1].singlePct).forEach(([k], i) => r[k] = i + 1); return r; })();
 function buildBadges(){
   const pill = (g, txt) => { const pg = el("g", { class: "pill" }, g); el("rect", {}, pg); el("text", {}, pg).textContent = txt; return pg; };
-  // blob ("swash") zodiac glyphs as recolourable symbols
-  const defs = el("defs", {}, svg), made = {};
-  const symbolFor = sign => {
-    const k = sign.toLowerCase(); if (made[k]) return made[k];
-    const src = ZODIAC.coral.light[k].swash.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "").replace(/<title>.*?<\/title>/, "")
-      .replace(/fill="#FF8A65"( fill-opacity="[^"]*")?/, 'class="zb-b"').replace(/stroke="#1B1B2F"/g, 'class="zb-l"');
-    const sym = el("symbol", { id: "zb-" + k, viewBox: "0 0 64 64" }, defs); sym.innerHTML = src;
-    return made[k] = "zb-" + k;
-  };
+  buildPetSymbols();
   DATA.states.forEach((s, si) => {
     const I = info(s.abbr), sign = I && I.most ? I.most[0] : null, C = CR.states[s.abbr], rank = C && C.payRank;
     const g = byAbbr[s.abbr].g, fill = g.querySelector(".fill");
-    if (sign) graffiti(s, si, g, fill, symbolFor(sign));
+    graffiti(s, si, g, fill);
     const host = s._co || g;   // tiny northeast states: beside their callout pill
     const sm = !s._co && (s.small || s.area < 1400);
     const car = el("g", { class: "bdg bdg-car" + (sm ? " sm" : "") }, host);
@@ -2004,7 +2007,43 @@ function buildBadges(){
   });
 }
 // each state gets its own mix: one huge tilted sign, a tidy repeating wallpaper, or a scattered graffiti spray
-function graffiti(s, si, g, fill, id){
+const R0 = R;   // research data (graffiti() shadows R with a random-range helper)
+// Pet icon set (brand line style, 64×64): 2 glyphs per kind × 3 stylings (a = blob, b = sticker, c = coloured outline)
+const PET_GLYPHS = {
+  dog: {
+    face: `<path class="L" d="M22 21C23 15 41 15 42 21L45 40C45 49 39 54 32 54S19 49 19 40Z"/><path class="L" d="M22 20C13 18 8 26 10 36C11.5 40.5 16 39 19 33.5M42 20C51 18 56 26 54 36C52.5 40.5 48 39 45 33.5"/><circle class="F" cx="26.5" cy="32" r="2.2"/><circle class="F" cx="37.5" cy="32" r="2.2"/><path class="F" d="M28.5 39.5h7c0 3-1.8 4.6-3.5 4.6s-3.5-1.6-3.5-4.6z"/><path class="L" d="M32 44.2v3M27 47.2c2 2 3.6 1.6 5 .4 1.4 1.2 3 1.6 5-.4"/>`,
+    bone: `<g transform="rotate(-32 32 32)"><path class="L" d="M23 27.5H41A6.5 6.5 0 1 1 47 32 6.5 6.5 0 1 1 41 36.5H23A6.5 6.5 0 1 1 17 32 6.5 6.5 0 1 1 23 27.5Z"/></g>`
+  },
+  cat: {
+    face: `<path class="L" d="M18 27 16 12l11 8c3-1 7-1 10 0l11-8-2 15c3 3.5 4 7 4 11 0 10-8 16-18 16S14 48 14 38c0-4 1-7.5 4-11Z"/><ellipse class="F" cx="25" cy="35" rx="2.1" ry="3.1"/><ellipse class="F" cx="39" cy="35" rx="2.1" ry="3.1"/><path class="F" d="M29.8 40.6h4.4L32 43.2z"/><path class="L" d="M32 43.4c-1 2-3 2.6-5 1.6M32 43.4c1 2 3 2.6 5 1.6M22 42.5 10 40.5M22 45.5l-11 2M42 42.5l12-2M42 45.5l11 2"/>`,
+    yarn: `<circle class="L" cx="31" cy="33" r="16"/><path class="L" d="M19 24c8 4 16 12 20 23.5M16.5 35c8 0 17 5 23 12.5M27 17.5c6 7 15 11 19.5 17M24 47.5c1-8 6-15 13-19"/><path class="L" d="M45 42c6 3 9 8 5 13.5"/>`
+  },
+  free: {
+    nopaw: `<path class="L" d="M23 45c0-7 4-11 9-11s9 4 9 11c0 4.5-4.5 5.5-9 3.6-4.5 1.9-9 .9-9-3.6Z"/><ellipse class="L" cx="21" cy="32" rx="3.4" ry="4.4"/><ellipse class="L" cx="27.5" cy="24.5" rx="3.4" ry="4.6"/><ellipse class="L" cx="36.5" cy="24.5" rx="3.4" ry="4.6"/><ellipse class="L" cx="43" cy="32" rx="3.4" ry="4.4"/><circle class="L" cx="32" cy="34" r="23"/><path class="L" d="M16 18 48 50"/>`,
+    plant: `<path class="L" d="M21.5 40h21l-3.2 14.5H24.7Z"/><path class="L" d="M19 40h26M32 40V25"/><path class="L" d="M32 30c-8 0-12.5-6-12.5-12.5 7.5 0 12.5 4.5 12.5 12.5ZM32 26c6.5 0 12-6 12-12.5-7.5 0-12 4.5-12 12.5Z"/>`
+  }
+};
+const PET_BLOB = `M10 34C8 18 24 8 38 11c14 3 20 19 14 31C46 54 26 58 16 50c-5-4-5.5-10-6-16Z`;
+const PET_IDS = { dog: [], cat: [], free: [] };
+function buildPetSymbols(){
+  const defs = svg.querySelector("defs") || el("defs", {}, svg);
+  Object.entries(PET_GLYPHS).forEach(([kind, glyphs]) => Object.entries(glyphs).forEach(([gname, body]) => {
+    const line = body.replace(/class="L"/g, 'class="zb-l" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"').replace(/class="F"/g, 'class="zb-f"');
+    const variants = {
+      a: `<path class="zb-b" d="${PET_BLOB}" transform="rotate(-10 32 32)"/>${line}`,
+      b: `<rect class="zb-b zb-l" x="6" y="6" width="52" height="52" rx="14" stroke-width="2.8" transform="rotate(6 32 32)"/>${line}`,
+      c: body.replace(/class="L"/g, 'class="zb-c" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"').replace(/class="F"/g, 'class="zb-cf"')
+    };
+    Object.entries(variants).forEach(([v, inner]) => {
+      const id = `pi-${kind}-${gname}-${v}`;
+      const sym = el("symbol", { id, viewBox: "0 0 64 64", overflow: "visible" }, defs); sym.innerHTML = inner;
+      PET_IDS[kind].push(id);
+    });
+  }));
+}
+const petIcon = (kind, gname = Object.keys(PET_GLYPHS[kind])[0], v = "b", cls = "") => `<svg class="pet-ico ${kind} ${cls}" viewBox="0 0 64 64" aria-hidden="true"><use href="#pi-${kind}-${gname}-${v}"/></svg>`;
+
+function graffiti(s, si, g, fill){
   let h0 = 0; for (const ch of s.abbr) h0 = (h0 * 31 + ch.charCodeAt(0)) >>> 0;
   let seed = h0 + si * 977; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
   const R = (a, b) => a + rnd() * (b - a);
@@ -2015,7 +2054,12 @@ function graffiti(s, si, g, fill, id){
   // pick a point that's actually on land (multi-part states like MI and HI have lots of water in their box)
   const inside = (fx0, fx1, fy0, fy1) => { let x, y; for (let i = 0; i < 40; i++) { x = bb.x + w * R(fx0, fx1); y = bb.y + h * R(fy0, fy1);
     try { const pt = svg.createSVGPoint(); pt.x = x; pt.y = y; if (fill.isPointInFill(pt)) break; } catch (e) { break; } } return [x, y]; };
-  const put = (x, y, size, rot) => { const u = el("use", { href: "#" + id, x: -size / 2, y: -size / 2, width: size, height: size, transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)})` }, grp); if (rnd() < .35) u.classList.add("alt"); };
+  // which pets: weighted by this state's dog / cat / pet-free shares; the most common one gets the big "anchor" spot
+  const d = R0.states[s.abbr], wts = d && d.dog != null ? { dog: d.dog, cat: d.cat, free: d.free } : { dog: 1, cat: 1, free: 1 };
+  const lead = Object.keys(wts).sort((a, b) => wts[b] - wts[a])[0], tot = wts.dog + wts.cat + wts.free;
+  let forced = lead;
+  const pickId = () => { let k = forced; forced = null; if (!k) { let r = rnd() * tot; k = r < wts.dog ? "dog" : r < wts.dog + wts.cat ? "cat" : "free"; } const ids = PET_IDS[k]; return ids[Math.floor(rnd() * ids.length)]; };
+  const put = (x, y, size, rot) => { const u = el("use", { href: "#" + pickId(), x: -size / 2, y: -size / 2, width: size, height: size, transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)})` }, grp); if (rnd() < .35) u.classList.add("alt"); };
   const styles = ["huge", "wall", "spray"], style = s.abbr === "HI" ? "wall" : s.area < 900 ? (rnd() < .5 ? "huge" : "wall") : styles[(h0 + si) % 3];
   if (style === "huge") {
     const big = (s.abbr === "MI" || s.abbr === "HI" || s.abbr === "AK") ? m * R(.9, 1.2) : M * R(.75, 1.0);
