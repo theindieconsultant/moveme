@@ -1601,11 +1601,11 @@ function sendAnswers(r){
 function valid(s){
   if (s === 1) return !!A.reason;
   if (s === 2) return !!A.scene;
-  if (s === 4) return !!A.age;
+  if (s === 4) return !!(A.age && A.home);   // age and home city are both required
   if (s === 5) return A.reason === "jobs"
     ? !!(A.industries.length && (!A.industries.includes("Other") || A.industryOther.trim()))
     : !!A.sign;
-  return true;   // places (3), home (4) and comments (6) are optional
+  return true;   // places (3) and comments (6) are optional
 }
 function validate(){
   const ok = valid(step);
@@ -1628,7 +1628,7 @@ function show(s, dir = 1){
   document.getElementById("commentQ").textContent = jobs
     ? "Do you want to share any comments about what career and finding jobs is like where you live?"
     : "Do you want to share any comments about what it’s like dating and finding love where you live?";
-  backBtn.style.visibility = s > 1 ? "visible" : "hidden";
+  backBtn.style.display = s > 1 ? "" : "none";   // on question 1 Next spans the full width of the two cards
   nextBtn.innerHTML = s === LAST ? 'All done <span class="arr" aria-hidden="true">→</span>' : 'Next <span class="arr" aria-hidden="true">→</span>';
   validate();
   qzCard.scrollTop = 0;
