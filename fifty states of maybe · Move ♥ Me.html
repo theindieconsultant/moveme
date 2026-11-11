@@ -402,6 +402,10 @@
     box-shadow:4px 4px 0 var(--shadow);padding:18px 20px 20px;opacity:0;pointer-events:none;
     transform:translateY(8px) rotate(-1deg) scale(.96);transition:opacity .18s ease, transform .28s cubic-bezier(.34,1.56,.64,1)}
   .peek.show{opacity:1;pointer-events:auto;transform:translateY(0) rotate(-1deg) scale(1)}
+  .peek-hint{margin:10px 0 0;font-size:12px;line-height:1.4;color:var(--text-subtle);text-align:center}
+  .peek.pinned .peek-hint{color:var(--text)}
+  .peek.pinned .peek-hint::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);border:1.5px solid var(--ink);margin-right:6px;vertical-align:0}
+  @media (hover:none),(max-width:760px){ .peek-hint{display:none} }
   .peek .over{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2-text);margin:0}
   .peek h2{font-family:var(--display);font-weight:600;font-size:24px;line-height:1.15;letter-spacing:-.01em;margin:4px 0 14px;text-transform:lowercase}
   .stat{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--hair)}
@@ -650,6 +654,7 @@
         <div style="flex:1"><div class="k" id="pCitiesK">Top cities to date</div><div class="chips" id="pCities"></div></div>
       </div>
       <button class="btn btn-primary" id="more" type="button">More info <span class="arr" aria-hidden="true">→</span></button>
+      <p class="peek-hint" id="pHint" aria-live="polite">Click the state to keep this open</p>
     </div>
   </div>
 
@@ -924,8 +929,11 @@ function buildPins(animate){
     const open = () => { cityHoverOff(p); openCity(c, g); };
     g.addEventListener("click", e => { e.stopPropagation(); open(); });
     g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
-    g.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") cityHoverOn(p); });
-    g.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") cityHoverOff(p); });
+    // with a state card open, a hot spot only takes over once the cursor pauses on it,
+    // so passing over one on the way to "More info" doesn't close the card
+    g.addEventListener("pointerenter", e => { if (e.pointerType !== "mouse") return; clearTimeout(p.dwell);
+      if (current && peek.classList.contains("show") && !pinned) p.dwell = setTimeout(() => cityHoverOn(p), 180); else cityHoverOn(p); });
+    g.addEventListener("pointerleave", e => { if (e.pointerType !== "mouse") return; clearTimeout(p.dwell); cityHoverOff(p); });
     g.addEventListener("focus", () => cityHoverOn(p)); g.addEventListener("blur", () => cityHoverOff(p));
     return p;
   });
@@ -1098,26 +1106,73 @@ function placePeek(abbr){
   peek.style.left = best.x + "px"; peek.style.top = best.y + "px";
 }
 
+function syncPin(){
+  peek.classList.toggle("pinned", pinned);
+  document.getElementById("pHint").textContent = pinned ? "Pinned. Click anywhere else to close" : "Click the state to keep this open";
+}
 function showPeek(abbr, opts = {}){
   clearTimeout(hideT);
   if (current && current !== abbr) byAbbr[current].g.classList.remove("on");
+  if (current !== abbr) shownAt = performance.now();
   current = abbr; peekAbbr = abbr;
   const g = byAbbr[abbr].g; g.classList.add("on"); g.parentNode.appendChild(g);
   fillPeek(abbr);
   peek.classList.add("show");
+  syncPin();
   requestAnimationFrame(() => placePeek(abbr));
   if (opts.scroll && !floating()) peek.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
-function hidePeekSoon(){
+// Hover intent: the snapshot card stays put while the cursor travels from the state toward it, even across
+// neighbouring states. "Toward" = inside the shape spanned by where the cursor left the state and the card.
+let lastPt = { x: -1, y: -1 }, exitPt = null, exitAt = 0, switchT = null, pendingAbbr = null, shownAt = 0;
+// capture phase, so every hover handler below sees the current cursor position
+["mousemove", "mouseover", "mouseout"].forEach(t => document.addEventListener(t, e => { lastPt = { x: e.clientX, y: e.clientY }; }, { capture: true, passive: true }));
+function inTri(p, a, b, c){
+  const d = (p1, p2, p3) => (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+  const d1 = d(p, a, b), d2 = d(p, b, c), d3 = d(p, c, a);
+  return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+}
+function inSafeZone(pt){
+  if (!exitPt || !peek.classList.contains("show") || performance.now() - exitAt > 1500) return false;
+  if (exitAt - shownAt < 250) return false;   // just sweeping across the map, not reading this card
+  const r = peek.getBoundingClientRect(), pad = 28;
+  const cs = [{ x: r.left - pad, y: r.top - pad }, { x: r.right + pad, y: r.top - pad }, { x: r.right + pad, y: r.bottom + pad }, { x: r.left - pad, y: r.bottom + pad }];
+  if (pt.x >= cs[0].x && pt.x <= cs[2].x && pt.y >= cs[0].y && pt.y <= cs[2].y) return true;
+  for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) if (inTri(pt, exitPt, cs[i], cs[j])) return true;
+  return false;
+}
+function hidePeekSoon(delay = 450){
   if (pinned || !floating()) return;
   clearTimeout(hideT);
-  hideT = setTimeout(() => { peek.classList.remove("show"); if (current) byAbbr[current].g.classList.remove("on"); current = null; }, 260);
+  hideT = setTimeout(() => {
+    if (inSafeZone(lastPt) && performance.now() - exitAt < 1500) return hidePeekSoon(250);   // still on the way to the card
+    peek.classList.remove("show"); if (current) byAbbr[current].g.classList.remove("on"); current = null;
+  }, delay);
+}
+function hoverState(abbr){
+  clearTimeout(switchT); pendingAbbr = null;
+  if (abbr === current) { clearTimeout(hideT); return; }
+  if (current && inSafeZone(lastPt)) {
+    // heading for the open card: wait, and only switch if the cursor settles on this state
+    pendingAbbr = abbr; clearTimeout(hideT);
+    switchT = setTimeout(() => { if (pendingAbbr === abbr && !peek.matches(":hover")) { const g = document.elementFromPoint(lastPt.x, lastPt.y)?.closest(".st"); if (g && g.dataset.abbr === abbr) showPeek(abbr); else if (!g) hidePeekSoon(); } pendingAbbr = null; }, 380);
+    return;
+  }
+  showPeek(abbr);
 }
 
-stLayer.addEventListener("mouseover", e => { const g = e.target.closest(".st"); if (g && floating() && !pinned) showPeek(g.dataset.abbr); });
-stLayer.addEventListener("mouseout", e => { const g = e.target.closest(".st"); if (g && !g.contains(e.relatedTarget)) hidePeekSoon(); });
-peek.addEventListener("mouseenter", () => clearTimeout(hideT));
-peek.addEventListener("mouseleave", hidePeekSoon);
+stLayer.addEventListener("mouseover", e => { const g = e.target.closest(".st"); if (g && floating() && !pinned) hoverState(g.dataset.abbr); });
+stLayer.addEventListener("mousemove", e => {
+  // left the safe zone while over another state: switch right away
+  if (pendingAbbr && !inSafeZone(lastPt)) { const a = pendingAbbr; pendingAbbr = null; clearTimeout(switchT); if (!pinned) showPeek(a); }
+});
+stLayer.addEventListener("mouseout", e => {
+  const g = e.target.closest(".st"); if (!g || g.contains(e.relatedTarget)) return;
+  if (g.dataset.abbr === current) { exitPt = { x: e.clientX, y: e.clientY }; exitAt = performance.now(); }
+  hidePeekSoon();
+});
+peek.addEventListener("mouseenter", () => { clearTimeout(hideT); clearTimeout(switchT); pendingAbbr = null; });
+peek.addEventListener("mouseleave", () => hidePeekSoon());
 stLayer.addEventListener("click", e => { const g = e.target.closest(".st"); if (!g) return; pinned = floating(); showPeek(g.dataset.abbr, { scroll: true }); });
 stLayer.addEventListener("keydown", e => {
   const g = e.target.closest(".st"); if (!g) return;
@@ -1125,7 +1180,7 @@ stLayer.addEventListener("keydown", e => {
 });
 stLayer.addEventListener("focusin", e => { const g = e.target.closest(".st"); if (g) { pinned = floating(); showPeek(g.dataset.abbr); } });
 document.addEventListener("click", e => {
-  if (pinned && !e.target.closest(".st") && !e.target.closest("#peek") && !e.target.closest(".callouts") && !e.target.closest("#sheet")) { pinned = false; hidePeekSoon(); }
+  if (pinned && !e.target.closest(".st") && !e.target.closest("#peek") && !e.target.closest(".callouts") && !e.target.closest("#sheet")) { pinned = false; syncPin(); hidePeekSoon(); }
 });
 function select(abbr){ pinned = floating(); showPeek(abbr, { scroll: true }); }
 window.addEventListener("resize", () => { if (peekAbbr && peek.classList.contains("show")) placePeek(peekAbbr); });
@@ -1372,7 +1427,7 @@ function closeSheet(){
 document.getElementById("close").addEventListener("click", closeSheet);
 scrim.addEventListener("click", closeSheet);
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { if (sheet.classList.contains("open")) closeSheet(); else if (pinned) { pinned = false; hidePeekSoon(); } }
+  if (e.key === "Escape") { if (sheet.classList.contains("open")) closeSheet(); else if (pinned) { pinned = false; syncPin(); hidePeekSoon(); } }
   if (e.key === "Tab" && sheet.classList.contains("open")) {
     const f = [...sheet.querySelectorAll("button")]; const first = f[0], last = f[f.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
