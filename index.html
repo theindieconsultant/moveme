@@ -616,6 +616,7 @@
       </div>
       <label class="qz-comment-label" for="qzComment">Do you want to share any comments about what it’s like either dating/finding love or how career/finding jobs is where you live? <span class="opt">(optional, but this info helps everyone!)</span></label>
       <textarea class="qz-textarea" id="qzComment" maxlength="1000"></textarea>
+      <p class="qz-hint">Your answers are saved anonymously to help shape Move ♥ Me. No names or emails, ever.</p>
     </section>
 
     <div class="qz-actions" id="qzNav" hidden>
@@ -1215,6 +1216,18 @@ document.getElementById("signPick").addEventListener("click", e => {
 ageSel.addEventListener("change", () => { A.age = ageSel.value; validate(); });
 document.getElementById("qzComment").addEventListener("input", e => { A.comment = e.target.value; });
 
+// --- send completed answers to the Move ♥ Me Google Sheet (Apps Script web app)
+const RESPONSES_URL = "https://script.google.com/macros/s/AKfycbygRXTJhAKwe8DD4YDQ0FVYVEtmEXL0t9TnFHi1xiE3i2nMHxrFyrLSUTHv4vyk3Vux/exec";
+function sendAnswers(r){
+  const payload = {
+    reason: r.reason || "", age: r.age || "", sign: r.sign || "", home: r.home || "",
+    places: (r.places || []).map(p => p.label), comment: (r.comment || "").slice(0, 1000)
+  };
+  // text/plain + no-cors keeps this a "simple" request, which Apps Script accepts from any site.
+  // The response can't be read in this mode, so failures are silent and never block the visitor.
+  try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).catch(() => {}); } catch (e) {}
+}
+
 // --- flow
 function valid(s){ return s === 1 ? !!A.reason : s === 3 ? !!(A.age && A.sign) : true; }   // places (2) and home/comments (4) are optional
 function validate(){
@@ -1288,6 +1301,7 @@ nextBtn.addEventListener("click", () => {
   // all done
   const result = { sign: A.sign, reason: A.reason, places: A.places, age: A.age, home: A.home, comment: A.comment, at: new Date().toISOString() };
   LS.set("mm-quiz", result);
+  sendAnswers(result);
   showResult(result);
   closeQuiz({ spiral: true, replayMap: true, reset: false, focus: document.getElementById("retake") });
 });
