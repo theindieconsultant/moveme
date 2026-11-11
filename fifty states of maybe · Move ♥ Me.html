@@ -71,6 +71,152 @@
   .about .credit a{color:inherit;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
   .about .credit a:hover{color:var(--text)}
   .about .credit a:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+  /* ===== Quick quiz (first-time user experience) ===== */
+  body.qz-open{overflow:hidden}
+  .qz{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px}
+  .qz[hidden]{display:none}
+  .qz-bg{position:absolute;inset:0;
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgba(47,75,255,.88), transparent 60%),
+      radial-gradient(100% 80% at 100% 10%, rgba(255,138,101,.85), transparent 60%),
+      radial-gradient(110% 90% at 60% 100%, rgba(212,242,90,.8), transparent 65%),
+      rgba(245,241,232,.35);
+    backdrop-filter:blur(3px) saturate(1.1);-webkit-backdrop-filter:blur(3px) saturate(1.1);
+    animation:qzFade .45s ease both}
+  [data-theme="dark"] .qz-bg{background:
+      radial-gradient(120% 90% at 0% 0%, rgba(47,75,255,.85), transparent 60%),
+      radial-gradient(100% 80% at 100% 10%, rgba(255,138,101,.6), transparent 60%),
+      radial-gradient(110% 90% at 60% 100%, rgba(212,242,90,.45), transparent 65%),
+      rgba(19,18,29,.62)}
+  @keyframes qzFade{from{opacity:0}}
+  .qz-card{position:relative;width:min(580px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;
+    background:var(--bg);color:var(--text);border:2px solid var(--border);border-radius:28px;box-shadow:6px 6px 0 var(--shadow);
+    padding:26px 28px 18px;animation:qzIn .55s cubic-bezier(.34,1.56,.64,1) both}
+  @media (max-width:560px){ .qz-card{padding:22px 18px 14px;border-radius:24px} }
+  @keyframes qzIn{from{opacity:0;transform:translateY(24px) rotate(-3deg) scale(.94)}}
+  /* the "All done" exit: the card spirals down into a point */
+  .qz-card.spiral{animation:qzSpiral .95s cubic-bezier(.55,0,.35,1) forwards}
+  @keyframes qzSpiral{
+    0%{transform:none;opacity:1;border-radius:28px}
+    35%{transform:translate(18px,-10px) rotate(120deg) scale(.78);border-radius:40%}
+    65%{transform:translate(-26px,14px) rotate(330deg) scale(.42);border-radius:50%}
+    100%{transform:translate(0,40px) rotate(620deg) scale(0);opacity:0;border-radius:50%}}
+  .qz.closing .qz-bg{animation:qzFade .7s ease .35s reverse both}
+  @media (prefers-reduced-motion:reduce){ .qz-card,.qz-card.spiral,.qz-bg{animation-duration:.01s !important} }
+
+  .qz-top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;margin-bottom:6px}
+  .qz-dots{display:flex;gap:6px}
+  .qz-dots i{width:28px;height:6px;border-radius:999px;background:var(--hair);transition:background .3s, width .3s}
+  .qz-dots i.on{background:var(--coral)} .qz-dots i.cur{width:40px;background:var(--cobalt)}
+  .qz-step-label{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
+  .qz-card .x{position:static;float:none;margin:0}
+  .qz-screen{animation:qzSlide .4s cubic-bezier(.22,1,.36,1) both}
+  .qz-screen.back{animation-name:qzSlideBack}
+  @keyframes qzSlide{from{opacity:0;transform:translateX(28px)}}
+  @keyframes qzSlideBack{from{opacity:0;transform:translateX(-28px)}}
+  .qz-screen[hidden]{display:none}
+  .qz-card h2{font-family:var(--display);font-weight:600;text-transform:lowercase;letter-spacing:-.02em;line-height:1.08;margin:4px 0 16px;font-size:clamp(26px,5vw,34px)}
+  .qz-card h2.big{font-size:clamp(32px,7vw,46px)}
+  .qz-card p{margin:0 0 12px;font-size:16px;line-height:1.6;color:var(--text-muted)}
+  .qz-card .eyebrow{margin:0 0 6px}
+  .qz-q{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:-.01em;margin:18px 0 10px;color:var(--text)}
+  .qz-hint{font-size:13px;color:var(--text-subtle);margin:8px 0 0}
+  .qz-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+  .qz-actions .btn{flex:1 1 auto;margin:0;width:auto}
+  .btn-secondary{background:var(--surface);color:var(--text)}
+  .btn-ghost{background:none;border-color:transparent;box-shadow:none;color:var(--text);padding-left:6px;padding-right:6px;flex:0 0 auto !important}
+  .btn-ghost:hover{box-shadow:none;transform:none;text-decoration:underline}
+  .btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+  .qz-actions[hidden],.qz-skip[hidden]{display:none !important}
+  .qz-card .combo-list{position:static;margin-top:6px;box-shadow:3px 3px 0 var(--shadow)}
+  .qz-skip{display:block;margin:14px auto 2px;background:none;border:0;font:500 13px/1.4 var(--sans);color:var(--text-subtle);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px}
+  .qz-skip:hover{color:var(--text)} .qz-skip:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+
+  /* Q1: two big choice cards */
+  .qz-choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .qz-choice{all:unset;box-sizing:border-box;cursor:pointer;border:2px solid var(--border);border-radius:20px;padding:22px 14px 18px;text-align:center;
+    background:var(--surface);box-shadow:3px 3px 0 var(--shadow);transition:transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, background .2s}
+  .qz-choice:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--shadow)}
+  .qz-choice:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+  .qz-choice svg{width:64px;height:64px;display:block;margin:0 auto 10px;overflow:visible}
+  .qz-choice b{display:block;font-family:var(--display);font-weight:600;font-size:20px;text-transform:lowercase;letter-spacing:-.01em}
+  .qz-choice small{display:block;font-size:13px;color:var(--text-subtle);margin-top:4px}
+  .qz-choice[aria-checked="true"]{background:var(--coral);color:var(--ink)} .qz-choice[aria-checked="true"] small{color:var(--ink)}
+  .qz-choice.jobs[aria-checked="true"]{background:var(--chartreuse)}
+
+  /* type-ahead combobox */
+  .combo{position:relative}
+  .combo-field{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:52px;padding:7px 44px 7px 10px;background:var(--surface);
+    border:2px solid var(--border);border-radius:14px;cursor:text}
+  .combo-field:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+  .combo-field .chip{display:inline-flex;align-items:center;gap:4px;font:700 13px/1 var(--sans);padding:6px 6px 6px 10px;border-radius:999px;border:2px solid var(--ink);color:var(--ink)}
+  .combo-field .chip.st{background:var(--chartreuse)} .combo-field .chip.ci{background:var(--coral)}
+  .combo-field .chip button{all:unset;cursor:pointer;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:14px;line-height:1}
+  .combo-field .chip button:hover{background:rgba(27,27,47,.15)} .combo-field .chip button:focus-visible{outline:2px solid var(--ink)}
+  .combo-input-wrap{position:relative;flex:1 1 140px;min-width:120px}
+  .combo-input,.combo-ghost{font:500 16px/1.4 var(--sans);padding:6px 4px;border:0;margin:0;letter-spacing:normal}
+  .combo-input{width:100%;background:transparent;color:var(--text);outline:none;position:relative;z-index:1}
+  .combo-input::placeholder{color:var(--text-subtle)}
+  .combo-ghost{position:absolute;inset:0;color:var(--text-subtle);white-space:pre;pointer-events:none;overflow:hidden}
+  .combo-ghost .typed{visibility:hidden}
+  .combo-toggle{all:unset;position:absolute;right:8px;top:12px;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--text)}
+  .combo-toggle:hover{background:var(--hair)} .combo-toggle:focus-visible{outline:2px solid var(--focus)}
+  .combo-toggle svg{width:14px;height:14px;transition:transform .2s} .combo.open .combo-toggle svg{transform:rotate(180deg)}
+  .combo-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:5;max-height:240px;overflow-y:auto;margin:0;padding:6px;list-style:none;
+    background:var(--surface);border:2px solid var(--border);border-radius:14px;box-shadow:4px 4px 0 var(--shadow)}
+  .combo-list[hidden]{display:none}
+  .combo-list .grp{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle);padding:8px 10px 4px}
+  .combo-list [role="option"]{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:15px;color:var(--text)}
+  .combo-list [role="option"] .sub{margin-left:auto;font-size:12px;color:var(--text-subtle)}
+  .combo-list [role="option"].active{background:var(--primary-soft)}
+  .combo-list [role="option"] .box{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);flex:none;display:grid;place-items:center}
+  .combo-list [role="option"][aria-selected="true"] .box{background:var(--cobalt);border-color:var(--cobalt)}
+  .combo-list [role="option"][aria-selected="true"] .box::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .combo-list mark{background:none;color:inherit;font-weight:800;text-decoration:underline;text-decoration-color:var(--coral);text-decoration-thickness:2px}
+  .combo-list .empty{padding:10px;font-size:14px;color:var(--text-subtle)}
+
+  /* Q3: age + zodiac */
+  .qz-select{appearance:none;-webkit-appearance:none;width:100%;font:500 16px/1.4 var(--sans);color:var(--text);background:var(--surface);
+    border:2px solid var(--border);border-radius:14px;padding:13px 44px 13px 14px;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.5l4 3.5 4-3.5' fill='none' stroke='%237F7F88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 16px center;background-size:14px}
+  .qz-select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .zpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media (max-width:520px){ .zpick{grid-template-columns:repeat(3,1fr)} }
+  .zopt{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:10px 4px 8px;border:1.5px solid var(--hair);border-radius:14px;background:var(--surface);
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), border-color .15s, background .15s}
+  .zopt:hover{transform:translateY(-2px);border-color:var(--border)}
+  .zopt:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .zopt .zi{width:40px;height:40px;margin:0 auto 4px;display:block}
+  .zopt b{display:block;font-size:13px;font-weight:700;color:var(--text)}
+  .zopt small{display:block;font-size:11px;color:var(--text-subtle);line-height:1.3;margin-top:1px}
+  .zopt[aria-checked="true"]{border:2px solid var(--border);background:var(--accent-2-soft);box-shadow:3px 3px 0 var(--shadow);transform:translate(-1px,-1px)}
+
+  /* Q4: comments */
+  .qz-textarea{width:100%;min-height:96px;resize:vertical;font:400 15px/1.5 var(--sans);color:var(--text);background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:12px 14px}
+  .qz-textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .qz-comment-label{display:block;font-style:italic;font-size:14px;line-height:1.5;color:var(--text-muted);margin:18px 0 8px}
+
+  /* result line under the lede, once the quiz is done */
+  .quiz-result{display:block;margin-top:10px;color:var(--text);font-weight:500;line-height:1.8}
+  .quiz-result > *{vertical-align:middle}
+  .quiz-result .retake-wrap{margin-right:6px}
+  .quiz-result #resIcon{display:inline-block;margin:0 4px}
+  .quiz-result .sep{margin:0 6px}
+  .quiz-result[hidden]{display:none}
+  .quiz-result .zi{width:1.5em;height:1.5em;vertical-align:middle}
+  .quiz-result .sep{color:var(--text-subtle)}
+  .quiz-result b{font-weight:700}
+  .retake-wrap{position:relative;display:inline-flex}
+  .retake{all:unset;cursor:pointer;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+  .retake:hover{transform:rotate(-30deg) scale(1.08)}
+  .retake:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .retake svg{width:24px;height:24px;overflow:visible}
+  .retake path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .retake .r-under,.retake .r-head{stroke:var(--coral);stroke-width:10}
+  .retake .r-dots,.retake .r-head-dots{stroke:var(--route);stroke-width:3.5;stroke-dasharray:.5 7.5}
+  .retake-wrap .tip{bottom:calc(100% + 8px)}
+  .retake-wrap:hover .tip,.retake:focus-visible + .tip{opacity:1;transform:translate(-50%,0)}
   .page[hidden]{display:none}
   .maplink{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;transition:color .2s}
   .maplink:hover,.maplink[aria-current="page"]{color:var(--text)}
@@ -78,9 +224,9 @@
   .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle);margin:0 0 8px}
   h1{font-family:var(--display);font-weight:600;text-transform:lowercase;letter-spacing:-.02em;line-height:1.05;margin:0;
      font-size:clamp(30px,6.2vw,72px);max-width:12ch}
-  h1 .hl{position:relative;white-space:nowrap;z-index:0}
-  h1 .hl::before{content:"";position:absolute;left:-.12em;right:-.12em;bottom:.04em;height:.42em;background:var(--chartreuse);z-index:-1;border-radius:6px;transform:rotate(-1.5deg)}
-  [data-theme="dark"] h1 .hl::before{background:var(--cobalt)}
+  h1 .hl,.qz-card .hl{position:relative;white-space:nowrap;z-index:0}
+  h1 .hl::before,.qz-card .hl::before{content:"";position:absolute;left:-.12em;right:-.12em;bottom:.04em;height:.42em;background:var(--chartreuse);z-index:-1;border-radius:6px;transform:rotate(-1.5deg)}
+  [data-theme="dark"] h1 .hl::before,[data-theme="dark"] .qz-card .hl::before{background:var(--cobalt)}
   .lede{font-size:clamp(15px,1.6vw,19px);font-weight:500;color:var(--text-muted);margin:12px 0 0;max-width:40ch}
 
   .toggle{font:700 14px/1 var(--sans);color:var(--text);background:var(--surface);border:2px solid var(--border);border-radius:999px;
@@ -362,7 +508,11 @@
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap" title="Career map coming soon">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
-      <p class="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. Or <a class="quiz" href="#quiz" id="quiz" title="Quiz coming soon">start with a quick quiz</a>.</p>
+      <p class="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
+      <div class="quiz-result" id="quizResult" hidden>
+        <span class="retake-wrap"><button class="retake" id="retake" type="button" aria-label="Retake quiz" aria-describedby="retakeTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="retakeTip" role="tooltip">retake quiz</span></span>
+        <span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span>
+      </div>
     </div>
   </header>
   <div class="stage" id="stage">
@@ -391,6 +541,92 @@
     <span class="key" aria-live="polite"><span><i></i><span id="routeLabel">10 hot spots, for inspiration: #1 best cities for singles (WalletHub, 2026)</span></span></span>
     <span>move ♥ me</span>
   </footer>
+</div>
+
+<!-- ===== Quick quiz (first-time user experience) ===== -->
+<div class="qz" id="quiz" hidden>
+  <div class="qz-bg" id="qzBg"></div>
+  <div class="qz-card" id="qzCard" role="dialog" aria-modal="true" aria-labelledby="qzTitle0">
+    <div class="qz-top">
+      <div><div class="qz-dots" id="qzDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+      <span class="qz-step-label" id="qzStepLabel"></span>
+      <button class="x" id="qzClose" type="button" aria-label="Close quiz">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5 Q12 12.4 19 18.6 M18.6 5 Q12.2 11.6 5.2 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- 0 · intro -->
+    <section class="qz-screen" data-step="0">
+      <p class="eyebrow">Welcome to Move ♥ Me</p>
+      <h2 class="big" id="qzTitle0">for love, for work, or <span class="hl">both</span>.</h2>
+      <p>This is for anyone who’d move for love, a job, or maybe both. I’m willing to bet people are getting a bit more bold, and that young people, career switchers, divorcees and workaholics ready to settle down are all just as likely to jump state borders.</p>
+      <p>We love love, we love our careers. But both scenes are bleak at the moment (iykyk)..</p>
+      <p class="strong" style="color:var(--text);font-weight:500">Are you one of the curious ones who’d book a trip for a date, a job interview, or both? Take the quick quiz to see what places in America are most likely to move you..</p>
+      <div class="qz-actions">
+        <button class="btn btn-primary" type="button" id="qzStart">Take quick quiz <span class="arr" aria-hidden="true">→</span></button>
+        <button class="btn btn-secondary" type="button" id="qzExplore">Explore the map</button>
+      </div>
+    </section>
+
+    <!-- 1 · love or jobs -->
+    <section class="qz-screen" data-step="1" hidden>
+      <h2 id="qzTitle1">which would you move to another state for?</h2>
+      <div class="qz-choices" role="radiogroup" aria-labelledby="qzTitle1">
+        <button class="qz-choice love" type="button" role="radio" aria-checked="false" data-val="love">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 54c-1 0-2-.3-2.8-1C15 41.6 7 34 7 23.6 7 16 12.8 10 20.2 10c4.8 0 9 2.5 11.8 6.3C34.8 12.5 39 10 43.8 10 51.2 10 57 16 57 23.6 57 34 49 41.6 34.8 53c-.8.7-1.8 1-2.8 1z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="3" stroke-linejoin="round"/></svg>
+          <b>for love</b><small>my person might be out there</small>
+        </button>
+        <button class="qz-choice jobs" type="button" role="radio" aria-checked="false" data-val="jobs">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M23 18v-4.5c0-2 1.6-3.5 3.5-3.5h11c2 0 3.5 1.6 3.5 3.5V18" fill="none" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round"/><rect x="8" y="18" width="48" height="34" rx="7" fill="#D4F25A" stroke="#1B1B2F" stroke-width="3"/><path d="M8 32h48" stroke="#1B1B2F" stroke-width="3"/><rect x="27" y="28" width="10" height="8" rx="2" fill="#2F4BFF" stroke="#1B1B2F" stroke-width="2.5"/></svg>
+          <b>for jobs</b><small>my dream job might be out there</small>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2 · places -->
+    <section class="qz-screen" data-step="2" hidden>
+      <h2 id="qzTitle2">are there any states or cities you’re open to or curious about?</h2>
+      <div class="combo" id="placesCombo" data-mode="multi">
+        <div class="combo-field">
+          <span class="chips" id="placesChips" style="display:contents"></span>
+          <span class="combo-input-wrap"><input class="combo-input" id="placesInput" type="text" role="combobox" aria-expanded="false" aria-controls="placesList" aria-autocomplete="list" aria-labelledby="qzTitle2" placeholder="Type a state or city…" autocomplete="off" spellcheck="false"></span>
+        </div>
+        <button class="combo-toggle" type="button" tabindex="-1" aria-label="Show all states"><svg viewBox="0 0 12 12"><path d="M2 4.5l4 3.5 4-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <ul class="combo-list" id="placesList" role="listbox" aria-multiselectable="true" hidden></ul>
+      </div>
+      <p class="qz-hint">Pick as many as you like. A few letters is enough.</p>
+    </section>
+
+    <!-- 3 · age + sign -->
+    <section class="qz-screen" data-step="3" hidden>
+      <h2 id="qzTitle3">a little about you</h2>
+      <label class="qz-q" for="ageSelect" style="display:block;margin-top:0">a. what is your age?</label>
+      <select class="qz-select" id="ageSelect">
+        <option value="">Choose your age range</option>
+      </select>
+      <p class="qz-q" id="signLabel">b. what is your zodiac sign?</p>
+      <div class="zpick" id="signPick" role="radiogroup" aria-labelledby="signLabel"></div>
+    </section>
+
+    <!-- 4 · where now -->
+    <section class="qz-screen" data-step="4" hidden>
+      <h2 id="qzTitle4">where in the world do you live now?</h2>
+      <div class="combo" id="homeCombo" data-mode="single">
+        <div class="combo-field">
+          <span class="combo-input-wrap"><span class="combo-ghost" id="homeGhost" aria-hidden="true"></span><input class="combo-input" id="homeInput" type="text" role="combobox" aria-expanded="false" aria-controls="homeList" aria-autocomplete="both" aria-labelledby="qzTitle4" placeholder="Start typing your city…" autocomplete="off" spellcheck="false"></span>
+        </div>
+        <ul class="combo-list" id="homeList" role="listbox" hidden></ul>
+      </div>
+      <label class="qz-comment-label" for="qzComment">Do you want to share any comments about what it’s like either dating/finding love or how career/finding jobs is where you live? (optional, but this info helps everyone!)</label>
+      <textarea class="qz-textarea" id="qzComment" maxlength="1000"></textarea>
+    </section>
+
+    <div class="qz-actions" id="qzNav" hidden>
+      <button class="btn btn-ghost" type="button" id="qzBack">← Back</button>
+      <button class="btn btn-primary" type="button" id="qzNext" aria-disabled="true">Next <span class="arr" aria-hidden="true">→</span></button>
+    </div>
+    <button class="qz-skip" type="button" id="qzSkip" hidden>skip for now</button>
+  </div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -810,7 +1046,6 @@ refreshBtn.addEventListener("click", () => {
   showRoute();
 });
 refreshBtn.addEventListener("animationend", () => refreshBtn.classList.remove("spin"));
-document.getElementById("quiz").addEventListener("click", e => e.preventDefault());
 // Love Map is this page; Career Map is a placeholder until that experience is built.
 document.getElementById("loveMap").addEventListener("click", e => e.preventDefault());
 document.getElementById("careerMap").addEventListener("click", e => e.preventDefault());
@@ -831,6 +1066,260 @@ function goMap(e){ e.preventDefault(); if (location.hash) history.pushState(null
 window.addEventListener("hashchange", () => { routeView(); window.scrollTo(0, 0); });
 window.addEventListener("popstate", routeView);
 routeView();
+
+// ===== Quick quiz (first-time user experience) =====
+const CITIES = ["New York|NY","Los Angeles|CA","Chicago|IL","Houston|TX","Philadelphia|PA","Phoenix|AZ","San Antonio|TX","San Diego|CA","Dallas|TX","San Jose|CA","Austin|TX","Indianapolis|IN","Jacksonville|FL","San Francisco|CA","Columbus|OH","Charlotte|NC","Fort Worth|TX","Detroit|MI","El Paso|TX","Memphis|TN","Seattle|WA","Denver|CO","Washington|DC","Boston|MA","Nashville|TN","Baltimore|MD","Oklahoma City|OK","Louisville|KY","Portland|OR","Las Vegas|NV","Milwaukee|WI","Albuquerque|NM","Tucson|AZ","Fresno|CA","Sacramento|CA","Long Beach|CA","Kansas City|MO","Mesa|AZ","Virginia Beach|VA","Atlanta|GA","Colorado Springs|CO","Omaha|NE","Raleigh|NC","Miami|FL","Oakland|CA","Minneapolis|MN","Tulsa|OK","Cleveland|OH","Wichita|KS","Arlington|TX","New Orleans|LA","Bakersfield|CA","Tampa|FL","Honolulu|HI","Aurora|CO","Anaheim|CA","Santa Ana|CA","St. Louis|MO","Riverside|CA","Corpus Christi|TX","Lexington-Fayette|KY","Pittsburgh|PA","Anchorage|AK","Stockton|CA","Cincinnati|OH","St. Paul|MN","Toledo|OH","Greensboro|NC","Newark|NJ","Plano|TX","Henderson|NV","Lincoln|NE","Buffalo|NY","Jersey City|NJ","Chula Vista|CA","Fort Wayne|IN","Orlando|FL","St. Petersburg|FL","Chandler|AZ","Laredo|TX","Norfolk|VA","Durham|NC","Madison|WI","Lubbock|TX","Irvine|CA","Winston-Salem|NC","Glendale|AZ","Garland|TX","Hialeah|FL","Reno|NV","Chesapeake|VA","Gilbert|AZ","Baton Rouge|LA","Irving|TX","Scottsdale|AZ","North Las Vegas|NV","Fremont|CA","Boise City|ID","Richmond|VA","San Bernardino|CA","Birmingham|AL","Spokane|WA","Rochester|NY","Des Moines|IA","Modesto|CA","Fayetteville|NC","Tacoma|WA","Oxnard|CA","Fontana|CA","Columbus|GA","Montgomery|AL","Moreno Valley|CA","Shreveport|LA","Aurora|IL","Yonkers|NY","Akron|OH","Huntington Beach|CA","Little Rock|AR","Augusta-Richmond County|GA","Amarillo|TX","Glendale|CA","Mobile|AL","Grand Rapids|MI","Salt Lake City|UT","Tallahassee|FL","Huntsville|AL","Grand Prairie|TX","Knoxville|TN","Worcester|MA","Newport News|VA","Brownsville|TX","Overland Park|KS","Santa Clarita|CA","Providence|RI","Garden Grove|CA","Chattanooga|TN","Oceanside|CA","Jackson|MS","Fort Lauderdale|FL","Santa Rosa|CA","Rancho Cucamonga|CA","Port St. Lucie|FL","Tempe|AZ","Ontario|CA","Vancouver|WA","Cape Coral|FL","Sioux Falls|SD","Springfield|MO","Peoria|AZ","Pembroke Pines|FL","Elk Grove|CA","Salem|OR","Lancaster|CA","Corona|CA","Eugene|OR","Palmdale|CA","Salinas|CA","Springfield|MA","Pasadena|TX","Fort Collins|CO","Hayward|CA","Pomona|CA","Cary|NC","Rockford|IL","Alexandria|VA","Escondido|CA","McKinney|TX","Kansas City|KS","Joliet|IL","Sunnyvale|CA","Torrance|CA","Bridgeport|CT","Lakewood|CO","Hollywood|FL","Paterson|NJ","Naperville|IL","Syracuse|NY","Mesquite|TX","Dayton|OH","Savannah|GA","Clarksville|TN","Orange|CA","Pasadena|CA","Fullerton|CA","Killeen|TX","Frisco|TX","Hampton|VA","McAllen|TX","Warren|MI","Bellevue|WA","West Valley City|UT","Columbia|SC","Olathe|KS","Sterling Heights|MI","New Haven|CT","Miramar|FL","Waco|TX","Thousand Oaks|CA","Cedar Rapids|IA","Charleston|SC","Visalia|CA","Topeka|KS","Elizabeth|NJ","Gainesville|FL","Thornton|CO","Roseville|CA","Carrollton|TX","Coral Springs|FL","Stamford|CT","Simi Valley|CA","Concord|CA","Hartford|CT","Kent|WA","Lafayette|LA","Midland|TX","Surprise|AZ","Denton|TX","Victorville|CA","Evansville|IN","Santa Clara|CA","Abilene|TX","Athens-Clarke County|GA","Vallejo|CA","Allentown|PA","Norman|OK","Beaumont|TX","Independence|MO","Murfreesboro|TN","Ann Arbor|MI","Springfield|IL","Berkeley|CA","Peoria|IL","Provo|UT","El Monte|CA","Columbia|MO","Lansing|MI","Fargo|ND","Downey|CA","Costa Mesa|CA","Wilmington|NC","Arvada|CO","Inglewood|CA","Miami Gardens|FL","Carlsbad|CA","Westminster|CO","Rochester|MN","Odessa|TX","Manchester|NH","Elgin|IL","West Jordan|UT","Round Rock|TX","Clearwater|FL","Waterbury|CT","Gresham|OR","Fairfield|CA","Billings|MT","Lowell|MA","San Buenaventura (Ventura)|CA","Pueblo|CO","High Point|NC","West Covina|CA","Richmond|CA","Murrieta|CA","Cambridge|MA","Antioch|CA","Temecula|CA","Norwalk|CA","Centennial|CO","Everett|WA","Wichita Falls|TX","Palm Bay|FL","Green Bay|WI","Daly City|CA","Burbank|CA","Richardson|TX","Pompano Beach|FL","North Charleston|SC","Broken Arrow|OK","Boulder|CO","West Palm Beach|FL","Santa Maria|CA","El Cajon|CA","Davenport|IA","Rialto|CA","Las Cruces|NM","San Mateo|CA","Lewisville|TX","South Bend|IN","Lakeland|FL","Erie|PA","Tyler|TX","Pearland|TX","College Station|TX","Kenosha|WI","Sandy Springs|GA","Clovis|CA","Flint|MI","Roanoke|VA","Albany|NY","Jurupa Valley|CA","Compton|CA","San Angelo|TX","Hillsboro|OR","Lawton|OK","Renton|WA","Vista|CA","Davie|FL","Greeley|CO","Mission Viejo|CA","Portsmouth|VA","Dearborn|MI","South Gate|CA","Tuscaloosa|AL","Livonia|MI","New Bedford|MA","Vacaville|CA","Brockton|MA","Roswell|GA","Beaverton|OR","Quincy|MA","Sparks|NV","Yakima|WA","Lee's Summit|MO","Federal Way|WA","Carson|CA","Santa Monica|CA","Hesperia|CA","Allen|TX","Rio Rancho|NM","Yuma|AZ","Westminster|CA","Orem|UT","Lynn|MA","Redding|CA","Spokane Valley|WA","Miami Beach|FL","League City|TX","Lawrence|KS","Santa Barbara|CA","Plantation|FL","Sandy|UT","Sunrise|FL","Macon|GA","Longmont|CO","Boca Raton|FL","San Marcos|CA","Greenville|NC","Waukegan|IL","Fall River|MA","Chico|CA","Newton|MA","San Leandro|CA","Reading|PA","Norwalk|CT","Fort Smith|AR","Newport Beach|CA","Asheville|NC","Nashua|NH","Edmond|OK","Whittier|CA","Nampa|ID","Bloomington|MN","Deltona|FL","Hawthorne|CA","Duluth|MN","Carmel|IN","Suffolk|VA","Clifton|NJ","Citrus Heights|CA","Livermore|CA","Tracy|CA","Alhambra|CA","Kirkland|WA","Trenton|NJ","Ogden|UT","Hoover|AL","Cicero|IL","Fishers|IN","Sugar Land|TX","Danbury|CT","Meridian|ID","Indio|CA","Concord|NC","Menifee|CA","Champaign|IL","Buena Park|CA","Troy|MI","O'Fallon|MO","Johns Creek|GA","Bellingham|WA","Westland|MI","Bloomington|IN","Sioux City|IA","Warwick|RI","Hemet|CA","Longview|TX","Farmington Hills|MI","Bend|OR","Lakewood|CA","Merced|CA","Mission|TX","Chino|CA","Redwood City|CA","Edinburg|TX","Cranston|RI","Parma|OH","New Rochelle|NY","Lake Forest|CA","Napa|CA","Hammond|IN","Fayetteville|AR","Bloomington|IL","Avondale|AZ","Somerville|MA","Palm Coast|FL","Bryan|TX","Gary|IN","Largo|FL","Brooklyn Park|MN","Tustin|CA","Racine|WI","Deerfield Beach|FL","Lynchburg|VA","Mountain View|CA","Medford|OR","Lawrence|MA","Bellflower|CA","Melbourne|FL","St. Joseph|MO","Camden|NJ","St. George|UT","Kennewick|WA","Baldwin Park|CA","Chino Hills|CA","Alameda|CA","Albany|GA","Arlington Heights|IL","Scranton|PA","Evanston|IL","Kalamazoo|MI","Baytown|TX","Upland|CA","Springdale|AR","Bethlehem|PA","Schaumburg|IL","Mount Pleasant|SC","Auburn|WA","Decatur|IL","San Ramon|CA","Pleasanton|CA","Wyoming|MI","Lake Charles|LA","Plymouth|MN","Bolingbrook|IL","Pharr|TX","Appleton|WI","Gastonia|NC","Folsom|CA","Southfield|MI","Rochester Hills|MI","New Britain|CT","Goodyear|AZ","Canton|OH","Warner Robins|GA","Union City|CA","Perris|CA","Manteca|CA","Iowa City|IA","Jonesboro|AR","Wilmington|DE","Lynwood|CA","Loveland|CO","Pawtucket|RI","Boynton Beach|FL","Waukesha|WI","Gulfport|MS","Apple Valley|CA","Passaic|NJ","Rapid City|SD","Layton|UT","Lafayette|IN","Turlock|CA","Muncie|IN","Temple|TX","Missouri City|TX","Redlands|CA","Santa Fe|NM","Lauderhill|FL","Milpitas|CA","Palatine|IL","Missoula|MT","Rock Hill|SC","Jacksonville|NC","Franklin|TN","Flagstaff|AZ","Flower Mound|TX","Weston|FL","Waterloo|IA","Union City|NJ","Mount Vernon|NY","Fort Myers|FL","Dothan|AL","Rancho Cordova|CA","Redondo Beach|CA","Jackson|TN","Pasco|WA","St. Charles|MO","Eau Claire|WI","North Richland Hills|TX","Bismarck|ND","Yorba Linda|CA","Kenner|LA","Walnut Creek|CA","Frederick|MD","Oshkosh|WI","Pittsburg|CA","Palo Alto|CA","Bossier City|LA","Portland|ME","St. Cloud|MN","Davis|CA","South San Francisco|CA","Camarillo|CA","North Little Rock|AR","Schenectady|NY","Gaithersburg|MD","Harlingen|TX","Woodbury|MN","Eagan|MN","Yuba City|CA","Maple Grove|MN","Youngstown|OH","Skokie|IL","Kissimmee|FL","Johnson City|TN","Victoria|TX","San Clemente|CA","Bayonne|NJ","Laguna Niguel|CA","East Orange|NJ","Shawnee|KS","Homestead|FL","Delray Beach|FL","Rockville|MD","Janesville|WI","Conway|AR","Pico Rivera|CA","Lorain|OH","Montebello|CA","Lodi|CA","New Braunfels|TX","Marysville|WA","Tamarac|FL","Madera|CA","Conroe|TX","Santa Cruz|CA","Eden Prairie|MN","Cheyenne|WY","Daytona Beach|FL","Alpharetta|GA","Hamilton|OH","Waltham|MA","Coon Rapids|MN","Haverhill|MA","Council Bluffs|IA","Taylor|MI","Utica|NY","Ames|IA","La Habra|CA","Encinitas|CA","Bowling Green|KY","Burnsville|MN","Greenville|SC","West Des Moines|IA","Cedar Park|TX","Tulare|CA","Monterey Park|CA","Vineland|NJ","Terre Haute|IN","North Miami|FL","Mansfield|TX","West Allis|WI","Bristol|CT","Taylorsville|UT","Malden|MA","Meriden|CT","Blaine|MN","Wellington|FL","Cupertino|CA","Springfield|OR","Rogers|AR","St. Clair Shores|MI","Gardena|CA","Pontiac|MI","National City|CA","Grand Junction|CO","Rocklin|CA","Chapel Hill|NC","Casper|WY","Broomfield|CO","Petaluma|CA","South Jordan|UT","Springfield|OH","Great Falls|MT","Lancaster|PA","North Port|FL","Lakewood|WA","Marietta|GA","San Rafael|CA","Royal Oak|MI","Des Plaines|IL","Huntington Park|CA","La Mesa|CA","Orland Park|IL","Auburn|AL","Lakeville|MN","Owensboro|KY","Moore|OK","Jupiter|FL","Idaho Falls|ID","Dubuque|IA","Bartlett|TN","Rowlett|TX","Novi|MI","White Plains|NY","Arcadia|CA","Redmond|WA","Lake Elsinore|CA","Ocala|FL","Tinley Park|IL","Port Orange|FL","Medford|MA","Oak Lawn|IL","Rocky Mount|NC","Kokomo|IN","Coconut Creek|FL","Bowie|MD","Berwyn|IL","Midwest City|OK","Fountain Valley|CA","Buckeye|AZ","Dearborn Heights|MI","Woodland|CA","Noblesville|IN","Valdosta|GA","Diamond Bar|CA","Manhattan|KS","Santee|CA","Taunton|MA","Sanford|FL","Kettering|OH","New Brunswick|NJ","Decatur|AL","Chicopee|MA","Anderson|IN","Margate|FL","Weymouth Town|MA","Hempstead|NY","Corvallis|OR","Eastvale|CA","Porterville|CA","West Haven|CT","Brentwood|CA","Paramount|CA","Grand Forks|ND","Georgetown|TX","St. Peters|MO","Shoreline|WA","Mount Prospect|IL","Hanford|CA","Normal|IL","Rosemead|CA","Lehi|UT","Pocatello|ID","Highland|CA","Novato|CA","Port Arthur|TX","Carson City|NV","San Marcos|TX","Hendersonville|TN","Elyria|OH","Revere|MA","Pflugerville|TX","Greenwood|IN","Bellevue|NE","Wheaton|IL","Smyrna|GA","Sarasota|FL","Blue Springs|MO","Colton|CA","Euless|TX","Castle Rock|CO","Cathedral City|CA","Kingsport|TN","Lake Havasu City|AZ","Pensacola|FL","Hoboken|NJ","Yucaipa|CA","Watsonville|CA","Richland|WA","Delano|CA","Hoffman Estates|IL","Florissant|MO","Placentia|CA","West New York|NJ","Dublin|CA","Oak Park|IL","Peabody|MA","Perth Amboy|NJ","Battle Creek|MI","Bradenton|FL","Gilroy|CA","Milford|CT","Albany|OR","Ankeny|IA","La Crosse|WI","Burlington|NC","DeSoto|TX","Harrisonburg|VA","Minnetonka|MN","Elkhart|IN","Lakewood|OH","Glendora|CA","Southaven|MS","Charleston|WV","Joplin|MO","Enid|OK","Palm Beach Gardens|FL","Brookhaven|GA","Plainfield|NJ","Grand Island|NE","Palm Desert|CA","Huntersville|NC","Tigard|OR","Lenexa|KS","Saginaw|MI","Kentwood|MI","Doral|FL","Apple Valley|MN","Grapevine|TX","Aliso Viejo|CA","Sammamish|WA","Casa Grande|AZ","Pinellas Park|FL","Troy|NY","West Sacramento|CA","Burien|WA","Commerce City|CO","Monroe|LA","Cerritos|CA","Downers Grove|IL","Coral Gables|FL","Wilson|NC","Niagara Falls|NY","Poway|CA","Edina|MN","Cuyahoga Falls|OH","Rancho Santa Margarita|CA","Harrisburg|PA","Huntington|WV","La Mirada|CA","Cypress|CA","Caldwell|ID","Logan|UT","Galveston|TX","Sheboygan|WI","Middletown|OH","Murray|UT","Roswell|NM","Parker|CO","Bedford|TX","East Lansing|MI","Methuen|MA","Covina|CA","Alexandria|LA","Olympia|WA","Euclid|OH","Mishawaka|IN","Salina|KS","Azusa|CA","Newark|OH","Chesterfield|MO","Leesburg|VA","Dunwoody|GA","Hattiesburg|MS","Roseville|MI","Bonita Springs|FL","Portage|MI","St. Louis Park|MN","Collierville|TN","Middletown|CT","Stillwater|OK","East Providence|RI","Lawrence|IN","Wauwatosa|WI","Mentor|OH","Ceres|CA","Cedar Hill|TX","Mansfield|OH","Binghamton|NY","Coeur d'Alene|ID","San Luis Obispo|CA","Minot|ND","Palm Springs|CA","Pine Bluff|AR","Texas City|TX","Summerville|SC","Twin Falls|ID","Jeffersonville|IN","San Jacinto|CA","Madison|AL","Altoona|PA","Columbus|IN","Beavercreek|OH","Apopka|FL","Elmhurst|IL","Maricopa|AZ","Farmington|NM","Glenview|IL","Cleveland Heights|OH","Draper|UT","Lincoln|CA","Sierra Vista|AZ","Lacey|WA","Biloxi|MS","Strongsville|OH","Barnstable Town|MA","Wylie|TX","Sayreville|NJ","Kannapolis|NC","Charlottesville|VA","Littleton|CO","Titusville|FL","Hackensack|NJ","Newark|CA","Pittsfield|MA","York|PA","Lombard|IL","Attleboro|MA","DeKalb|IL","Blacksburg|VA","Dublin|OH","Haltom City|TX","Lompoc|CA","El Centro|CA","Danville|CA","Jefferson City|MO","Cutler Bay|FL","Oakland Park|FL","North Miami Beach|FL","Freeport|NY","Moline|IL","Coachella|CA","Fort Pierce|FL","Smyrna|TN","Bountiful|UT","Fond du Lac|WI","Everett|MA","Danville|VA","Keller|TX","Belleville|IL","Bell Gardens|CA","Cleveland|TN","North Lauderdale|FL","Fairfield|OH","Salem|MA","Rancho Palos Verdes|CA","San Bruno|CA","Concord|NH","Burlington|VT","Apex|NC","Midland|MI","Altamonte Springs|FL","Hutchinson|KS","Buffalo Grove|IL","Urbandale|IA","State College|PA","Urbana|IL","Plainfield|IL","Manassas|VA","Bartlett|IL","Kearny|NJ","Oro Valley|AZ","Findlay|OH","Rohnert Park|CA","Westfield|MA","Linden|NJ","Sumter|SC","Wilkes-Barre|PA","Woonsocket|RI","Leominster|MA","Shelton|CT","Brea|CA","Covington|KY","Rockwall|TX","Riverton|UT","Meridian|MS","St. Cloud|FL","Quincy|IL","Morgan Hill|CA","Warren|OH","Edmonds|WA","Burleson|TX","Beverly|MA","Mankato|MN","Hagerstown|MD","Prescott|AZ","Campbell|CA","Cedar Falls|IA","Beaumont|CA","La Puente|CA","Crystal Lake|IL","Fitchburg|MA","Carol Stream|IL","Hickory|NC","Streamwood|IL","Norwich|CT","Coppell|TX","San Gabriel|CA","Holyoke|MA","Bentonville|AR","Peachtree Corners|GA","Florence|AL","Brentwood|TN","Bozeman|MT","New Berlin|WI","Goose Creek|SC","Huntsville|TX","Prescott Valley|AZ","Maplewood|MN","Romeoville|IL","Duncanville|TX","Atlantic City|NJ","Clovis|NM","The Colony|TX","Culver City|CA","Marlborough|MA","Hilton Head Island|SC","Moorhead|MN","Calexico|CA","Bullhead City|AZ","Germantown|TN","La Quinta|CA","Lancaster|OH","Wausau|WI","Sherman|TX","Ocoee|FL","Shakopee|MN","Woburn|MA","Bremerton|WA","Rock Island|IL","Muskogee|OK","Cape Girardeau|MO","Annapolis|MD","Greenacres|FL","Ormond Beach|FL","Hallandale Beach|FL","Stanton|CA","Puyallup|WA","Pacifica|CA","Hanover Park|IL","Hurst|TX","Lima|OH","Marana|AZ","Carpentersville|IL","Oakley|CA","Huber Heights|OH","Lancaster|TX","Montclair|CA","Wheeling|IL","Brookfield|WI","Park Ridge|IL","Florence|SC","Roy|UT","Winter Garden|FL","Chelsea|MA","Valley Stream|NY","Spartanburg|SC","Lake Oswego|OR","Friendswood|TX","Westerville|OH","Northglenn|CO","Phenix City|AL","Grove City|OH","Texarkana|TX","Addison|IL","Dover|DE","Lincoln Park|MI","Calumet City|IL","Muskegon|MI","Aventura|FL","Martinez|CA","Greenfield|WI","Apache Junction|AZ","Monrovia|CA","Weslaco|TX","Keizer|OR","Spanish Fork|UT","Beloit|WI","Panama City|FL","Paradise|NV","Germantown|MD","Silver Spring|MD","Columbia|MD","South Burlington|VT","Celina|TX","Fulshear|TX","Arlington|VA","Lexington|KY","Montpelier|VT","Bangor|ME","Juneau|AK","Helena|MT","Pierre|SD","Augusta|ME","Ithaca|NY","Key West|FL","Sedona|AZ","Hilo|HI","Kailua|HI","Fairbanks|AK","Jackson|WY","Bar Harbor|ME","Marquette|MI","Traverse City|MI"].map(s => { const [c, st] = s.split("|"); return { c, st, label: `${c}, ${st}` }; });
+const STATE_LIST = DATA.states.map(s => ({ abbr: s.abbr, name: s.name })).sort((a, b) => a.name.localeCompare(b.name));
+const SIGN_INFO = [
+  ["Aries", "Mar 21 – Apr 19"], ["Taurus", "Apr 20 – May 20"], ["Gemini", "May 21 – Jun 20"], ["Cancer", "Jun 21 – Jul 22"],
+  ["Leo", "Jul 23 – Aug 22"], ["Virgo", "Aug 23 – Sep 22"], ["Libra", "Sep 23 – Oct 22"], ["Scorpio", "Oct 23 – Nov 21"],
+  ["Sagittarius", "Nov 22 – Dec 21"], ["Capricorn", "Dec 22 – Jan 19"], ["Aquarius", "Jan 20 – Feb 18"], ["Pisces", "Feb 19 – Mar 20"]
+];
+// Most compatible signs: the classic element pairings (same element + complementary element),
+// as listed by Bustle and echoed in Cosmopolitan and Elle compatibility guides.
+const PAIRS = {
+  Aries: ["Gemini", "Leo", "Sagittarius", "Aquarius"], Taurus: ["Cancer", "Virgo", "Capricorn", "Pisces"],
+  Gemini: ["Aries", "Leo", "Libra", "Aquarius"], Cancer: ["Taurus", "Virgo", "Scorpio", "Pisces"],
+  Leo: ["Aries", "Gemini", "Libra", "Sagittarius"], Virgo: ["Taurus", "Cancer", "Scorpio", "Capricorn"],
+  Libra: ["Gemini", "Leo", "Sagittarius", "Aquarius"], Scorpio: ["Cancer", "Virgo", "Capricorn", "Pisces"],
+  Sagittarius: ["Aries", "Leo", "Libra", "Aquarius"], Capricorn: ["Taurus", "Virgo", "Scorpio", "Pisces"],
+  Aquarius: ["Aries", "Gemini", "Libra", "Sagittarius"], Pisces: ["Taurus", "Cancer", "Scorpio", "Capricorn"]
+};
+const LS = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }, del(k){ try { localStorage.removeItem(k); } catch(e){} } };
+
+const qz = document.getElementById("quiz"), qzCard = document.getElementById("qzCard");
+const screens = [...qz.querySelectorAll(".qz-screen")];
+const nextBtn = document.getElementById("qzNext"), backBtn = document.getElementById("qzBack");
+let step = 0, lastFocusQz = null;
+const blank = () => ({ reason: null, places: [], age: "", sign: null, home: "", comment: "" });
+let A = blank();
+
+// --- build static pieces
+const ageSel = document.getElementById("ageSelect");
+for (let a = 20; a < 100; a += 5) { const o = document.createElement("option"); o.value = `${a}–${a + 4}`; o.textContent = `${a}–${a + 4}`; ageSel.appendChild(o); }
+document.getElementById("signPick").innerHTML = SIGN_INFO.map(([n, d]) =>
+  `<button class="zopt" type="button" role="radio" aria-checked="false" data-sign="${n}">${zIcon(n, "twotone", "coral")}<b>${n}</b><small>${d}</small></button>`).join("");
+
+// --- type-ahead combobox (multi: states + cities as chips; single: one city with inline completion)
+function esc(t){ return t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function hl(text, q){ if (!q) return esc(text); const i = text.toLowerCase().indexOf(q.toLowerCase()); return i < 0 ? esc(text) : esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length)); }
+function rank(list, q, key, n){
+  const ql = q.toLowerCase(), starts = [], words = [], has = [];
+  for (const it of list) { const t = key(it).toLowerCase(); if (t.startsWith(ql)) starts.push(it); else if (t.includes(" " + ql)) words.push(it); else if (t.includes(ql)) has.push(it); if (starts.length >= n) break; }
+  return starts.concat(words, has).slice(0, n);
+}
+function makeCombo(root, opts){
+  const input = root.querySelector(".combo-input"), list = root.querySelector(".combo-list"), field = root.querySelector(".combo-field");
+  const ghost = root.querySelector(".combo-ghost"), toggle = root.querySelector(".combo-toggle");
+  let items = [], active = -1;
+  const open = () => { list.hidden = false; root.classList.add("open"); input.setAttribute("aria-expanded", "true"); };
+  const close = () => { list.hidden = true; root.classList.remove("open"); input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); active = -1; setGhost(); };
+  function setGhost(){
+    if (!ghost) return;
+    const q = input.value; const top = q.length >= 2 && items.find(it => !it.custom && it.label.toLowerCase().startsWith(q.toLowerCase()));
+    ghost.innerHTML = top && document.activeElement === input ? `<span class="typed">${esc(q)}</span>${esc(top.label.slice(q.length))}` : "";
+    ghost.dataset.full = top ? top.label : "";
+  }
+  function render(){
+    const q = input.value.trim();
+    items = opts.source(q);
+    let html = "", lastGrp = null;
+    items.forEach((it, i) => {
+      if (it.grp && it.grp !== lastGrp) { html += `<li class="grp" role="presentation">${it.grp}</li>`; lastGrp = it.grp; }
+      const sel = opts.isSelected(it);
+      html += `<li role="option" id="${list.id}-o${i}" data-i="${i}" aria-selected="${sel}">${opts.multi ? '<span class="box" aria-hidden="true"></span>' : ""}<span>${it.custom ? `Use “${esc(q)}”` : hl(it.label, q)}</span>${it.sub ? `<span class="sub">${it.sub}</span>` : ""}</li>`;
+    });
+    list.innerHTML = html || `<li class="empty" role="presentation">No matches. Try a few different letters.</li>`;
+    active = items.length && q ? 0 : -1; paintActive(); setGhost();
+  }
+  function paintActive(){
+    list.querySelectorAll('[role="option"]').forEach(li => li.classList.toggle("active", +li.dataset.i === active));
+    if (active >= 0) { const li = document.getElementById(`${list.id}-o${active}`); input.setAttribute("aria-activedescendant", li.id); li.scrollIntoView({ block: "nearest" }); }
+    else input.removeAttribute("aria-activedescendant");
+  }
+  function pick(i){
+    const it = items[i]; if (!it) return;
+    opts.onPick(it.custom ? { ...it, label: input.value.trim(), value: input.value.trim() } : it, input);
+    if (opts.multi) { input.value = ""; render(); input.focus(); } else { close(); }
+  }
+  input.addEventListener("input", () => { open(); render(); opts.onType && opts.onType(input.value); });
+  input.addEventListener("focus", () => { render(); if (opts.multi || input.value) open(); });
+  input.addEventListener("blur", () => setTimeout(() => { if (!root.contains(document.activeElement)) close(); }, 120));
+  input.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) { open(); render(); } active = Math.min(items.length - 1, active + 1); paintActive(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); active = Math.max(0, active - 1); paintActive(); }
+    else if (e.key === "Enter") { if (!list.hidden && active >= 0) { e.preventDefault(); pick(active); } }
+    else if (e.key === "Escape") { if (!list.hidden) { e.preventDefault(); e.stopPropagation(); close(); } }
+    else if ((e.key === "Tab" || e.key === "ArrowRight") && ghost && ghost.dataset.full && input.selectionStart === input.value.length) {
+      const it = items.find(x => x.label === ghost.dataset.full); if (it) { if (e.key === "Tab" || input.value !== it.label) { e.preventDefault(); opts.onPick(it, input); close(); } }
+    }
+    else if (e.key === "Backspace" && opts.multi && !input.value && opts.removeLast) opts.removeLast();
+  });
+  list.addEventListener("mousedown", e => e.preventDefault());
+  list.addEventListener("click", e => { const li = e.target.closest('[role="option"]'); if (li) pick(+li.dataset.i); });
+  list.addEventListener("mousemove", e => { const li = e.target.closest('[role="option"]'); if (li && +li.dataset.i !== active) { active = +li.dataset.i; paintActive(); } });
+  field.addEventListener("click", e => { if (!e.target.closest(".chip button")) input.focus(); });
+  if (toggle) { toggle.addEventListener("mousedown", e => e.preventDefault()); toggle.addEventListener("click", () => { if (list.hidden) { input.focus(); open(); render(); } else close(); }); }
+  return { render, close, input };
+}
+
+// places (multi)
+const chipsEl = document.getElementById("placesChips");
+function placeKey(p){ return p.type + ":" + p.value; }
+function renderChips(){
+  chipsEl.innerHTML = A.places.map((p, i) => `<span class="chip ${p.type === "state" ? "st" : "ci"}">${esc(p.label)}<button type="button" data-i="${i}" aria-label="Remove ${esc(p.label)}">×</button></span>`).join("");
+}
+chipsEl.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; A.places.splice(+b.dataset.i, 1); renderChips(); places.render(); validate(); places.input.focus(); });
+const places = makeCombo(document.getElementById("placesCombo"), {
+  multi: true,
+  source(q){
+    if (!q) return STATE_LIST.map(s => ({ type: "state", value: s.abbr, label: s.name, sub: s.abbr, grp: "All states" }));
+    const ql = q.toLowerCase();
+    const st = STATE_LIST.filter(s => s.abbr.toLowerCase() === ql).concat(rank(STATE_LIST, q, s => s.name, 6)).filter((s, i, a) => a.indexOf(s) === i)
+      .map(s => ({ type: "state", value: s.abbr, label: s.name, sub: s.abbr, grp: "States" }));
+    const ci = rank(CITIES, q, c => c.c, 6).map(c => ({ type: "city", value: c.label, label: c.label, grp: "Cities" }));
+    return st.concat(ci);
+  },
+  isSelected: it => A.places.some(p => placeKey(p) === placeKey(it)),
+  onPick(it){ const k = placeKey(it), i = A.places.findIndex(p => placeKey(p) === k); if (i >= 0) A.places.splice(i, 1); else A.places.push({ type: it.type, value: it.value, label: it.label }); renderChips(); validate(); },
+  removeLast(){ A.places.pop(); renderChips(); places.render(); validate(); }
+});
+
+// home (single, inline completion)
+const home = makeCombo(document.getElementById("homeCombo"), {
+  multi: false,
+  source(q){
+    if (!q) return [];
+    const res = rank(CITIES, q, c => c.label, 7).map(c => ({ value: c.label, label: c.label }));
+    if (!res.some(r => r.label.toLowerCase() === q.toLowerCase())) res.push({ custom: true, value: q, label: q });
+    return res;
+  },
+  isSelected: it => A.home === it.label,
+  onPick(it, input){ A.home = it.label; input.value = it.label; validate(); },
+  onType(v){ A.home = ""; validate(); }
+});
+document.getElementById("homeInput").addEventListener("change", e => { /* typed text counts once it is picked or confirmed */ });
+document.getElementById("homeInput").addEventListener("blur", e => { const v = e.target.value.trim(); if (v && !A.home) { const m = CITIES.find(c => c.label.toLowerCase() === v.toLowerCase()); A.home = m ? m.label : v; if (m) e.target.value = m.label; validate(); } });
+
+// choices
+qz.querySelectorAll(".qz-choice").forEach(b => b.addEventListener("click", () => {
+  A.reason = b.dataset.val; qz.querySelectorAll(".qz-choice").forEach(x => x.setAttribute("aria-checked", x === b)); validate();
+}));
+document.getElementById("signPick").addEventListener("click", e => {
+  const b = e.target.closest(".zopt"); if (!b) return; A.sign = b.dataset.sign;
+  document.querySelectorAll(".zopt").forEach(x => x.setAttribute("aria-checked", x === b)); validate();
+});
+// radio groups: arrow keys move the choice
+[qz.querySelector(".qz-choices"), document.getElementById("signPick")].forEach(g => g.addEventListener("keydown", e => {
+  const opts = [...g.querySelectorAll('[role="radio"]')], i = opts.indexOf(document.activeElement); if (i < 0) return;
+  const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!d) return;
+  e.preventDefault(); const n = opts[(i + d + opts.length) % opts.length]; n.focus(); n.click();
+}));
+ageSel.addEventListener("change", () => { A.age = ageSel.value; validate(); });
+document.getElementById("qzComment").addEventListener("input", e => { A.comment = e.target.value; });
+
+// --- flow
+function valid(s){ return s === 1 ? !!A.reason : s === 2 ? A.places.length > 0 : s === 3 ? !!(A.age && A.sign) : s === 4 ? !!A.home : true; }
+function validate(){
+  const ok = valid(step);
+  nextBtn.setAttribute("aria-disabled", String(!ok));
+  nextBtn.title = ok ? "" : (step === 4 ? "Add where you live to finish" : "Answer to continue");
+}
+function show(s, dir = 1){
+  step = s;
+  screens.forEach(sc => { const on = +sc.dataset.step === s; sc.hidden = !on; sc.classList.toggle("back", on && dir < 0); if (on) { sc.style.animation = "none"; void sc.offsetWidth; sc.style.animation = ""; } });
+  const q = s > 0;
+  document.getElementById("qzNav").hidden = !q;
+  document.getElementById("qzSkip").hidden = !q;
+  document.getElementById("qzDots").parentElement.style.visibility = q ? "visible" : "hidden";
+  [...document.querySelectorAll("#qzDots i")].forEach((d, i) => { d.classList.toggle("on", i < s - 1); d.classList.toggle("cur", i === s - 1); });
+  document.getElementById("qzStepLabel").textContent = q ? `${s} of 4` : "";
+  qzCard.setAttribute("aria-labelledby", "qzTitle" + s);
+  backBtn.style.visibility = s > 1 ? "visible" : "hidden";
+  nextBtn.innerHTML = s === 4 ? 'All done <span class="arr" aria-hidden="true">→</span>' : 'Next <span class="arr" aria-hidden="true">→</span>';
+  validate();
+  qzCard.scrollTop = 0;
+  const first = s === 0 ? document.getElementById("qzStart") : s === 1 ? qz.querySelector('.qz-choice[aria-checked="true"]') || qz.querySelector(".qz-choice")
+    : s === 2 ? places.input : s === 3 ? ageSel : home.input;
+  setTimeout(() => first && first.focus({ preventScroll: true }), 60);
+}
+function resetQuiz(){
+  A = blank();
+  qz.querySelectorAll('[role="radio"]').forEach(x => x.setAttribute("aria-checked", "false"));
+  ageSel.value = ""; home.input.value = ""; document.getElementById("qzComment").value = ""; places.input.value = "";
+  renderChips(); places.close(); home.close();
+}
+function openQuiz(){
+  resetQuiz();
+  lastFocusQz = document.activeElement;
+  if (typeof closeSheet === "function") closeSheet();
+  qz.hidden = false; qz.classList.remove("closing"); qzCard.classList.remove("spiral");
+  qzCard.style.animation = "none"; void qzCard.offsetWidth; qzCard.style.animation = "";
+  document.body.classList.add("qz-open");
+  LS.set("mm-quiz-seen", true);
+  show(0);
+}
+function closeQuiz(opts = {}){
+  if (qz.hidden) return;
+  const finish = () => {
+    qz.hidden = true; qz.classList.remove("closing"); qzCard.classList.remove("spiral");
+    document.body.classList.remove("qz-open");
+    if (opts.reset !== false) resetQuiz();
+    if (opts.replayMap) replayMapIntro();
+    const f = opts.focus || lastFocusQz; if (f && f.focus) f.focus({ preventScroll: true });
+  };
+  if (opts.spiral && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    qz.classList.add("closing"); qzCard.classList.add("spiral");
+    if (opts.replayMap) setTimeout(replayMapIntro, 380);
+    setTimeout(() => { opts.replayMap = false; finish(); }, 950);
+  } else finish();
+}
+function replayMapIntro(){
+  if (location.hash === "#about") return;
+  svg.classList.remove("intro"); void svg.getBoundingClientRect(); svg.classList.add("intro");
+  setTimeout(() => svg.classList.remove("intro"), 1800);
+}
+
+document.getElementById("qzStart").addEventListener("click", () => show(1));
+document.getElementById("qzExplore").addEventListener("click", () => closeQuiz());
+document.getElementById("qzClose").addEventListener("click", () => closeQuiz());
+document.getElementById("qzSkip").addEventListener("click", () => closeQuiz());
+backBtn.addEventListener("click", () => show(Math.max(1, step - 1), -1));
+nextBtn.addEventListener("click", () => {
+  if (!valid(step)) { nextBtn.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 260 }); return; }
+  if (step < 4) return show(step + 1);
+  // all done
+  const result = { sign: A.sign, reason: A.reason, places: A.places, age: A.age, home: A.home, comment: A.comment, at: new Date().toISOString() };
+  LS.set("mm-quiz", result);
+  showResult(result);
+  closeQuiz({ spiral: true, replayMap: true, reset: false, focus: document.getElementById("retake") });
+});
+qz.addEventListener("keydown", e => {
+  if (e.key === "Escape") { e.preventDefault(); closeQuiz(); return; }
+  if (e.key === "Tab") {
+    const f = [...qzCard.querySelectorAll('button, select, textarea, input, [tabindex="0"]')].filter(el => !el.closest("[hidden]") && el.offsetParent !== null && el.tabIndex !== -1);
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+
+// --- result line (replaces "Or start with a quick quiz.")
+const cta = document.getElementById("quizCta"), resEl = document.getElementById("quizResult");
+function showResult(r){
+  if (!r || !r.sign) { cta.hidden = false; resEl.hidden = true; return; }
+  const pairs = PAIRS[r.sign] || [];
+  const list = pairs.length > 1 ? pairs.slice(0, -1).join(", ") + " & " + pairs[pairs.length - 1] : pairs.join("");
+  document.getElementById("resSign").textContent = r.sign;
+  document.getElementById("resIcon").innerHTML = zIcon(r.sign, "twotone", "coral", r.sign);
+  document.getElementById("resPairs").textContent = list;
+  cta.hidden = true; resEl.hidden = false;
+}
+document.getElementById("quizLink").addEventListener("click", e => { e.preventDefault(); openQuiz(); });
+document.getElementById("retake").addEventListener("click", () => { LS.del("mm-quiz"); showResult(null); openQuiz(); });
+showResult(LS.get("mm-quiz"));
+// first visit: open the quiz once the map has popped in
+if (!LS.get("mm-quiz-seen") && !LS.get("mm-quiz") && location.hash !== "#about") setTimeout(openQuiz, 1400);
 
 // theme toggle
 const btn = document.getElementById("theme"), lab = document.getElementById("themeLabel");
