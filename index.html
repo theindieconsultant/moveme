@@ -348,7 +348,7 @@
   .pin.hov .core,.pin:focus-visible .core{fill:var(--coral)}
   .pin:focus-visible .ring-under{stroke:var(--focus)}
   .pin text{transition:font-size .35s cubic-bezier(.34,1.56,.64,1)}
-  .pin.hov text,.pin:focus-visible text{font-size:calc(var(--pin,12px) * 4);display:inline !important}
+  .pin.hov text,.pin:focus-visible text{display:inline !important}
   .pin.big text{font-size:calc(var(--pin,12px) * 5);display:inline !important}
   /* city hover card: small, coral-shadowed, tilted the other way so it reads as a city, not the state */
   .cpeek{position:absolute;z-index:21;width:200px;background:var(--surface);color:var(--text);border:2px solid var(--border);border-radius:16px;
@@ -471,6 +471,12 @@
     .sheet.open .stk:nth-child(2) .art{animation-delay:.08s} .sheet.open .stk:nth-child(3) .art{animation-delay:.16s}
     @keyframes slap{from{opacity:0;scale:1.35;rotate:12deg}to{opacity:1;scale:1;rotate:0deg}}
   }
+  .sheet-ask{margin-top:28px;padding:28px 0 32px;border-top:2px dashed var(--border);border-bottom:2px dashed var(--border)}
+  .sheet-ask h3{font-family:var(--display);font-weight:600;font-size:clamp(24px,3.2vw,30px);line-height:1.15;letter-spacing:-.01em;text-transform:lowercase;margin:0 0 12px;color:var(--text)}
+  .sheet-ask p{font-size:16px;line-height:1.6;color:var(--text-muted);margin:0 0 18px}
+  .sheet-ask .cm-btns{display:flex;flex-wrap:wrap;gap:12px}
+  .sheet-ask .soon-wrap{flex:0 0 auto}
+  .sheet-ask .soon-wrap .btn{opacity:1;cursor:default;padding-left:22px;padding-right:22px}
   .rule{height:0;border:0;border-top:2px dashed var(--border);margin:28px 0 8px;opacity:.9}
 
   /* expandable sections */
@@ -808,6 +814,14 @@
     <div class="stickers" id="sStickers"></div>
     <hr class="rule">
     <div id="sAcc"></div>
+    <section class="sheet-ask" aria-labelledby="sAskTitle">
+      <h3 id="sAskTitle">add a question or comment</h3>
+      <p id="sAsk">Ask a question or post a random fact about this state. Please only comment if you know this place well. We count on accurate content from our users, thanks.</p>
+      <div class="cm-btns">
+        <span class="soon-wrap"><button class="btn btn-secondary" type="button" aria-disabled="true" aria-describedby="soonTip3">Ask a question</button><span class="tip" id="soonTip3" role="tooltip">This feature is coming soon</span></span>
+        <span class="soon-wrap"><button class="btn btn-secondary" type="button" aria-disabled="true" aria-describedby="soonTip4">Post a comment</button><span class="tip" id="soonTip4" role="tooltip">This feature is coming soon</span></span>
+      </div>
+    </section>
   </div>
 </aside>
 
@@ -933,7 +947,7 @@ function layout(spread, scale){
     const left = p.c.x > 860 || p.c.name === "Chicago";
     p.t.setAttribute("text-anchor", left ? "end" : "start");
     p.x = x; p.y = y; p.k = k; p.left = left; p.tx = left ? x - 9 / scale : x + 9 / scale;
-    p.t.setAttribute("x", p.hovered ? (left ? x - 30 * k : x + 30 * k) : p.tx); p.t.setAttribute("y", y + (p.c.x > 860 ? -12 : -8) / scale);
+    p.t.setAttribute("x", p.hovered ? (left ? x - 26 * k : x + 26 * k) : p.tx); p.t.setAttribute("y", y + (p.c.x > 860 ? -12 : -8) / scale);
     // skip a label that would sit on top of one already placed (e.g. Bremerton next to Seattle)
     const near = placed.some(([px, py]) => Math.abs(px - x) < 60 / Math.max(scale, .6) * .5 && Math.abs(py - y) < 16);
     p.t.style.display = near ? "none" : ""; if (!near) placed.push([x, y]);
@@ -1182,10 +1196,15 @@ function acc(id, title, html, open){
     <div class="body" id="${id}"><div><div class="inner">${html}</div></div></div></section>`;
 }
 
+function setSheetAsk(name){
+  document.getElementById("sAsk").textContent = `Ask a question or post a random fact about ${name}. Please only comment if you know this place well. We count on accurate content from our users, thanks.`;
+}
+document.querySelectorAll("#sheet .soon-wrap .btn").forEach(b => b.addEventListener("click", e => e.preventDefault()));   // coming soon
 function buildCareerSheet(abbr){
   const I = info(abbr), d = I.d, s = I.s, C = CR.states[abbr], w = C.work, U = CR.us;
   document.getElementById("sName").textContent = s.name;
   document.getElementById("sOver").textContent = `career guide · ${(s.region || "").toLowerCase()}`;
+  setSheetAsk(s.name);
   const fact = careerFact(w);
   const st = [
     { cls: "career2", art: ART.coin, lab: "pay vs U.S.", num: signed(C.payIndex), sub: C.payRank ? `#${C.payRank} of 50 states` : "for the 20 most common jobs" },
@@ -1258,6 +1277,7 @@ function buildSheet(abbr){
   const I = info(abbr), d = I.d, s = I.s;
   document.getElementById("sName").textContent = s.name;
   document.getElementById("sOver").textContent = `dating guide · ${(s.region || "").toLowerCase()}`;
+  setSheetAsk(s.name);
 
   // three stickers
   const fact = funFact(abbr, d, I.cities);
@@ -1796,7 +1816,7 @@ function cityHoverOn(p){
   // a city, not the state: drop the state snapshot right away
   if (!pinned && floating()) { clearTimeout(hideT); peek.classList.remove("show"); if (current) { byAbbr[current].g.classList.remove("on"); current = null; } }
   p.g.classList.add("hov"); if (p.g.nextSibling) p.g.parentNode.appendChild(p.g);
-  if (p.x != null) { p.t.setAttribute("x", p.left ? p.x - 30 * p.k : p.x + 30 * p.k); setPinR(p); }
+  if (p.x != null) { p.t.setAttribute("x", p.left ? p.x - 26 * p.k : p.x + 26 * p.k); setPinR(p); }   // nudge the label clear of the bigger dot
   if (!floating()) return;
   const s = byAbbr[p.c.st].s;
   document.getElementById("cpOver").textContent = `${MODE === "career" ? "career" : "love"} hot spot · ${s.abbr}`;
