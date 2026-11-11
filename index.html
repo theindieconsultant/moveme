@@ -215,6 +215,28 @@
   .retake svg{width:18px;height:18px;overflow:visible;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
   .retake:hover svg{transform:rotate(-200deg)}
   .retake path{fill:none;stroke:var(--ink);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+  /* jobs flow: industries (multi-select, checkboxes) */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+  .qz-q .opt{font-family:var(--sans);font-weight:500;font-size:13px;color:var(--text-subtle);letter-spacing:0}
+  .ipick .zopt{position:relative;padding-top:12px}
+  .ipick .zopt .ico{width:40px;height:40px;margin:0 auto 4px;display:block}
+  .ipick .zopt b{font-size:12.5px;line-height:1.25}
+  .ipick .zopt .cb{position:absolute;top:7px;left:7px;width:16px;height:16px;border-radius:5px;border:2px solid var(--border);background:var(--surface);display:grid;place-items:center}
+  .ipick .zopt[aria-pressed="true"]{border:2px solid var(--border);background:var(--accent-soft);box-shadow:3px 3px 0 var(--shadow);transform:translate(-1px,-1px)}
+  .ipick .zopt[aria-pressed="true"] .cb{background:var(--cobalt);border-color:var(--cobalt)}
+  .ipick .zopt[aria-pressed="true"] .cb::after{content:"";width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .ind-other{margin-top:10px}
+  .qz-input{width:100%;font:500 16px/1.4 var(--sans);color:var(--text);background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:12px 14px}
+  .qz-input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .ind-other[hidden],#industryBlock[hidden],#signBlock[hidden]{display:none}
+
+  /* career map placeholders: slots waiting for data */
+  .soon{display:inline-block;font:700 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--text-subtle);
+    border:1.5px dashed var(--text-subtle);border-radius:999px;padding:5px 9px;vertical-align:middle}
+  .slot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--hair);font-size:14px;color:var(--text)}
+  .slot:first-child{border-top:0}
+  .slot .lbl{color:var(--text-muted)}
+  .stk .art.career{background:var(--cobalt)} .stk .art.career2{background:var(--chartreuse)}
   .page[hidden]{display:none}
   .maplink{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;transition:color .2s}
   .maplink:hover,.maplink[aria-current="page"]{color:var(--text)}
@@ -299,7 +321,8 @@
   /* hand-drawn icons (Field Notes): wobbly 1.5px line over a marker swash */
   .ico{width:32px;height:32px;flex:none;overflow:visible}
   .ico .sw{opacity:.85}
-  .ico .ln{fill:none;stroke:var(--text);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .ico .ln,symbol .ln{fill:none;stroke:var(--text);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .ipick .ico{--ln:1.7}
   .sw-chr{fill:var(--chartreuse)} .sw-cor{fill:var(--coral)} .sw-cob{fill:#AEB9FF}
   [data-theme="dark"] .sw-chr{fill:#5B6B12} [data-theme="dark"] .sw-cor{fill:#8A3F2A} [data-theme="dark"] .sw-cob{fill:#2A3699}
 
@@ -482,7 +505,7 @@
   .foot-refresh .tip{bottom:calc(100% + 8px);left:0;transform:translate(0,6px)}
   .foot-refresh .tip::after{left:12px;margin-left:0}
   .foot-refresh:hover .tip,.foot-btn:focus-visible + .tip{opacity:1;transform:translate(0,0)}
-  .key{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .key{display:flex;gap:8px;align-items:flex-start;flex-wrap:nowrap}
   .key i{display:inline-block;width:22px;height:0;border-top:3px dotted var(--route);vertical-align:middle;margin-right:6px}
 </style>
 </head>
@@ -519,7 +542,8 @@
       <p class="lede" id="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
       <div class="quiz-result" id="quizResult" hidden>
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button>
-        <span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span>
+        <span id="resLove"><span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span></span>
+        <span id="resJobs" hidden><span>You work in <b id="resInd"></b></span><span class="sep" aria-hidden="true">|</span><span>here’s your career map</span></span>
       </div>
     </div>
   </header>
@@ -527,7 +551,7 @@
     <div class="now" id="now" aria-hidden="true"><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span></div>
     <svg class="map intro" id="map" role="group" aria-label="Map of the United States. Hover or tap a state for its love snapshot."></svg>
     <div class="peek" id="peek" role="dialog" aria-label="State love snapshot">
-      <p class="over">love snapshot</p>
+      <p class="over" id="pOver">love snapshot</p>
       <h2 id="pName">colorado</h2>
       <div class="stat">
         <svg class="ico" aria-hidden="true"><use href="#i-people"/></svg>
@@ -539,7 +563,7 @@
       </div>
       <div class="stat">
         <svg class="ico" aria-hidden="true"><use href="#i-pin"/></svg>
-        <div style="flex:1"><div class="k">Top cities to date</div><div class="chips" id="pCities"></div></div>
+        <div style="flex:1"><div class="k" id="pCitiesK">Top cities to date</div><div class="chips" id="pCities"></div></div>
       </div>
       <button class="btn btn-primary" id="more" type="button">More info <span class="arr" aria-hidden="true">→</span></button>
     </div>
@@ -611,8 +635,18 @@
       <select class="qz-select" id="ageSelect">
         <option value="">Choose your age range</option>
       </select>
-      <p class="qz-q" id="signLabel">b. what is your zodiac sign?</p>
-      <div class="zpick" id="signPick" role="radiogroup" aria-labelledby="signLabel"></div>
+      <div id="signBlock">
+        <p class="qz-q" id="signLabel">b. what is your zodiac sign?</p>
+        <div class="zpick" id="signPick" role="radiogroup" aria-labelledby="signLabel"></div>
+      </div>
+      <div id="industryBlock" hidden>
+        <p class="qz-q" id="indLabel">b. what industry do you work in? <span class="opt">(pick all that fit)</span></p>
+        <div class="zpick ipick" id="indPick" role="group" aria-labelledby="indLabel"></div>
+        <div class="ind-other" id="indOtherWrap" hidden>
+          <label class="sr-only" for="indOther">Your industry</label>
+          <input class="qz-input" id="indOther" type="text" maxlength="60" placeholder="Type your industry…" autocomplete="off">
+        </div>
+      </div>
     </section>
 
     <!-- 4 · where now -->
@@ -624,7 +658,7 @@
         </div>
         <ul class="combo-list" id="homeList" role="listbox" hidden></ul>
       </div>
-      <label class="qz-comment-label" for="qzComment">Do you want to share any comments about what it’s like either dating/finding love or how career/finding jobs is where you live? <span class="opt">(optional, but this info helps everyone!)</span></label>
+      <label class="qz-comment-label" for="qzComment"><span id="commentQ">Do you want to share any comments about what it’s like dating and finding love where you live?</span> <span class="opt">(optional, but this info helps everyone!)</span></label>
       <textarea class="qz-textarea" id="qzComment" maxlength="1000"></textarea>
       <p class="qz-hint">Your answers are saved anonymously to help shape Move ♥ Me. No names or emails, ever.</p>
     </section>
@@ -657,6 +691,19 @@
       <ellipse class="sw sw-cob" cx="17" cy="19" rx="13" ry="8" transform="rotate(-8 17 19)"/>
       <path class="ln" d="M11.2 13.6c-2.3.1-3.7-1.6-3.5-3.6.2-2 1.8-3.3 3.7-3.1 1.9.2 3.2 1.9 3 3.7-.2 1.7-1.4 2.9-3.2 3zM5 24.6c.3-4.1 2.8-6.8 6.4-6.9 3.4 0 5.8 2.5 6.2 6.6M21.4 14.4c-1.9 0-3.1-1.4-3-3.1.1-1.6 1.5-2.9 3.1-2.8 1.7.1 2.8 1.5 2.7 3.1-.1 1.5-1.2 2.7-2.8 2.8zM19.6 18.6c3.6-.6 6.6 1.7 7.2 5.8"/>
     </symbol>
+    <symbol id="i-brief" viewBox="0 0 32 32"><ellipse class="sw sw-cob" cx="16" cy="19" rx="12" ry="7.5" transform="rotate(-6 16 19)"/><path class="ln" d="M5.5 11.2h21c.8 0 1.4.6 1.4 1.4v11c0 .8-.6 1.4-1.4 1.4h-21c-.8 0-1.4-.6-1.4-1.4v-11c0-.8.6-1.4 1.4-1.4zM12 11V8.3c0-.7.6-1.2 1.2-1.2h5.6c.7 0 1.2.5 1.2 1.2V11M4.2 17.3c7.5 2.2 16 2.2 23.6 0M14.5 17.6h3"/></symbol>
+    <symbol id="i-tech" viewBox="0 0 32 32"><ellipse class="sw sw-cob" cx="16" cy="19" rx="12" ry="7" transform="rotate(-6 16 19)"/><path class="ln" d="M7 9.2h18c.6 0 1 .4 1 1v11H6v-11c0-.6.4-1 1-1zM3.5 21.4h25l-1.6 2.6H5.1zM13.6 13.3l-2.2 2.2 2.2 2.2M18.4 13.3l2.2 2.2-2.2 2.2"/></symbol>
+    <symbol id="i-health" viewBox="0 0 32 32"><ellipse class="sw sw-cor" cx="16" cy="18" rx="11.5" ry="8" transform="rotate(8 16 18)"/><path class="ln" d="M12.8 6.5h6.4v6.3h6.3v6.4h-6.3v6.3h-6.4v-6.3H6.5v-6.4h6.3z"/></symbol>
+    <symbol id="i-edu" viewBox="0 0 32 32"><ellipse class="sw sw-chr" cx="16" cy="19" rx="12" ry="7.5" transform="rotate(-5 16 19)"/><path class="ln" d="M3.5 12.6 16 7l12.5 5.6L16 18.2zM8.7 15v5.6c2.2 2.3 4.6 3.4 7.3 3.4s5.1-1.1 7.3-3.4V15M28.4 12.8v7"/></symbol>
+    <symbol id="i-money" viewBox="0 0 32 32"><ellipse class="sw sw-chr" cx="16" cy="19" rx="12" ry="7.5" transform="rotate(6 16 19)"/><path class="ln" d="M6 25.5V18M12 25.5V13.5M18 25.5V16M24 25.5V8.5M4 26h24M20.5 8.4 24 6.2l2.2 3.4"/></symbol>
+    <symbol id="i-create" viewBox="0 0 32 32"><ellipse class="sw sw-cor" cx="16" cy="19" rx="12" ry="7.5" transform="rotate(-8 16 19)"/><path class="ln" d="M21.6 5.6l4.8 4.8-13.7 13.7-6.3 1.5 1.5-6.3zM18.8 8.4l4.8 4.8M8.3 19.4l4.3 4.3"/></symbol>
+    <symbol id="i-retail" viewBox="0 0 32 32"><ellipse class="sw sw-chr" cx="16" cy="19" rx="11.5" ry="8" transform="rotate(-4 16 19)"/><path class="ln" d="M7.4 11.5h17.2l-1.3 14.1H8.7zM11.8 14.3v-3.8c0-2.4 1.9-4.3 4.2-4.3s4.2 1.9 4.2 4.3v3.8"/></symbol>
+    <symbol id="i-trades" viewBox="0 0 32 32"><ellipse class="sw sw-cor" cx="16" cy="19" rx="12" ry="7.5" transform="rotate(5 16 19)"/><path class="ln" d="M5 21.5c0-6.2 4.9-11.2 11-11.2s11 5 11 11.2M3.5 21.6h25v2.6h-25zM13.6 10.6V7.4h4.8v3.2M16 10.4v11"/></symbol>
+    <symbol id="i-gov" viewBox="0 0 32 32"><ellipse class="sw sw-cob" cx="16" cy="20" rx="12" ry="7" transform="rotate(-5 16 20)"/><path class="ln" d="M4.5 11.6 16 5.6l11.5 6zM6.8 12v10.2M12.2 12v10.2M19.8 12v10.2M25.2 12v10.2M4 22.4h24M3.2 25.6h25.6"/></symbol>
+    <symbol id="i-media" viewBox="0 0 32 32"><ellipse class="sw sw-cob" cx="16" cy="19" rx="12" ry="7.5" transform="rotate(7 16 19)"/><path class="ln" d="M5.5 13.2h4.4L21.6 7v18.4l-11.7-6.2H5.5zM9.9 19.4l2 6.4h3.4l-1.6-5M25 12.6c1.4 1 2.2 2.4 2.2 4s-.8 3-2.2 4"/></symbol>
+    <symbol id="i-sci" viewBox="0 0 32 32"><ellipse class="sw sw-chr" cx="16" cy="20" rx="11.5" ry="7.5" transform="rotate(-6 16 20)"/><path class="ln" d="M12.6 5.6h6.8M13.6 5.8v7.4L6.9 24.1c-.6 1 .1 2.2 1.2 2.2h15.8c1.1 0 1.8-1.2 1.2-2.2l-6.7-10.9V5.8M9.6 19.6h12.8"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 32 32"><ellipse class="sw sw-cor" cx="16" cy="19" rx="12" ry="7.5" transform="rotate(-4 16 19)"/><path class="ln" d="M3.5 9.4h15.2v12.4H3.5zM18.7 13.4h5.4l4.4 4.8v3.6h-9.8M9.6 24.2a2.4 2.4 0 1 0 0-.1zM23.4 24.2a2.4 2.4 0 1 0 0-.1"/></symbol>
+    <symbol id="i-other" viewBox="0 0 32 32"><ellipse class="sw sw-cob" cx="16" cy="18" rx="11.5" ry="8" transform="rotate(-8 16 18)"/><path class="ln" d="M16 7.2v17.6M7.2 16h17.6"/></symbol>
     <symbol id="i-pin" viewBox="0 0 32 32">
       <ellipse class="sw sw-chr" cx="16" cy="20" rx="12" ry="7.5" transform="rotate(-6 16 20)"/>
       <path class="ln" d="M16.2 27.4c-4.6-5.3-7.4-9.3-7.3-13 .1-4.1 3.3-7.3 7.3-7.2 4 .1 7.1 3.4 7 7.4-.1 3.6-2.6 7.3-7 12.8z M16.1 16.9c-1.4 0-2.5-1.2-2.4-2.6.1-1.3 1.2-2.4 2.5-2.3 1.4.1 2.4 1.2 2.3 2.6-.1 1.3-1.1 2.3-2.4 2.3z"/>
@@ -712,7 +759,8 @@ DATA.states.filter(s => s.callout).forEach(s => {
 
 // route + pins + one heart: the refresh button cycles the 20 top-ten city lists (inspiration, not a route).
 const CLUSTERS = [{"n":1,"name":"best cities for singles","cat":"love","source":"WalletHub, 2026","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Denver","st":"CO","x":342.9,"y":273.9},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"St. Louis","st":"MO","x":599.8,"y":303.6},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2}]},{"n":2,"name":"best date-night cities","cat":"love","source":"WalletHub, 2026","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Denver","st":"CO","x":342.9,"y":273.9},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3}]},{"n":3,"name":"cities with the most singles","cat":"love","source":"SmartAsset, 2026","cities":[{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"Milwaukee","st":"WI","x":631.3,"y":200.1},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Detroit","st":"MI","x":713.2,"y":207.3},{"name":"Cleveland","st":"OH","x":738.3,"y":222.8},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Rochester","st":"NY","x":798.8,"y":173.9},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":4,"name":"where the singles ratio tips one way","cat":"love","source":"SmartAsset, 2026","cities":[{"name":"Anchorage","st":"AK","x":112.3,"y":544.3},{"name":"Vancouver","st":"WA","x":80.4,"y":87.7},{"name":"Fremont","st":"CA","x":40.8,"y":268.5},{"name":"Fresno","st":"CA","x":74.1,"y":296.7},{"name":"Oxnard","st":"CA","x":70.7,"y":355.8},{"name":"Anaheim","st":"CA","x":91.7,"y":369.3},{"name":"Paradise","st":"NV","x":152.6,"y":329.8},{"name":"Aurora","st":"CO","x":345.5,"y":274.4},{"name":"Colorado Springs","st":"CO","x":343.8,"y":294.8},{"name":"Fayetteville","st":"NC","x":811.6,"y":360.2}]},{"n":5,"name":"where it tips the other way","cat":"love","source":"SmartAsset, 2026","cities":[{"name":"New Orleans","st":"LA","x":614.4,"y":501.3},{"name":"Memphis","st":"TN","x":607.4,"y":382.9},{"name":"Mobile","st":"AL","x":652.8,"y":481.6},{"name":"Milwaukee","st":"WI","x":631.3,"y":200.1},{"name":"Birmingham","st":"AL","x":670.4,"y":415.3},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Baltimore","st":"MD","x":832.9,"y":257.2},{"name":"Philadelphia","st":"PA","x":854.2,"y":237.1},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":6,"name":"most diverse cities","cat":"life","source":"WalletHub, 2026","cities":[{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"Arlington","st":"TX","x":477,"y":441.4},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"Charlotte","st":"NC","x":775.3,"y":362.4},{"name":"Germantown","st":"MD","x":822.2,"y":262.2},{"name":"Gaithersburg","st":"MD","x":823.5,"y":262.6},{"name":"Silver Spring","st":"MD","x":827.2,"y":265.4},{"name":"Jersey City","st":"NJ","x":868.4,"y":215.7},{"name":"New York","st":"NY","x":869.7,"y":215.7},{"name":"Danbury","st":"CT","x":875.2,"y":198.4}]},{"n":7,"name":"most LGBTQ+-friendly cities","cat":"love","source":"ConsumerAffairs, 2024","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"Tacoma","st":"WA","x":93.8,"y":53.5},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Reno","st":"NV","x":89.5,"y":234.6},{"name":"Spokane","st":"WA","x":171.1,"y":63.9},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Henderson","st":"NV","x":155.3,"y":331.6},{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Providence","st":"RI","x":906.1,"y":180.4}]},{"n":8,"name":"best cities for sports fans","cat":"life","source":"WalletHub, 2025","cities":[{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"Dallas","st":"TX","x":482.9,"y":440.5},{"name":"Kansas City","st":"MO","x":522.8,"y":295.7},{"name":"Miami","st":"FL","x":822.7,"y":572.5},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Philadelphia","st":"PA","x":854.2,"y":237.1},{"name":"New York","st":"NY","x":869.7,"y":215.7},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":9,"name":"most fun cities","cat":"life","source":"WalletHub, 2026","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"New Orleans","st":"LA","x":614.4,"y":501.3},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Miami","st":"FL","x":822.7,"y":572.5}]},{"n":10,"name":"best foodie cities","cat":"life","source":"WalletHub, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Sacramento","st":"CA","x":55.6,"y":248},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Miami","st":"FL","x":822.7,"y":572.5}]},{"n":11,"name":"highest-paying cities (tech)","cat":"work","source":"CompTIA, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"San Jose","st":"CA","x":41.1,"y":273.6},{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Baltimore","st":"MD","x":832.9,"y":257.2},{"name":"New York","st":"NY","x":869.7,"y":215.7},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":12,"name":"best cities to find a job","cat":"work","source":"WalletHub, 2026","cities":[{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Plano","st":"TX","x":484.8,"y":435},{"name":"Huntsville","st":"AL","x":671.8,"y":387.3},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Columbia","st":"MD","x":829.1,"y":260},{"name":"South Burlington","st":"VT","x":863.2,"y":129.2},{"name":"Portland","st":"ME","x":913.6,"y":135}]},{"n":13,"name":"best cities to start a career","cat":"work","source":"WalletHub, 2026","cities":[{"name":"Salt Lake City","st":"UT","x":228.5,"y":235.3},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Knoxville","st":"TN","x":717.2,"y":353.8},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Columbia","st":"SC","x":776.3,"y":390.7},{"name":"Miami","st":"FL","x":822.7,"y":572.5},{"name":"Pittsburgh","st":"PA","x":770.7,"y":242.2},{"name":"Charleston","st":"SC","x":801.3,"y":414.9}]},{"n":14,"name":"happiest cities","cat":"life","source":"WalletHub, 2026","cities":[{"name":"Fremont","st":"CA","x":40.8,"y":268.5},{"name":"San Jose","st":"CA","x":41.1,"y":273.6},{"name":"Irvine","st":"CA","x":92.5,"y":373.1},{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Gilbert","st":"AZ","x":202.2,"y":402.8},{"name":"Bismarck","st":"ND","x":423.5,"y":118.3},{"name":"Fargo","st":"ND","x":485.7,"y":118.5},{"name":"Overland Park","st":"KS","x":521.2,"y":298.4},{"name":"Charleston","st":"SC","x":801.3,"y":414.9},{"name":"South Burlington","st":"VT","x":863.2,"y":129.2}]},{"n":15,"name":"biggest cities","cat":"life","source":"U.S. Census Bureau, 2025","cities":[{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Phoenix","st":"AZ","x":197.2,"y":399.8},{"name":"San Antonio","st":"TX","x":448.7,"y":516.2},{"name":"Fort Worth","st":"TX","x":472.8,"y":440.9},{"name":"Dallas","st":"TX","x":482.9,"y":440.5},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"Chicago","st":"IL","x":638.2,"y":226.1},{"name":"Philadelphia","st":"PA","x":854.2,"y":237.1},{"name":"New York","st":"NY","x":869.7,"y":215.7}]},{"n":16,"name":"fastest-growing cities","cat":"work","source":"U.S. Census Bureau, 2025","cities":[{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"San Antonio","st":"TX","x":448.7,"y":516.2},{"name":"Fort Worth","st":"TX","x":472.8,"y":440.9},{"name":"Celina","st":"TX","x":483.3,"y":428},{"name":"McKinney","st":"TX","x":486,"y":430.9},{"name":"Fulshear","st":"TX","x":500,"y":510.8},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"Nashville","st":"TN","x":665.1,"y":355},{"name":"Charlotte","st":"NC","x":775.3,"y":362.4},{"name":"Port St. Lucie","st":"FL","x":813.9,"y":539.5}]},{"n":17,"name":"best park systems","cat":"life","source":"Trust for Public Land, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Irvine","st":"CA","x":92.5,"y":373.1},{"name":"Denver","st":"CO","x":342.9,"y":273.9},{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"St. Paul","st":"MN","x":544.7,"y":161.5},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Arlington","st":"VA","x":826.4,"y":268.2},{"name":"Washington","st":"DC","x":827.4,"y":267.3}]},{"n":18,"name":"most pet-friendly cities","cat":"life","source":"WalletHub, 2025","cities":[{"name":"Portland","st":"OR","x":79.4,"y":90.3},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Scottsdale","st":"AZ","x":200.2,"y":399.2},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"St. Louis","st":"MO","x":599.8,"y":303.6},{"name":"Birmingham","st":"AL","x":670.4,"y":415.3},{"name":"Cincinnati","st":"OH","x":697.9,"y":283.7},{"name":"Lexington","st":"KY","x":701,"y":307.8},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Orlando","st":"FL","x":789,"y":514.6}]},{"n":19,"name":"hottest music scenes","cat":"life","source":"Spin Genie, 2025","cities":[{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"New Orleans","st":"LA","x":614.4,"y":501.3},{"name":"Nashville","st":"TN","x":665.1,"y":355},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Miami","st":"FL","x":822.7,"y":572.5},{"name":"Boston","st":"MA","x":908.7,"y":167.1}]},{"n":20,"name":"best cities for women","cat":"work","source":"WalletHub, 2026","cities":[{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Fremont","st":"CA","x":40.8,"y":268.5},{"name":"Santa Clarita","st":"CA","x":83.2,"y":354.3},{"name":"Gilbert","st":"AZ","x":202.2,"y":402.8},{"name":"Overland Park","st":"KS","x":521.2,"y":298.4},{"name":"Raleigh","st":"NC","x":812.9,"y":343.1},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Columbia","st":"MD","x":829.1,"y":260},{"name":"South Burlington","st":"VT","x":863.2,"y":129.2}]}];
-const ROUTES = CLUSTERS.map(c => ({ ...c, label: `#${c.n} ${c.name} (${c.source})` }));
+const ALL_ROUTES = CLUSTERS.map(c => ({ ...c, label: `#${c.n} ${c.name} (${c.source})` }));
+let ROUTES = ALL_ROUTES;   // Love map: all 20 lists. Career map: the work & money lists (see setMode).
 let routeIdx = 0;   // starts on #1, best cities for singles
 const routeUnder = el("path", { class: "route-under", pathLength: "1" }, svg);
 const route = el("path", { class: "route draw" }, svg);
@@ -799,6 +847,12 @@ function zIcon(sign, style, set = "coral", label = null){
 }
 const CAT_TAG = { love: "cor", date: "chr", work: "cob", life: "neu" };
 
+// Career data per state, filled in from the research Sheet as it's built. Any field left out shows "coming soon".
+// { topIndustry, topIndustries: [..], medianIncome, unemployment, jobGrowth, openingsPerSeeker, medianRent, costOfLiving, remoteShare, fact }
+const CAREER = {};
+const soon = '<span class="soon">coming soon</span>';
+const val = v => (v === undefined || v === null || v === "") ? soon : v;
+
 function info(abbr){
   const s = byAbbr[abbr].s, d = R.states[abbr] || null, cities = R.cities[abbr] || [];
   let most = null, least = null;
@@ -815,6 +869,22 @@ let peekAbbr = null, hideT = null, pinned = false, current = null;
 
 function fillPeek(abbr){
   const I = info(abbr);
+  const career = MODE === "career";
+  document.getElementById("pOver").textContent = career ? "career snapshot" : "love snapshot";
+  document.getElementById("pCitiesK").textContent = career ? "Top cities for work" : "Top cities to date";
+  if (career) {
+    const C = CAREER[abbr] || {};
+    document.getElementById("pName").textContent = I.s.name;
+    document.getElementById("pPop").textContent = I.d ? fmt(I.d.adults) : "not in the dataset yet";
+    document.getElementById("pSignK").textContent = "Top industry";
+    document.getElementById("pSignIco").innerHTML = '<svg viewBox="0 0 32 32" style="width:100%;height:100%"><use href="#i-brief"/></svg>';
+    document.getElementById("pSign").innerHTML = val(C.topIndustry);
+    const work = I.cities.filter(c => c.lists.some(l => l.cat === "work")).slice(0, 3);
+    const box = document.getElementById("pCities"); box.innerHTML = "";
+    if (work.length) work.forEach((c, i) => { const t = document.createElement("span"); t.className = "tag " + ["cob","cor","chr"][i]; t.textContent = c.city; box.appendChild(t); });
+    else box.innerHTML = `<span class="none">No city on a work top-ten list yet.</span>`;
+    return;
+  }
   document.getElementById("pName").textContent = I.s.name;
   document.getElementById("pPop").textContent = I.d ? fmt(I.d.adults) : "not in the dataset yet";
   document.getElementById("pSignK").textContent = I.most ? `Most common sign: ${I.most[0]}` : "Most common sign";
@@ -895,6 +965,14 @@ const ART = {
       <path d="M46 50 L80 80 M66 68 L72 62 M72 74 L79 67" fill="none" stroke-width="5"/>
       <path d="M46 50 L80 80 M66 68 L72 62 M72 74 L79 67" fill="none" stroke="${PAPER}" stroke-width="1.5"/>
     </g>${sparkle(80, 22, .7, "#D4F25A")}`,
+  brief: `<g stroke="${INK}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M38 30v-6c0-3 2-5 5-5h14c3 0 5 2 5 5v6" fill="none"/>
+      <rect x="16" y="30" width="68" height="48" rx="9" fill="${PAPER}"/><path d="M16 50h68" fill="none"/>
+      <rect x="44" y="44" width="12" height="11" rx="3" fill="#D4F25A"/></g>${sparkle(86, 18, .6, "#FF8A65")}`,
+  coin: `<g stroke="${INK}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="50" cy="66" rx="26" ry="9" fill="${PAPER}"/><path d="M24 66v-10c0 5 12 9 26 9s26-4 26-9v10" fill="${PAPER}"/>
+      <ellipse cx="50" cy="44" rx="26" ry="9" fill="${PAPER}"/><path d="M24 44v12c0 5 12 9 26 9s26-4 26-9V44" fill="${PAPER}"/>
+      <ellipse cx="50" cy="44" rx="26" ry="9" fill="#2F4BFF"/><path d="M50 38v12M45 41h10" stroke="${PAPER}"/></g>${sparkle(84, 20, .6, "#FF8A65")}`,
   pin: `<g stroke="${INK}" stroke-width="3.5" stroke-linejoin="round">
       <path d="M50 88 C34 68 24 56 24 42 C24 27 36 16 50 16 C64 16 76 27 76 42 C76 56 66 68 50 88Z" fill="${PAPER}"/>
       <circle cx="50" cy="42" r="10" fill="#FF8A65"/></g>${sparkle(84, 20, .6, "#D4F25A")}`
@@ -928,7 +1006,44 @@ function acc(id, title, html, open){
     <div class="body" id="${id}"><div><div class="inner">${html}</div></div></div></section>`;
 }
 
+function buildCareerSheet(abbr){
+  const I = info(abbr), d = I.d, s = I.s, C = CAREER[abbr] || {};
+  document.getElementById("sName").textContent = s.name;
+  document.getElementById("sOver").textContent = `career guide · ${(s.region || "").toLowerCase()}`;
+  const work = I.cities.filter(c => c.lists.some(l => l.cat === "work"));
+  const st = [
+    { cls: "career", art: ART.brief, lab: "top industry", num: val(C.topIndustry), sub: "" },
+    { cls: "career2", art: ART.coin, lab: "median income", num: val(C.medianIncome), sub: "" },
+    work.length
+      ? { art: ART.pin, lab: "work hot spots", num: `${work.length} ${work.length === 1 ? "city" : "cities"}`, sub: "on work top-ten lists" }
+      : { art: ART.key, lab: "working age", num: d ? short(d.adults) : "—", sub: "adults 20–69" }
+  ];
+  document.getElementById("sStickers").innerHTML = st.map(x =>
+    `<figure class="stk" style="margin:0"><div class="art ${x.cls || ""}"><svg viewBox="0 0 100 100" role="img" aria-label="${x.lab}">${x.art}</svg></div>
+     <p class="lab">${x.lab}</p><p class="num">${x.num}</p><p class="sub">${x.sub}</p></figure>`).join("");
+  const slots = rows => `<div>${rows.map(([k, v]) => `<div class="slot"><span class="lbl">${k}</span><span>${val(v)}</span></div>`).join("")}</div>`;
+  let html = "";
+  html += acc("c1", "the job market", slots([["Unemployment rate", C.unemployment], ["Job growth, past year", C.jobGrowth], ["Openings per job seeker", C.openingsPerSeeker]]), true);
+  html += acc("c2", "pay & cost of living", slots([["Median household income", C.medianIncome], ["Median rent", C.medianRent], ["Cost of living vs US", C.costOfLiving]]));
+  html += acc("c3", "top industries", C.topIndustries && C.topIndustries.length
+    ? `<div class="chips" style="display:flex;flex-wrap:wrap;gap:6px">${C.topIndustries.map((n, i) => `<span class="tag ${["cob","cor","chr","neu"][i % 4]}">${n}</span>`).join("")}</div>`
+    : `<p>${soon} The biggest industries by jobs will show here.</p>`);
+  const cityHtml = work.length
+    ? work.slice(0, 6).map(c => `<div class="city"><span class="nm">${c.city}</span><div class="chips">${c.lists.filter(l => l.cat === "work").map(l => `<span class="tag cob">#${l.rank} ${l.name.toLowerCase()}</span>`).join("")}</div></div>`).join("")
+    : `<p>No ${s.name} city made one of the work top-ten lists yet. Smaller markets can mean less competition.</p>`;
+  html += acc("c4", "where to work", cityHtml);
+  html += acc("c5", "the workforce", d
+    ? `<div class="kpis"><div class="kpi"><div class="v">${short(d.adults)}</div><div class="k">adults 20–69</div></div>
+       <div class="kpi"><div class="v">${short(d.single)}</div><div class="k">single adults</div></div>
+       <div class="kpi"><div class="v">${val(C.remoteShare)}</div><div class="k">work remotely</div></div></div>`
+    : `<p>Washington, DC isn't in this research set yet.</p>`);
+  html += acc("c6", "about this data", `<p>Career figures are being compiled now and will fill in the slots marked “coming soon”. City lists come from WalletHub, CompTIA and the U.S. Census Bureau (2025–2026). Population counts are Census estimates for adults 20–69.</p>`);
+  document.getElementById("sAcc").innerHTML = html;
+  animateBars();
+}
+
 function buildSheet(abbr){
+  if (MODE === "career") return buildCareerSheet(abbr);
   const I = info(abbr), d = I.d, s = I.s;
   document.getElementById("sName").textContent = s.name;
   document.getElementById("sOver").textContent = `dating guide · ${(s.region || "").toLowerCase()}`;
@@ -1042,7 +1157,7 @@ function showRoute(){
   layout(lastSpread, lastScale);
   routeUnder.classList.remove("drawin"); routeUnder.style.strokeDasharray = "1 1"; void routeUnder.getBoundingClientRect(); routeUnder.classList.add("drawin");
   document.getElementById("routeLabel").textContent = "10 hot spots, for inspiration: " + r.label;
-  document.getElementById("nowN").textContent = `#${r.n} of 20`;
+  document.getElementById("nowN").textContent = `#${routeIdx + 1} of ${ROUTES.length}`;
   document.getElementById("nowName").textContent = r.name;
   nowEl.classList.remove("pop"); void nowEl.offsetWidth; nowEl.classList.add("pop");
 }
@@ -1058,9 +1173,24 @@ refreshBtn.addEventListener("animationend", () => refreshBtn.classList.remove("s
 const footBtn = document.getElementById("footRefresh");
 footBtn.addEventListener("click", () => { refreshBtn.click(); footBtn.classList.remove("spin"); void footBtn.offsetWidth; footBtn.classList.add("spin"); });
 footBtn.addEventListener("animationend", () => footBtn.classList.remove("spin"));
-// Love Map is this page; Career Map is a placeholder until that experience is built.
-document.getElementById("loveMap").addEventListener("click", e => e.preventDefault());
-document.getElementById("careerMap").addEventListener("click", e => e.preventDefault());
+// ---------- Love map / Career map ----------
+let MODE = "love";
+function setMode(m, opts = {}){
+  MODE = m === "career" ? "career" : "love";
+  try { localStorage.setItem("mm-mode", MODE); } catch (e) {}
+  document.body.dataset.mode = MODE;
+  const love = document.getElementById("loveMap"), car = document.getElementById("careerMap");
+  love.toggleAttribute("aria-current", MODE === "love"); car.toggleAttribute("aria-current", MODE === "career");
+  if (MODE === "love") love.setAttribute("aria-current", "page"); else car.setAttribute("aria-current", "page");
+  car.removeAttribute("title");
+  ROUTES = MODE === "career" ? ALL_ROUTES.filter(r => r.cat === "work") : ALL_ROUTES;
+  routeIdx = 0; showRoute();
+  if (typeof closeSheet === "function") closeSheet();
+  pinned = false; peek.classList.remove("show"); if (current) { byAbbr[current].g.classList.remove("on"); current = null; }
+  if (!opts.quiet) replayMapIntro();
+}
+document.getElementById("loveMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("love"); });
+document.getElementById("careerMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("career"); });
 
 // views: the map (default) and #about
 const aboutView = document.getElementById("about"), mapView = document.getElementById("mapView");
@@ -1097,13 +1227,18 @@ const PAIRS = {
   Sagittarius: ["Aries", "Leo", "Libra", "Aquarius"], Capricorn: ["Taurus", "Virgo", "Scorpio", "Pisces"],
   Aquarius: ["Aries", "Gemini", "Libra", "Sagittarius"], Pisces: ["Taurus", "Cancer", "Scorpio", "Capricorn"]
 };
+const INDUSTRIES = [
+  ["Tech & software", "tech"], ["Healthcare", "health"], ["Education", "edu"], ["Finance & business", "money"],
+  ["Creative & design", "create"], ["Retail & hospitality", "retail"], ["Trades & construction", "trades"], ["Government & nonprofit", "gov"],
+  ["Marketing & media", "media"], ["Science & research", "sci"], ["Transportation & logistics", "truck"], ["Other", "other"]
+];
 const LS = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }, del(k){ try { localStorage.removeItem(k); } catch(e){} } };
 
 const qz = document.getElementById("quiz"), qzCard = document.getElementById("qzCard");
 const screens = [...qz.querySelectorAll(".qz-screen")];
 const nextBtn = document.getElementById("qzNext"), backBtn = document.getElementById("qzBack");
 let step = 0, lastFocusQz = null;
-const blank = () => ({ reason: null, places: [], age: "", sign: null, home: "", comment: "" });
+const blank = () => ({ reason: null, places: [], age: "", sign: null, industries: [], industryOther: "", home: "", comment: "" });
 let A = blank();
 
 // --- build static pieces
@@ -1111,6 +1246,19 @@ const ageSel = document.getElementById("ageSelect");
 for (let a = 20; a < 100; a += 5) { const o = document.createElement("option"); o.value = `${a}–${a + 4}`; o.textContent = `${a}–${a + 4}`; ageSel.appendChild(o); }
 document.getElementById("signPick").innerHTML = SIGN_INFO.map(([n, d]) =>
   `<button class="zopt" type="button" role="radio" aria-checked="false" data-sign="${n}">${zIcon(n, "twotone", "coral")}<b>${n}</b><small>${d}</small></button>`).join("");
+
+document.getElementById("indPick").innerHTML = INDUSTRIES.map(([n, ic]) =>
+  `<button class="zopt" type="button" aria-pressed="false" data-ind="${n}"><span class="cb" aria-hidden="true"></span><svg class="ico" aria-hidden="true"><use href="#i-${ic}"/></svg><b>${n}</b></button>`).join("");
+document.getElementById("indPick").addEventListener("click", e => {
+  const b = e.target.closest(".zopt"); if (!b) return;
+  const n = b.dataset.ind, on = b.getAttribute("aria-pressed") !== "true";
+  b.setAttribute("aria-pressed", on);
+  A.industries = on ? A.industries.concat(n) : A.industries.filter(x => x !== n);
+  if (n === "Other") { document.getElementById("indOtherWrap").hidden = !on; if (on) setTimeout(() => document.getElementById("indOther").focus(), 30); else { A.industryOther = ""; document.getElementById("indOther").value = ""; } }
+  validate();
+});
+document.getElementById("indOther").addEventListener("input", e => { A.industryOther = e.target.value; validate(); });
+function industryLabels(r){ return (r.industries || []).map(n => n === "Other" ? (r.industryOther || "").trim() || "Other" : n); }
 
 // --- type-ahead combobox (multi: states + cities as chips; single: one city with inline completion)
 function esc(t){ return t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
@@ -1234,7 +1382,7 @@ document.getElementById("qzComment").addEventListener("input", e => { A.comment 
 const RESPONSES_URL = "https://script.google.com/macros/s/AKfycbygRXTJhAKwe8DD4YDQ0FVYVEtmEXL0t9TnFHi1xiE3i2nMHxrFyrLSUTHv4vyk3Vux/exec";
 function sendAnswers(r){
   const payload = {
-    reason: r.reason || "", age: r.age || "", sign: r.sign || "", home: r.home || "",
+    reason: r.reason || "", age: r.age || "", sign: r.sign || "", industries: industryLabels(r), home: r.home || "",
     places: (r.places || []).map(p => p.label), comment: (r.comment || "").slice(0, 1000)
   };
   // text/plain + no-cors keeps this a "simple" request, which Apps Script accepts from any site.
@@ -1243,11 +1391,17 @@ function sendAnswers(r){
 }
 
 // --- flow
-function valid(s){ return s === 1 ? !!A.reason : s === 3 ? !!(A.age && A.sign) : true; }   // places (2) and home/comments (4) are optional
+function valid(s){
+  if (s === 1) return !!A.reason;
+  if (s === 3) return A.reason === "jobs"
+    ? !!(A.age && A.industries.length && (!A.industries.includes("Other") || A.industryOther.trim()))
+    : !!(A.age && A.sign);
+  return true;   // places (2) and home/comments (4) are optional
+}
 function validate(){
   const ok = valid(step);
   nextBtn.setAttribute("aria-disabled", String(!ok));
-  nextBtn.title = ok ? "" : (step === 4 ? "Add where you live to finish" : "Answer to continue");
+  nextBtn.title = ok ? "" : "Answer to continue";
 }
 function show(s, dir = 1){
   step = s;
@@ -1259,6 +1413,12 @@ function show(s, dir = 1){
   [...document.querySelectorAll("#qzDots i")].forEach((d, i) => { d.classList.toggle("on", i < s - 1); d.classList.toggle("cur", i === s - 1); });
   document.getElementById("qzStepLabel").textContent = q ? `${s} of 4` : "";
   qzCard.setAttribute("aria-labelledby", "qzTitle" + s);
+  const jobs = A.reason === "jobs";
+  document.getElementById("signBlock").hidden = jobs;
+  document.getElementById("industryBlock").hidden = !jobs;
+  document.getElementById("commentQ").textContent = jobs
+    ? "Do you want to share any comments about what career and finding jobs is like where you live?"
+    : "Do you want to share any comments about what it’s like dating and finding love where you live?";
   backBtn.style.visibility = s > 1 ? "visible" : "hidden";
   nextBtn.innerHTML = s === 4 ? 'All done <span class="arr" aria-hidden="true">→</span>' : 'Next <span class="arr" aria-hidden="true">→</span>';
   validate();
@@ -1271,6 +1431,8 @@ function resetQuiz(){
   A = blank();
   qz.querySelectorAll('[role="radio"]').forEach(x => x.setAttribute("aria-checked", "false"));
   ageSel.value = ""; home.input.value = ""; document.getElementById("qzComment").value = ""; places.input.value = "";
+  document.querySelectorAll("#indPick .zopt").forEach(x => x.setAttribute("aria-pressed", "false"));
+  document.getElementById("indOther").value = ""; document.getElementById("indOtherWrap").hidden = true;
   renderChips(); places.close(); home.close();
 }
 function openQuiz(){
@@ -1313,10 +1475,13 @@ nextBtn.addEventListener("click", () => {
   if (!valid(step)) { nextBtn.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 260 }); return; }
   if (step < 4) return show(step + 1);
   // all done
-  const result = { sign: A.sign, reason: A.reason, places: A.places, age: A.age, home: A.home, comment: A.comment, at: new Date().toISOString() };
+  const jobs = A.reason === "jobs";
+  const result = { reason: A.reason, sign: jobs ? null : A.sign, industries: jobs ? A.industries : [], industryOther: jobs ? A.industryOther : "",
+    places: A.places, age: A.age, home: A.home, comment: A.comment, at: new Date().toISOString() };
   LS.set("mm-quiz", result);
   sendAnswers(result);
   showResult(result);
+  setMode(jobs ? "career" : "love", { quiet: true });   // jobs flow lands on the Career map
   closeQuiz({ spiral: true, replayMap: true, reset: false, focus: document.getElementById("retake") });
 });
 qz.addEventListener("keydown", e => {
@@ -1332,7 +1497,14 @@ qz.addEventListener("keydown", e => {
 // --- result line (replaces "Or start with a quick quiz.")
 const cta = document.getElementById("quizCta"), resEl = document.getElementById("quizResult");
 function showResult(r){
-  if (!r || !r.sign) { cta.hidden = false; resEl.hidden = true; document.getElementById("lede").hidden = false; return; }
+  const jobs = r && r.reason === "jobs";
+  if (!r || (!jobs && !r.sign)) { cta.hidden = false; resEl.hidden = true; document.getElementById("lede").hidden = false; return; }
+  document.getElementById("resLove").hidden = jobs; document.getElementById("resJobs").hidden = !jobs;
+  if (jobs) {
+    const inds = industryLabels(r);
+    document.getElementById("resInd").textContent = inds.length > 1 ? inds.slice(0, -1).join(", ") + " and " + inds[inds.length - 1] : inds.join("");
+    cta.hidden = true; resEl.hidden = false; document.getElementById("lede").hidden = true; return;
+  }
   const pairs = PAIRS[r.sign] || [];
   const list = pairs.length > 1 ? pairs.slice(0, -1).join(", ") + " & " + pairs[pairs.length - 1] : pairs.join("");
   document.getElementById("resSign").textContent = r.sign;
@@ -1344,6 +1516,7 @@ function showResult(r){
 document.getElementById("quizLink").addEventListener("click", e => { e.preventDefault(); openQuiz(); });
 document.getElementById("retake").addEventListener("click", () => { LS.del("mm-quiz"); showResult(null); openQuiz(); });
 showResult(LS.get("mm-quiz"));
+(function(){ let m = null; try { m = localStorage.getItem("mm-mode"); } catch (e) {} setMode(m || "love", { quiet: true }); })();
 // first visit: open the quiz once the map has popped in
 // First visit: pop the quiz up about 6 seconds in. If they're on About or reading a state's sheet
 // at that moment, wait until they're back on the map with nothing open.
