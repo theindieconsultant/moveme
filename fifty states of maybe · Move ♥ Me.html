@@ -534,8 +534,16 @@
   .sheet-ask h3{font-family:var(--display);font-weight:600;font-size:clamp(24px,3.2vw,30px);line-height:1.15;letter-spacing:-.01em;text-transform:lowercase;margin:0 0 12px;color:var(--text)}
   .sheet-ask p{font-size:16px;line-height:1.6;color:var(--text-muted);margin:0 0 18px}
   .sheet-ask .cm-btns{display:flex;flex-wrap:wrap;gap:12px}
-  .sheet-ask .soon-wrap{flex:0 0 auto}
-  .sheet-ask .soon-wrap .btn{opacity:1;cursor:default;padding-left:22px;padding-right:22px}
+  .sheet-ask .ask-btn{flex:0 0 auto;width:auto;margin:0;padding-left:22px;padding-right:22px}
+  .cm-btns .ask-btn{flex:1 1 180px;width:auto;margin:0}
+  /* ask a question / post a comment popup (quiz card style) */
+  .qz.ask{z-index:95}
+  .ask .ask-meta{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
+  .ask .ask-meta i{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);background:var(--coral)} .ask.career .ask-meta i{background:var(--cobalt)}
+  [data-theme="dark"] .ask .ask-meta i{border-color:var(--paper)}
+  .ask .qz-textarea{min-height:140px}
+  .ask .count{font-size:12px;color:var(--text-subtle);text-align:right;margin:6px 2px 0}
+  .ask .ask-err{color:var(--text);background:var(--surface);border:1.5px dashed var(--coral);border-radius:10px;padding:8px 10px;font-size:13px;margin:10px 0 0}
   .rule{height:0;border:0;border-top:2px dashed var(--border);margin:28px 0 8px;opacity:.9}
 
   /* expandable sections */
@@ -858,13 +866,41 @@
     <div class="cm-foot">
       <p id="cmAsk"></p>
       <div class="cm-btns">
-        <span class="soon-wrap"><button class="btn btn-primary" type="button" aria-disabled="true" aria-describedby="soonTip1">Ask a question</button><span class="tip" id="soonTip1" role="tooltip">This feature is coming soon</span></span>
-        <span class="soon-wrap"><button class="btn btn-secondary" type="button" aria-disabled="true" aria-describedby="soonTip2">Post a comment</button><span class="tip" id="soonTip2" role="tooltip">This feature is coming soon</span></span>
+        <button class="btn btn-primary ask-btn" type="button" data-ask="question" data-from="city">Ask a question</button>
+        <button class="btn btn-secondary ask-btn" type="button" data-ask="comment" data-from="city">Post a comment</button>
       </div>
     </div>
   </div>
 </div>
 
+<div class="qz ask" id="askModal" hidden>
+  <div class="qz-bg" id="askBg"></div>
+  <div class="qz-card" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+    <div class="qz-top">
+      <span class="ask-meta"><i aria-hidden="true"></i><span id="askMeta">love &amp; dating</span></span>
+      <button class="x" id="askClose" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5 Q12 12.4 19 18.6 M18.6 5 Q12.2 11.6 5.2 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <section id="askForm">
+      <h2 id="askTitle">ask a question about this state or city..</h2>
+      <p id="askSub">About love &amp; dating in Minnesota.</p>
+      <label class="sr-only" for="askText" id="askLabel">Your question</label>
+      <textarea class="qz-textarea" id="askText" maxlength="1000" placeholder="Type your question…"></textarea>
+      <p class="count" id="askCount" aria-live="polite">0 / 1000</p>
+      <p class="qz-hint">Saved anonymously. No names or emails. Please keep it kind and accurate.</p>
+      <div class="qz-actions">
+        <button class="btn btn-ghost" type="button" id="askCancel">Cancel</button>
+        <button class="btn btn-primary" type="button" id="askSend" aria-disabled="true">Send <span class="arr" aria-hidden="true">→</span></button>
+      </div>
+    </section>
+    <section id="askDone" hidden>
+      <h2 id="askDoneTitle" tabindex="-1">thank you!</h2>
+      <p id="askDoneText">Got it. We read every one, and the best ones help shape Move ♥ Me.</p>
+      <div class="qz-actions"><button class="btn btn-primary" type="button" id="askOk">Back to the map</button></div>
+    </section>
+  </div>
+</div>
 <div class="scrim" id="scrim"></div>
 <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sName" aria-hidden="true" tabindex="-1">
   <div class="topbar"><p class="over" id="sOver">dating guide</p><button class="x" id="close" type="button" aria-label="Close">
@@ -879,8 +915,8 @@
       <h3 id="sAskTitle">add a question or comment</h3>
       <p id="sAsk">Ask a question or post a random fact about this state. Please only comment if you know this place well. We count on accurate content from our users, thanks.</p>
       <div class="cm-btns">
-        <span class="soon-wrap"><button class="btn btn-secondary" type="button" aria-disabled="true" aria-describedby="soonTip3">Ask a question</button><span class="tip" id="soonTip3" role="tooltip">This feature is coming soon</span></span>
-        <span class="soon-wrap"><button class="btn btn-secondary" type="button" aria-disabled="true" aria-describedby="soonTip4">Post a comment</button><span class="tip" id="soonTip4" role="tooltip">This feature is coming soon</span></span>
+        <button class="btn btn-secondary ask-btn" type="button" data-ask="question" data-from="sheet">Ask a question</button>
+        <button class="btn btn-secondary ask-btn" type="button" data-ask="comment" data-from="sheet">Post a comment</button>
       </div>
     </section>
   </div>
@@ -1351,15 +1387,16 @@ function acc(id, title, html, open){
     <div class="body" id="${id}"><div><div class="inner">${html}</div></div></div></section>`;
 }
 
-function setSheetAsk(name){
+let sheetCtx = null, cityCtx = null;   // what the Ask / Comment buttons are about
+function setSheetAsk(name, abbr){
+  sheetCtx = { place: name, placeType: "state", state: abbr || "" };
   document.getElementById("sAsk").textContent = `Ask a question or post a random fact about ${name}. Please only comment if you know this place well. We count on accurate content from our users, thanks.`;
 }
-document.querySelectorAll("#sheet .soon-wrap .btn").forEach(b => b.addEventListener("click", e => e.preventDefault()));   // coming soon
 function buildCareerSheet(abbr){
   const I = info(abbr), d = I.d, s = I.s, C = CR.states[abbr], w = C.work, U = CR.us;
   document.getElementById("sName").textContent = s.name;
   document.getElementById("sOver").textContent = `career guide · ${(s.region || "").toLowerCase()}`;
-  setSheetAsk(s.name);
+  setSheetAsk(s.name, s.abbr);
   const fact = careerFact(w);
   const st = [
     { cls: "career2", art: ART.coin, lab: "pay vs U.S.", num: signed(C.payIndex), sub: C.payRank ? `#${C.payRank} of 50 states` : "for the 20 most common jobs" },
@@ -1435,7 +1472,7 @@ function buildSheet(abbr){
   const I = info(abbr), d = I.d, s = I.s;
   document.getElementById("sName").textContent = s.name;
   document.getElementById("sOver").textContent = `dating guide · ${(s.region || "").toLowerCase()}`;
-  setSheetAsk(s.name);
+  setSheetAsk(s.name, s.abbr);
 
   // three stickers
   const fact = funFact(abbr, d, I.cities);
@@ -2202,6 +2239,7 @@ function openCity(c, pinG){
     const m = f.match(/^(.*?)\s*\(([^)]+)\)$/);
     return `<li><span class="n" aria-hidden="true">${i + 1}</span><span>${m ? `${m[1]} <span class="src">(${m[2]})</span>` : f}</span></li>`;
   }).join("");
+  cityCtx = { place: `${c.name}, ${c.st}`, placeType: "city", state: c.st };
   document.getElementById("cmAsk").textContent = `Ask a question or post a random fact about ${place}. Please only comment if you know this place well. We count on accurate content from our users, thanks.`;
   cm.hidden = false; document.body.classList.add("locked");
   setTimeout(() => document.getElementById("cmClose").focus({ preventScroll: true }), 50);
@@ -2214,10 +2252,68 @@ function closeCity(){
 }
 document.getElementById("cmClose").addEventListener("click", closeCity);
 document.getElementById("cmBg").addEventListener("click", closeCity);
-cm.querySelectorAll('.soon-wrap .btn').forEach(b => b.addEventListener("click", e => e.preventDefault()));   // coming soon
 cm.addEventListener("keydown", e => {
   if (e.key === "Escape") { e.preventDefault(); closeCity(); }
   if (e.key === "Tab") { const f = [...cm.querySelectorAll("button")]; if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); } }
+});
+
+// ---------- ask a question / post a comment ----------
+// Sent to the same Google Apps Script as the quiz; "type" routes it to the Questions or Comments tab.
+const askM = document.getElementById("askModal"), askText = document.getElementById("askText"), askSend = document.getElementById("askSend");
+let askCtx = null, askLast = null;
+function openAsk(kind, ctx, from){
+  if (!ctx) return;
+  const career = MODE === "career", topic = career ? "career & job seeking" : "love & dating";
+  askCtx = { kind, ctx, map: career ? "career" : "love", topic };
+  askLast = from || document.activeElement;
+  askM.classList.toggle("career", career);
+  document.getElementById("askMeta").textContent = topic;
+  document.getElementById("askTitle").textContent = kind === "question" ? `ask a question about ${ctx.place}..` : `leave a comment about ${ctx.place}..`;
+  document.getElementById("askSub").textContent = kind === "question"
+    ? `Ask anything about ${topic} in ${ctx.place}. We read every question.`
+    : `Share what ${topic} is really like in ${ctx.place}. Only comment if you know this place well.`;
+  document.getElementById("askLabel").textContent = kind === "question" ? "Your question" : "Your comment";
+  askText.placeholder = kind === "question" ? "Type your question…" : "Type your comment…";
+  askText.value = ""; syncAsk();
+  document.getElementById("askForm").hidden = false; document.getElementById("askDone").hidden = true;
+  askM.querySelector(".ask-err")?.remove();
+  askM.hidden = false; document.body.classList.add("locked");
+  setTimeout(() => askText.focus(), 60);
+}
+function closeAsk(){
+  if (askM.hidden) return;
+  askM.hidden = true;
+  if (cm.hidden && !document.getElementById("sheet").classList.contains("open")) document.body.classList.remove("locked");
+  if (askLast && askLast.focus) askLast.focus({ preventScroll: true });
+}
+function syncAsk(){
+  const n = askText.value.trim().length;
+  document.getElementById("askCount").textContent = `${askText.value.length} / 1000`;
+  askSend.setAttribute("aria-disabled", n < 3 ? "true" : "false");
+}
+askText.addEventListener("input", syncAsk);
+askSend.addEventListener("click", () => {
+  if (askSend.getAttribute("aria-disabled") === "true") { askText.focus(); return; }
+  const c = askCtx, payload = {
+    type: c.kind, map: c.map, topic: c.topic, place: c.ctx.place, placeType: c.ctx.placeType, state: c.ctx.state,
+    text: askText.value.trim().slice(0, 1000)
+  };
+  try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).catch(() => {}); } catch (e) {}
+  document.getElementById("askDoneText").textContent = c.kind === "question"
+    ? `Your question about ${c.ctx.place} is in. We read every one, and the best ones help shape Move ♥ Me.`
+    : `Your comment about ${c.ctx.place} is in. Thanks for helping other people get the real picture.`;
+  document.getElementById("askForm").hidden = true; document.getElementById("askDone").hidden = false;
+  setTimeout(() => document.getElementById("askOk").focus(), 60);
+});
+["askClose", "askCancel", "askOk", "askBg"].forEach(id => document.getElementById(id).addEventListener("click", closeAsk));
+askM.addEventListener("keydown", e => {
+  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeAsk(); return; }
+  if (e.key === "Tab") { const f = [...askM.querySelectorAll("button, textarea")].filter(x => !x.closest("[hidden]")); const a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest(".ask-btn"); if (!b) return;
+  openAsk(b.dataset.ask, b.dataset.from === "city" ? cityCtx : sheetCtx, b);
 });
 
 // theme toggle
