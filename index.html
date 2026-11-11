@@ -198,25 +198,23 @@
   .qz-comment-label{display:block;font-style:italic;font-size:14px;line-height:1.5;color:var(--text-muted);margin:18px 0 8px}
 
   /* result line under the lede, once the quiz is done */
-  .quiz-result{display:block;margin-top:10px;color:var(--text);font-weight:500;line-height:1.8}
+  .quiz-result{display:block;margin-top:14px;color:var(--text);font-weight:500;line-height:1.8}
   .quiz-result > *{vertical-align:middle}
-  .quiz-result .retake-wrap{margin-right:6px}
+  .quiz-result .retake{margin-right:10px}
   .quiz-result #resIcon{display:inline-block;margin:0 4px}
   .quiz-result .sep{margin:0 6px}
   .quiz-result[hidden]{display:none}
   .quiz-result .zi{width:1.5em;height:1.5em;vertical-align:middle}
   .quiz-result .sep{color:var(--text-subtle)}
   .quiz-result b{font-weight:700}
-  .retake-wrap{position:relative;display:inline-flex}
-  .retake{all:unset;cursor:pointer;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
-  .retake:hover{transform:rotate(-30deg) scale(1.08)}
+  .retake{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font:700 14px/1 var(--sans);color:var(--ink);background:var(--coral);
+    border:2px solid var(--ink);border-radius:999px;padding:7px 14px 7px 9px;box-shadow:2px 2px 0 var(--shadow);transition:transform .15s, box-shadow .15s}
+  .retake:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--shadow)}
+  .retake:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--shadow)}
   .retake:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-  .retake svg{width:24px;height:24px;overflow:visible}
-  .retake path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-  .retake .r-under,.retake .r-head{stroke:var(--coral);stroke-width:10}
-  .retake .r-dots,.retake .r-head-dots{stroke:var(--route);stroke-width:3.5;stroke-dasharray:.5 7.5}
-  .retake-wrap .tip{bottom:calc(100% + 8px)}
-  .retake-wrap:hover .tip,.retake:focus-visible + .tip{opacity:1;transform:translate(-50%,0)}
+  .retake svg{width:18px;height:18px;overflow:visible;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+  .retake:hover svg{transform:rotate(-200deg)}
+  .retake path{fill:none;stroke:var(--ink);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
   .page[hidden]{display:none}
   .maplink{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;transition:color .2s}
   .maplink:hover,.maplink[aria-current="page"]{color:var(--text)}
@@ -508,9 +506,9 @@
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap" title="Career map coming soon">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
-      <p class="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
+      <p class="lede" id="lede">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot. <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
       <div class="quiz-result" id="quizResult" hidden>
-        <span class="retake-wrap"><button class="retake" id="retake" type="button" aria-label="Retake quiz" aria-describedby="retakeTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="retakeTip" role="tooltip">retake quiz</span></span>
+        <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button>
         <span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span>
       </div>
     </div>
@@ -1307,13 +1305,14 @@ qz.addEventListener("keydown", e => {
 // --- result line (replaces "Or start with a quick quiz.")
 const cta = document.getElementById("quizCta"), resEl = document.getElementById("quizResult");
 function showResult(r){
-  if (!r || !r.sign) { cta.hidden = false; resEl.hidden = true; return; }
+  if (!r || !r.sign) { cta.hidden = false; resEl.hidden = true; document.getElementById("lede").hidden = false; return; }
   const pairs = PAIRS[r.sign] || [];
   const list = pairs.length > 1 ? pairs.slice(0, -1).join(", ") + " & " + pairs[pairs.length - 1] : pairs.join("");
   document.getElementById("resSign").textContent = r.sign;
   document.getElementById("resIcon").innerHTML = zIcon(r.sign, "twotone", "coral", r.sign);
   document.getElementById("resPairs").textContent = list;
   cta.hidden = true; resEl.hidden = false;
+  document.getElementById("lede").hidden = true;   // the result line moves up under the headline
 }
 document.getElementById("quizLink").addEventListener("click", e => { e.preventDefault(); openQuiz(); });
 document.getElementById("retake").addEventListener("click", () => { LS.del("mm-quiz"); showResult(null); openQuiz(); });
