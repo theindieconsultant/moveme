@@ -1957,7 +1957,9 @@ const cpeek = document.getElementById("cpeek");
 // hovered/focused hot spots grow their dot 250% so it's clear you're on the city, not the state
 function setPinR(p, k = p.k){
   const m = p.hovered ? 2.5 : 1;
-  p.ci.style.r = 5 * k * m; p.ru.style.r = p.rd.style.r = p.rg.style.r = 10 * k * m; p.hit.style.r = 16 * k * m;
+  // radius as an attribute (Safari) and as a px style (keeps Chrome/Firefox's grow transition); a unitless style.r is ignored by Safari
+  const setR = (c, v) => { c.setAttribute("r", v); c.style.r = v + "px"; };
+  setR(p.ci, 5 * k * m); [p.ru, p.rd, p.rg].forEach(c => setR(c, 10 * k * m)); setR(p.hit, 16 * k * m);
 }
 let cpHover = null;
 function cityHoverOn(p){
