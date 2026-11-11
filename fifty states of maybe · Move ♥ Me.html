@@ -362,7 +362,6 @@
   .map.tiny .bdg{display:none}
   .map .waves path{fill:none;stroke:var(--cobalt);stroke-width:2.2px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.42}
   .map .waves path.b{opacity:.26}
-  .map .waves .alt path{stroke:var(--coral)}
   [data-theme="dark"] .map .waves path{opacity:.6} [data-theme="dark"] .map .waves path.b{opacity:.35}
   @media (prefers-reduced-motion:no-preference){
     .map .waves .wv{animation:wave 6s ease-in-out infinite alternate}
@@ -934,26 +933,40 @@ function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); fo
 // spread vector: push each state away from the map's middle, so wide screens get a playful "exploded" sticker look
 const K = 0.055;
 const byAbbr = {};
-// ocean & lake waves behind the states: little brand squiggles that drift and bob
+// ocean & lake waves behind the states: brand squiggles in 1–3 strokes, varied lengths and stacks, drifting and bobbing
 const waves = el("g", { class: "waves", "aria-hidden": "true" }, svg);
-[
-  // Pacific
-  [-24, 40, 1], [6, 95, .9], [-34, 150, 1.1], [-6, 210, .9], [-30, 270, 1], [-4, 330, 1.1], [-28, 392, .9], [30, 440, 1], [70, 470, .8],
-  [-20, 470, .9],
-  // Gulf of Mexico
-  [470, 615, .9], [560, 560, 1], [610, 600, 1.1], [668, 545, .9], [728, 560, 1], [700, 610, .8],
-  // Atlantic
-  [858, 520, 1], [868, 590, .9], [880, 455, 1.1], [905, 395, .9], [918, 330, 1], [952, 275, 1.1], [985, 215, .9], [1000, 150, 1], [1008, 80, .9], [985, 20, .8],
-  // Great Lakes
-  [608, 56, .6], [664, 50, .5], [647, 146, .4], [745, 108, .55], [779, 200, .45], [812, 140, .45]
-].forEach(([x, y, k], i) => {
-  const o = el("g", { transform: `translate(${x} ${y}) scale(${k})` }, waves);
-  const w = el("g", { class: "wv" + (i % 5 === 3 ? " alt" : "") }, o);
-  w.style.animationDelay = (-(i * 0.73) % 6).toFixed(2) + "s";
-  w.style.animationDuration = (5 + (i * 1.37) % 3).toFixed(2) + "s";
-  el("path", { d: "M-16 0q4-4.5 8 0t8 0t8 0t8 0" }, w);
-  el("path", { d: "M-9 7q4-4.5 8 0t8 0t8 0", class: "b" }, w);
-});
+(() => {
+  let seed = 20261111; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const R = (a, b) => a + rnd() * (b - a);
+  const inPoly = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+  // rough ocean shapes in map units (states sit on top, so overlap just hides)
+  const OCEANS = [
+    [[-60, -40], [100, -40], [62, 18], [28, 70], [10, 170], [18, 262], [58, 342], [110, 410], [150, 425], [205, 482], [340, 492], [340, 660], [-60, 660]],          // Pacific + around AK/HI
+    [[470, 600], [540, 545], [640, 532], [700, 506], [762, 506], [772, 560], [810, 660], [460, 660]],                                                           // Gulf
+    [[832, 660], [830, 470], [868, 420], [884, 362], [902, 302], [930, 250], [950, 200], [962, 160], [985, 60], [1000, -40], [1040, -40], [1040, 660]]            // Atlantic
+  ];
+  const pts = [];
+  const step = 40;
+  for (let y = -30; y < 655; y += step * .8) for (let x = -50; x < 1035; x += step) {
+    const px = x + R(-13, 13) + ((Math.round(y / step) % 2) ? step / 2 : 0), py = y + R(-9, 9);
+    if (OCEANS.some(P => inPoly(px, py, P))) pts.push([px, py, R(.7, 1.15)]);
+  }
+  // Great Lakes: Michigan (by WI), Huron, Erie (above PA), Ontario (above NY)
+  [[646, 140, .45], [650, 172, .4], [655, 204, .38], [745, 108, .5], [726, 140, .42], [762, 190, .45], [792, 184, .48], [824, 180, .42], [790, 104, .48], [818, 98, .45], [806, 128, .42]].forEach(p => pts.push(p));
+  const hump = (n, amp) => "q4 -" + amp + " 8 0" + " t8 0".repeat(n - 1);
+  pts.forEach(([x, y, k], i) => {
+    const o = el("g", { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(2)})` }, waves);
+    const w = el("g", { class: "wv" }, o);
+    w.style.animationDelay = (-R(0, 6)).toFixed(2) + "s";
+    w.style.animationDuration = R(4.5, 8).toFixed(2) + "s";
+    const lines = rnd() < .25 ? 1 : rnd() < .6 ? 2 : 3, amp = R(3.2, 5.5).toFixed(1), stack = Math.floor(rnd() * 3);   // 0 stepped right, 1 stepped left, 2 centred
+    for (let l = 0; l < lines; l++) {
+      const n = Math.max(2, Math.round(R(2, 5)) - (l && stack === 2 ? 1 : 0)), len = n * 8;
+      const dx = stack === 0 ? l * 6 : stack === 1 ? -l * 6 : -len / 2 + 16, dy = l * 7;
+      el("path", { d: `M${(stack === 2 ? dx : dx - 16).toFixed(1)} ${dy}` + hump(n, amp), class: l ? "b" : "" }, w);
+    }
+  });
+})();
 const stLayer = el("g", {}, svg);
 const order = [...DATA.states].sort((a,b) => a.cy - b.cy || a.cx - b.cx);
 order.forEach((s, i) => {
