@@ -314,7 +314,28 @@
   .map text.lbl{font-family:var(--display);font-weight:600;font-size:var(--lbl,13px);text-anchor:middle;dominant-baseline:central;pointer-events:none;
      transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
   .map .st:hover text.lbl, .map .st.on text.lbl{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
-  /* per-state badges under the abbreviation: top zodiac sign (Love map), pay rank (Career map) */
+  /* Love map: zodiac "wallpaper / graffiti" inside each state, clipped to its outline */
+  .map .grf{pointer-events:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+  .map .st:hover .grf{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
+  .map .st.on .grf{transform:translate(calc(var(--sh,5) * -1.2px), calc(var(--sh,5) * -1.2px))}
+  body[data-mode="career"] .map .grf{display:none}
+  .map .st .fill.edge{fill:none !important;pointer-events:none}
+  symbol .zb-b{fill:var(--zb-fill);fill-opacity:1}
+  symbol .zb-l{stroke:var(--zb-ln)}
+  .map .grf use{--zb-fill:var(--zb1);--zb-ln:var(--ink)} .map .grf use.alt{--zb-fill:var(--zb2)}
+  .map .c0 .grf{--zb1:var(--chartreuse);--zb2:var(--coral)}
+  .map .c1 .grf{--zb1:var(--coral);--zb2:#FFFFFF}
+  .map .c2 .grf{--zb1:var(--chartreuse);--zb2:#FFFFFF}
+  .map .c3 .grf{--zb1:var(--coral);--zb2:var(--chartreuse)}
+  .map .c4 .grf{--zb1:var(--coral);--zb2:var(--chartreuse)}
+  [data-theme="dark"] .map .c3 .grf, [data-theme="dark"] .map .c4 .grf{--zb1:var(--coral);--zb2:var(--cobalt)}
+  [data-theme="dark"] .map .c3 .grf use, [data-theme="dark"] .map .c4 .grf use{--zb-ln:var(--paper)}
+  /* keep abbreviations readable over the pattern */
+  body:not([data-mode="career"]) .map text.lbl{paint-order:stroke;stroke-width:calc(var(--lbl,13px) * .32);stroke-linejoin:round}
+  body:not([data-mode="career"]) .map .c0 text.lbl{stroke:var(--f0)} body:not([data-mode="career"]) .map .c1 text.lbl{stroke:var(--f1)}
+  body:not([data-mode="career"]) .map .c2 text.lbl{stroke:var(--f2)} body:not([data-mode="career"]) .map .c3 text.lbl{stroke:var(--f3)}
+  body:not([data-mode="career"]) .map .c4 text.lbl{stroke:var(--f4)}
+  /* per-state badges under the abbreviation: pay rank (Career map) */
   .map .bdg{pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
   .map .st:hover .bdg{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
   .map .st.on .bdg{transform:translate(calc(var(--sh,5) * -1.2px), calc(var(--sh,5) * -1.2px))}
@@ -1571,7 +1592,7 @@ function setMode(m, opts = {}){
   const bk = document.getElementById("bdgKey");
   if (bk) bk.innerHTML = MODE === "career"
     ? `Under each state: <span class="pl">#1</span> its rank of 50 for pay across the 20 most common jobs (#1 = highest).`
-    : `Under each state: ${zIcon("Cancer", "sticker", "coral")} its most common sign (Cancer in all 50, thanks to summer birthdays) and <span class="pl">#1</span> its rank of 50 for the share of adults who are single.`;
+    : `${zIcon("Cancer", "swash", "coral")} Every state is wallpapered with its most common sign: Cancer, in all 50, thanks to summer birthdays.`;
 }
 document.getElementById("loveMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("love"); });
 document.getElementById("careerMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("career"); });
@@ -1960,21 +1981,59 @@ var BADGES = [];
 // singles rank: share of adults who are single, #1 = highest (By State tab)
 const SINGLE_RANK = (() => { const r = {}; Object.entries(R.states).filter(([, d]) => d && d.singlePct != null).sort((a, b) => b[1].singlePct - a[1].singlePct).forEach(([k], i) => r[k] = i + 1); return r; })();
 function buildBadges(){
-  const parse = str => { const d = new DOMParser().parseFromString(str, "image/svg+xml").documentElement; d.removeAttribute("role"); d.removeAttribute("aria-label"); d.querySelector("title")?.remove(); return document.importNode(d, true); };
   const pill = (g, txt) => { const pg = el("g", { class: "pill" }, g); el("rect", {}, pg); el("text", {}, pg).textContent = txt; return pg; };
-  DATA.states.forEach(s => {
-    const I = info(s.abbr), sign = I && I.most ? I.most[0] : null, C = CR.states[s.abbr], rank = C && C.payRank, srank = SINGLE_RANK[s.abbr];
-    const host = s._co || byAbbr[s.abbr].g;   // tiny northeast states: beside their callout pill
+  // blob ("swash") zodiac glyphs as recolourable symbols
+  const defs = el("defs", {}, svg), made = {};
+  const symbolFor = sign => {
+    const k = sign.toLowerCase(); if (made[k]) return made[k];
+    const src = ZODIAC.coral.light[k].swash.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "").replace(/<title>.*?<\/title>/, "")
+      .replace(/fill="#FF8A65"( fill-opacity="[^"]*")?/, 'class="zb-b"').replace(/stroke="#1B1B2F"/g, 'class="zb-l"');
+    const sym = el("symbol", { id: "zb-" + k, viewBox: "0 0 64 64" }, defs); sym.innerHTML = src;
+    return made[k] = "zb-" + k;
+  };
+  DATA.states.forEach((s, si) => {
+    const I = info(s.abbr), sign = I && I.most ? I.most[0] : null, C = CR.states[s.abbr], rank = C && C.payRank;
+    const g = byAbbr[s.abbr].g, fill = g.querySelector(".fill");
+    if (sign) graffiti(s, si, g, fill, symbolFor(sign));
+    const host = s._co || g;   // tiny northeast states: beside their callout pill
     const sm = !s._co && (s.small || s.area < 1400);
-    const love = el("g", { class: "bdg bdg-love" + (sm ? " sm" : "") }, host);
-    let icons = [];
-    if (sign) { const k = sign.toLowerCase();
-      icons = [["zlt", ZODIAC.coral.light[k].sticker], ["zdk", ZODIAC.coral.dark[k].sticker]].map(([cls, str]) => { const n = parse(str); n.setAttribute("class", cls); love.appendChild(n); return n; }); }
-    const lp = srank ? pill(love, "#" + srank) : null;
     const car = el("g", { class: "bdg bdg-car" + (sm ? " sm" : "") }, host);
     const cp = rank ? pill(car, "#" + rank) : null;
-    BADGES.push({ s, icons, lp, cp, srank, rank, callout: !!s._co });
+    BADGES.push({ s, cp, rank, callout: !!s._co });
   });
+}
+// each state gets its own mix: one huge tilted sign, a tidy repeating wallpaper, or a scattered graffiti spray
+function graffiti(s, si, g, fill, id){
+  let h0 = 0; for (const ch of s.abbr) h0 = (h0 * 31 + ch.charCodeAt(0)) >>> 0;
+  let seed = h0 + si * 977; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const R = (a, b) => a + rnd() * (b - a);
+  const bb = fill.getBBox(), w = bb.width, h = bb.height, m = Math.min(w, h), M = Math.max(w, h);
+  const cp = el("clipPath", { id: "clip-" + s.abbr }, svg.querySelector("defs")); el("path", { d: s.d }, cp);
+  const grp = el("g", { class: "grf", "clip-path": `url(#clip-${s.abbr})`, "aria-hidden": "true" });
+  g.insertBefore(grp, fill.nextSibling);
+  // pick a point that's actually on land (multi-part states like MI and HI have lots of water in their box)
+  const inside = (fx0, fx1, fy0, fy1) => { let x, y; for (let i = 0; i < 40; i++) { x = bb.x + w * R(fx0, fx1); y = bb.y + h * R(fy0, fy1);
+    try { const pt = svg.createSVGPoint(); pt.x = x; pt.y = y; if (fill.isPointInFill(pt)) break; } catch (e) { break; } } return [x, y]; };
+  const put = (x, y, size, rot) => { const u = el("use", { href: "#" + id, x: -size / 2, y: -size / 2, width: size, height: size, transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)})` }, grp); if (rnd() < .35) u.classList.add("alt"); };
+  const styles = ["huge", "wall", "spray"], style = s.abbr === "HI" ? "wall" : s.area < 900 ? (rnd() < .5 ? "huge" : "wall") : styles[(h0 + si) % 3];
+  if (style === "huge") {
+    const big = (s.abbr === "MI" || s.abbr === "HI" || s.abbr === "AK") ? m * R(.9, 1.2) : M * R(.75, 1.0);
+    const [hx, hy] = inside(.3, .7, .3, .7); put(hx, hy, big, R(-35, 35));
+    const n = Math.round(R(3, 6));
+    for (let i = 0; i < n; i++) { const [x, y] = inside(0, 1, 0, 1); put(x, y, m * R(.16, .3), R(-60, 60)); }
+  } else if (style === "wall") {
+    const size = s.abbr === "HI" ? 7 : Math.max(8, Math.min(24, m * R(.22, .34))), step = size * R(1.05, 1.3), base = R(-25, 25), flip = rnd() < .5;
+    let row = 0;
+    for (let y = bb.y - size / 2; y < bb.y + h + size; y += step, row++)
+      for (let x = bb.x - size / 2 + (row % 2 ? step / 2 : 0), col = 0; x < bb.x + w + size; x += step, col++)
+        put(x, y, size, base + (flip && (row + col) % 2 ? 180 : (col % 2 ? 14 : -14)));
+  } else {
+    const n = Math.min(22, Math.max(6, Math.round((w * h) / (m * m * .09) * .35)));
+    const [ax, ay] = inside(.2, .8, .2, .8); put(ax, ay, m * R(.6, .85), R(-40, 40));   // one anchor tag
+    for (let i = 0; i < n; i++) { const [x, y] = inside(-.05, 1.05, -.05, 1.05); put(x, y, m * R(.12, .42), R(-70, 70)); }
+  }
+  // redraw the outline on top so the pattern sits neatly inside the border
+  const edge = el("path", { d: s.d, class: "fill edge" }); g.insertBefore(edge, grp.nextSibling);
 }
 function placePill(pg, txt, x0, yMid, f){
   const h = f * 1.5, w = f * (0.62 * txt.length + 0.15) + f * 0.6;
@@ -1989,11 +2048,6 @@ function sizeBadges(lbl){
     const s = b.s, call = b.callout;
     const f = call ? 10.5 : lbl * 0.8, z = call ? 16 : lbl * 1.45, gap = call ? 3 : lbl * 0.22;
     const yMid = call ? s.callout[1] : s.ly + lbl * 0.62 + z / 2;
-    // Love: zodiac icon + singles-rank pill, centred under the label (or right of the callout pill)
-    const lt = b.srank ? "#" + b.srank : "", lw = (b.icons.length ? z : 0) + (b.lp ? gap + pillW(lt, f) : 0);
-    let x = call ? s.callout[0] + 21 : s.lx - lw / 2;
-    b.icons.forEach(n => { n.setAttribute("x", x); n.setAttribute("y", yMid - z / 2); n.setAttribute("width", z); n.setAttribute("height", z); });
-    if (b.lp) placePill(b.lp, lt, x + (b.icons.length ? z + gap : 0), yMid, f);
     // Career: pay-rank pill
     if (b.cp) { const ct = "#" + b.rank; placePill(b.cp, ct, call ? s.callout[0] + 21 : s.lx - pillW(ct, f) / 2, yMid, f); }
   });
