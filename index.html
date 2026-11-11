@@ -472,6 +472,16 @@
   @media (prefers-reduced-motion:no-preference){
     .refresh .r-dots,.refresh .r-head-dots{animation:march 1.2s linear infinite}
   }
+  .foot-refresh{width:auto;height:auto;vertical-align:middle}
+  .foot-btn{all:unset;cursor:pointer;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+  .foot-btn:hover{transform:rotate(-30deg) scale(1.1)}
+  .foot-btn.spin{animation:spin .7s cubic-bezier(.34,1.3,.64,1)}
+  .foot-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .foot-btn svg{width:18px;height:18px;overflow:visible}
+  .foot-btn path{fill:none;stroke:var(--text);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+  .foot-refresh .tip{bottom:calc(100% + 8px);left:0;transform:translate(0,6px)}
+  .foot-refresh .tip::after{left:12px;margin-left:0}
+  .foot-refresh:hover .tip,.foot-btn:focus-visible + .tip{opacity:1;transform:translate(0,0)}
   .key{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .key i{display:inline-block;width:22px;height:0;border-top:3px dotted var(--route);vertical-align:middle;margin-right:6px}
 </style>
@@ -536,7 +546,7 @@
   </div>
 
   <footer>
-    <span class="key" aria-live="polite"><span><i></i><span id="routeLabel">10 hot spots, for inspiration: #1 best cities for singles (WalletHub, 2026)</span></span></span>
+    <span class="key"><span class="refresh-wrap foot-refresh"><button class="foot-btn" id="footRefresh" type="button" aria-label="Refresh to 10 new hot spots" aria-describedby="footTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="footTip" role="tooltip">refresh to 10 new hot spots</span></span><span aria-live="polite"><i></i><span id="routeLabel">10 hot spots, for inspiration: #1 best cities for singles (WalletHub, 2026)</span></span></span>
     <span>move ♥ me</span>
   </footer>
 </div>
@@ -1044,6 +1054,10 @@ refreshBtn.addEventListener("click", () => {
   showRoute();
 });
 refreshBtn.addEventListener("animationend", () => refreshBtn.classList.remove("spin"));
+// footer refresh: same action as the headline "o"
+const footBtn = document.getElementById("footRefresh");
+footBtn.addEventListener("click", () => { refreshBtn.click(); footBtn.classList.remove("spin"); void footBtn.offsetWidth; footBtn.classList.add("spin"); });
+footBtn.addEventListener("animationend", () => footBtn.classList.remove("spin"));
 // Love Map is this page; Career Map is a placeholder until that experience is built.
 document.getElementById("loveMap").addEventListener("click", e => e.preventDefault());
 document.getElementById("careerMap").addEventListener("click", e => e.preventDefault());
