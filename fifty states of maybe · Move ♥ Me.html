@@ -314,6 +314,22 @@
   .map text.lbl{font-family:var(--display);font-weight:600;font-size:var(--lbl,13px);text-anchor:middle;dominant-baseline:central;pointer-events:none;
      transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
   .map .st:hover text.lbl, .map .st.on text.lbl{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
+  /* per-state badges under the abbreviation: top zodiac sign (Love map), pay rank (Career map) */
+  .map .bdg{pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+  .map .st:hover .bdg{transform:translate(calc(var(--sh,5) * -0.7px), calc(var(--sh,5) * -0.7px))}
+  .map .st.on .bdg{transform:translate(calc(var(--sh,5) * -1.2px), calc(var(--sh,5) * -1.2px))}
+  .map .bdg .zdk{display:none} [data-theme="dark"] .map .bdg .zlt{display:none} [data-theme="dark"] .map .bdg .zdk{display:inline}
+  body:not([data-mode="career"]) .map .bdg-car, body[data-mode="career"] .map .bdg-love{display:none}
+  .map .bdg .pill rect{fill:var(--surface);stroke:var(--ink);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+  [data-theme="dark"] .map .bdg .pill rect{stroke:var(--paper)}
+  .map .bdg .pill text{font-family:var(--sans);font-weight:800;fill:var(--text);text-anchor:middle;dominant-baseline:central;letter-spacing:-.01em}
+  .map.tight .bdg{display:none}
+  .bdg-key{margin:6px 0 14px;font-size:13px;color:var(--text-muted);display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  .bdg-key .pl{display:inline-block;padding:1px 8px;border:1.5px solid var(--ink);border-radius:999px;background:var(--surface);color:var(--text);font-weight:800;font-size:12px}
+  [data-theme="dark"] .bdg-key .pl{border-color:var(--paper)}
+  .bdg-key .zi{display:inline-block;width:18px;height:18px;vertical-align:-4px}
+  @media (max-width:760px){ .bdg-key{display:none} }
+  .map.tiny .bdg{display:none}
   .map .callouts{transition:opacity .3s}
   .map .callouts line{stroke:var(--border);stroke-width:1.25px;vector-effect:non-scaling-stroke;stroke-dasharray:2 3}
   .map .callouts rect{stroke:var(--border);stroke-width:1.5px;vector-effect:non-scaling-stroke}
@@ -667,6 +683,7 @@
     </div>
   </div>
 
+  <p class="bdg-key" id="bdgKey" aria-live="polite"></p>
   <footer>
     <span class="key"><span class="refresh-wrap foot-refresh"><button class="foot-btn" id="footRefresh" type="button" aria-label="Refresh to 10 new hot spots" aria-describedby="footTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="footTip" role="tooltip">refresh to 10 new hot spots</span></span><span aria-live="polite"><i></i><span id="routeLabel">10 hot spots, for inspiration: #1 best cities for singles (WalletHub, 2026)</span></span></span>
     <span>move ♥ me</span>
@@ -1025,6 +1042,7 @@ function resize(){
   svg.classList.toggle("tight", w < 760);
   svg.classList.toggle("tiny", w < 340);
   layout(spread, scale);
+  sizeBadges(Math.max(8.5, Math.min(14, 13 * scale * 1.15)) / scale);
 }
 new ResizeObserver(resize).observe(stage);
 resize();
@@ -1550,6 +1568,10 @@ function setMode(m, opts = {}){
   pinned = false; peek.classList.remove("show"); if (current) { byAbbr[current].g.classList.remove("on"); current = null; }
   if (!opts.quiet) replayMapIntro();
   try { refreshResult(); } catch (e) {}   // each map shows its own quiz result, or the intro + quiz link
+  const bk = document.getElementById("bdgKey");
+  if (bk) bk.innerHTML = MODE === "career"
+    ? `Under each state: <span class="pl">#1</span> its rank of 50 for pay across the 20 most common jobs (#1 = highest).`
+    : `Under each state: ${zIcon("Cancer", "sticker", "coral")} its most common sign (Cancer in all 50, thanks to summer birthdays) and <span class="pl">#1</span> its rank of 50 for the share of adults who are single.`;
 }
 document.getElementById("loveMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("love"); });
 document.getElementById("careerMap").addEventListener("click", e => { e.preventDefault(); if (location.hash === "#about") goMap(e); setMode("career"); });
@@ -1933,6 +1955,51 @@ function showResult(r){
 function refreshResult(){ showResult(getRes(modeReason())); }
 document.getElementById("quizLink").addEventListener("click", e => { e.preventDefault(); openQuiz(); });
 document.getElementById("retake").addEventListener("click", () => { delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
+// state badges: most common zodiac sign (Love) and pay rank of 50 (Career), right under each abbreviation
+var BADGES = [];
+// singles rank: share of adults who are single, #1 = highest (By State tab)
+const SINGLE_RANK = (() => { const r = {}; Object.entries(R.states).filter(([, d]) => d && d.singlePct != null).sort((a, b) => b[1].singlePct - a[1].singlePct).forEach(([k], i) => r[k] = i + 1); return r; })();
+function buildBadges(){
+  const parse = str => { const d = new DOMParser().parseFromString(str, "image/svg+xml").documentElement; d.removeAttribute("role"); d.removeAttribute("aria-label"); d.querySelector("title")?.remove(); return document.importNode(d, true); };
+  const pill = (g, txt) => { const pg = el("g", { class: "pill" }, g); el("rect", {}, pg); el("text", {}, pg).textContent = txt; return pg; };
+  DATA.states.forEach(s => {
+    const I = info(s.abbr), sign = I && I.most ? I.most[0] : null, C = CR.states[s.abbr], rank = C && C.payRank, srank = SINGLE_RANK[s.abbr];
+    const host = s._co || byAbbr[s.abbr].g;   // tiny northeast states: beside their callout pill
+    const sm = !s._co && (s.small || s.area < 1400);
+    const love = el("g", { class: "bdg bdg-love" + (sm ? " sm" : "") }, host);
+    let icons = [];
+    if (sign) { const k = sign.toLowerCase();
+      icons = [["zlt", ZODIAC.coral.light[k].sticker], ["zdk", ZODIAC.coral.dark[k].sticker]].map(([cls, str]) => { const n = parse(str); n.setAttribute("class", cls); love.appendChild(n); return n; }); }
+    const lp = srank ? pill(love, "#" + srank) : null;
+    const car = el("g", { class: "bdg bdg-car" + (sm ? " sm" : "") }, host);
+    const cp = rank ? pill(car, "#" + rank) : null;
+    BADGES.push({ s, icons, lp, cp, srank, rank, callout: !!s._co });
+  });
+}
+function placePill(pg, txt, x0, yMid, f){
+  const h = f * 1.5, w = f * (0.62 * txt.length + 0.15) + f * 0.6;
+  const r = pg.querySelector("rect"), t = pg.querySelector("text");
+  r.setAttribute("x", x0); r.setAttribute("y", yMid - h / 2); r.setAttribute("width", w); r.setAttribute("height", h); r.setAttribute("rx", h / 2);
+  t.setAttribute("x", x0 + w / 2); t.setAttribute("y", yMid + f * 0.04); t.style.fontSize = f + "px";
+  return w;
+}
+const pillW = (txt, f) => f * (0.62 * txt.length + 0.15) + f * 0.6;
+function sizeBadges(lbl){
+  (BADGES || []).forEach(b => {
+    const s = b.s, call = b.callout;
+    const f = call ? 10.5 : lbl * 0.8, z = call ? 16 : lbl * 1.45, gap = call ? 3 : lbl * 0.22;
+    const yMid = call ? s.callout[1] : s.ly + lbl * 0.62 + z / 2;
+    // Love: zodiac icon + singles-rank pill, centred under the label (or right of the callout pill)
+    const lt = b.srank ? "#" + b.srank : "", lw = (b.icons.length ? z : 0) + (b.lp ? gap + pillW(lt, f) : 0);
+    let x = call ? s.callout[0] + 21 : s.lx - lw / 2;
+    b.icons.forEach(n => { n.setAttribute("x", x); n.setAttribute("y", yMid - z / 2); n.setAttribute("width", z); n.setAttribute("height", z); });
+    if (b.lp) placePill(b.lp, lt, x + (b.icons.length ? z + gap : 0), yMid, f);
+    // Career: pay-rank pill
+    if (b.cp) { const ct = "#" + b.rank; placePill(b.cp, ct, call ? s.callout[0] + 21 : s.lx - pillW(ct, f) / 2, yMid, f); }
+  });
+}
+buildBadges(); resize();
+
 (function(){ let m = null; try { m = localStorage.getItem("mm-mode"); } catch (e) {} setMode(m || "love", { quiet: true }); refreshResult(); })();
 // first visit: open the quiz once the map has popped in
 // First visit: pop the quiz up about 6 seconds in. If they're on About or reading a state's sheet
