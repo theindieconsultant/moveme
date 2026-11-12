@@ -67,14 +67,20 @@ function saveFeedback(ss, d) {
   if (!rating && text.length < 3) return ContentService.createTextOutput('empty');
   const stars = rating ? '★'.repeat(rating) + '☆'.repeat(5 - rating) + ' (' + rating + '/5)' : 'No rating';
   const when = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMM d, yyyy h:mm a');
-  MailApp.sendEmail({
-    to: FEEDBACK_TO,
-    subject: FEEDBACK_SUBJECT,
-    body: 'Rating: ' + stars + '\n\n' + (text || '(no comment)') + '\n\n—\nSent ' + when + ' from the Move ♥ Me site (' + (d.page || '') + ', ' + (d.map === 'career' ? 'Career' : 'Love') + ' map).'
-  });
+  // save first, so feedback is never lost even if the email can't be sent
   const sheet = ss.getSheetByName('Feedback') || ss.insertSheet('Feedback');
   if (sheet.getLastRow() === 0) { sheet.appendRow(['Timestamp', 'Rating', 'Feedback', 'Page']); sheet.setFrozenRows(1); sheet.getRange(1, 1, 1, 4).setFontWeight('bold'); }
   sheet.appendRow([new Date(), rating || '', clean(text), clean(d.page)]);
+  try {
+    MailApp.sendEmail({
+      to: FEEDBACK_TO,
+      subject: FEEDBACK_SUBJECT,
+      body: 'Rating: ' + stars + '\n\n' + (text || '(no comment)') + '\n\n—\nSent ' + when + ' from the Move ♥ Me site (' + (d.page || '') + ', ' + (d.map === 'career' ? 'Career' : 'Love') + ' map).'
+    });
+  } catch (err) {
+    console.error('Feedback email failed: ' + err);
+    return ContentService.createTextOutput('saved, email failed');
+  }
   return ContentService.createTextOutput('ok');
 }
 
@@ -97,4 +103,10 @@ function saveQuiz(ss, d) {
   };
   sheet.appendRow(headers.map(valueFor));
   return ContentService.createTextOutput('ok');
+}
+
+// Run this once from the editor (pick "authorizeEmail" in the function menu, then Run).
+// Google will ask permission to send email as you; after you allow it, a test email arrives.
+function authorizeEmail() {
+  MailApp.sendEmail(FEEDBACK_TO, FEEDBACK_SUBJECT, 'Test: Move ♥ Me site feedback emails are working. You can delete this email.');
 }
