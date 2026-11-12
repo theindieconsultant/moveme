@@ -316,6 +316,8 @@
   h1 .hl::before,.qz-card .hl::before{content:"";position:absolute;left:-.12em;right:-.12em;bottom:.04em;height:.42em;background:var(--chartreuse);z-index:-1;border-radius:6px;transform:rotate(-1.5deg)}
   [data-theme="dark"] h1 .hl::before,[data-theme="dark"] .qz-card .hl::before{background:var(--cobalt)}
   .lede{font-size:clamp(15px,1.6vw,19px);font-weight:500;color:var(--text-muted);margin:12px 0 0;max-width:40ch}
+  .lede.two{max-width:none}   /* two set lines: "…1,000 miles away." / "Hover & tap… Or start with a quick quiz." */
+  #quizCta{white-space:nowrap}
 
   .toggle{font:700 14px/1 var(--sans);color:var(--text);background:var(--surface);border:2px solid var(--border);border-radius:999px;
      padding:10px 16px;box-shadow:2px 2px 0 var(--shadow);cursor:pointer;display:inline-flex;gap:8px;align-items:center;transition:transform .15s, box-shadow .15s}
@@ -381,6 +383,12 @@
   body:not([data-mode="career"]) .map .bdg-car, body[data-mode="career"] .map .bdg-love{display:none}
   .map .bdg .pill rect{fill:var(--surface);stroke:var(--ink);stroke-width:1.5px;vector-effect:non-scaling-stroke}
   [data-theme="dark"] .map .bdg .pill rect{stroke:var(--paper)}
+  .map .bdg .pill rect{display:none}
+  .map .st.c0 .bdg-car .pill text{fill:var(--t0)}
+  .map .st.c1 .bdg-car .pill text{fill:var(--t1)}
+  .map .st.c2 .bdg-car .pill text{fill:var(--t2)}
+  .map .st.c3 .bdg-car .pill text{fill:var(--t3)}
+  .map .st.c4 .bdg-car .pill text{fill:var(--t4)}
   .map .bdg .pill text{font-family:var(--sans);font-weight:800;fill:var(--text);text-anchor:middle;dominant-baseline:central;letter-spacing:-.01em}
   .map.tight .bdg{display:none}
   .bdg-key{margin:6px 0 14px;font-size:13px;color:var(--text-muted);display:flex;align-items:center;flex-wrap:wrap;gap:6px}
@@ -2073,8 +2081,10 @@ function showResult(r){
   if (!r || (!jobs && !r.sign)) {
     // once one journey is done, the other map's intro speaks only to that map
     const lt = document.getElementById("ledeText");
-    if (MODE === "career" && getRes("love")) lt.textContent = "Your dreamjob might be 1,000 miles away. Hover & tap a state for its career snapshot.";
-    else if (MODE === "love" && getRes("jobs")) lt.textContent = "Your person might be 1,000 miles away. Hover & tap a state for its love snapshot.";
+    const two = MODE === "career" && getRes("love") ? ["Your dream job might be 1,000 miles away.", "Hover &amp; tap a state for its career snapshot."]
+      : MODE === "love" && getRes("jobs") ? ["Your person might be 1,000 miles away.", "Hover &amp; tap a state for its love snapshot."] : null;
+    document.getElementById("lede").classList.toggle("two", !!two);
+    if (two) lt.innerHTML = `${two[0]}<br>${two[1]}`;
     else lt.textContent = "Your person might be 1,000 miles away. So might your dream job. Hover & tap a state for its love and career snapshot.";
     cta.hidden = false; resEl.hidden = true; document.getElementById("lede").hidden = false; return;
   }
