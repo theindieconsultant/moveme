@@ -2,9 +2,12 @@
 // Quiz answers   → "Responses" tab (unchanged behaviour)
 // Questions      → "Questions" tab
 // Comments       → "Comments" tab
+// Feedback       → emailed to Heatherlee + logged in the "Feedback" tab
 // Columns are matched by their heading text, so you can reorder or add columns safely.
 
 const NOTE_TABS = { question: 'Questions', comment: 'Comments' };
+const FEEDBACK_TO = 'heatherlee.ux@gmail.com';
+const FEEDBACK_SUBJECT = 'Feedback from Move <3 Me Site';
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -12,6 +15,7 @@ function doPost(e) {
   try {
     const d = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     const ss = SpreadsheetApp.getActive();
+    if (d.type === 'feedback' || d.placeType === 'feedback') return saveFeedback(ss, d);
     if (d.type === 'question' || d.type === 'comment') return saveNote(ss, d);
     return saveQuiz(ss, d);
   } finally {
@@ -53,6 +57,24 @@ function saveNote(ss, d) {
     return '';
   };
   sheet.appendRow(headers.map(valueFor));
+  return ContentService.createTextOutput('ok');
+}
+
+// ---------- feedback (About page): email + backup row ----------
+function saveFeedback(ss, d) {
+  const rating = Math.max(0, Math.min(5, parseInt(d.rating, 10) || 0));
+  const text = String(d.text == null ? '' : d.text).replace(/^\[\d\/5 stars\]\s*/, '').replace(/^\(no comment\)$/, '').slice(0, 2000).trim();
+  if (!rating && text.length < 3) return ContentService.createTextOutput('empty');
+  const stars = rating ? '★'.repeat(rating) + '☆'.repeat(5 - rating) + ' (' + rating + '/5)' : 'No rating';
+  const when = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMM d, yyyy h:mm a');
+  MailApp.sendEmail({
+    to: FEEDBACK_TO,
+    subject: FEEDBACK_SUBJECT,
+    body: 'Rating: ' + stars + '\n\n' + (text || '(no comment)') + '\n\n—\nSent ' + when + ' from the Move ♥ Me site (' + (d.page || '') + ', ' + (d.map === 'career' ? 'Career' : 'Love') + ' map).'
+  });
+  const sheet = ss.getSheetByName('Feedback') || ss.insertSheet('Feedback');
+  if (sheet.getLastRow() === 0) { sheet.appendRow(['Timestamp', 'Rating', 'Feedback', 'Page']); sheet.setFrozenRows(1); sheet.getRange(1, 1, 1, 4).setFontWeight('bold'); }
+  sheet.appendRow([new Date(), rating || '', clean(text), clean(d.page)]);
   return ContentService.createTextOutput('ok');
 }
 
