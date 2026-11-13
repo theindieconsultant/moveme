@@ -7,6 +7,7 @@
 // Every tab gets a "Source" column (added automatically if missing) saying which copy of the site
 // sent the row: "GitHub", "Lovable", "Claude preview", or the site's web address.
 
+const SHEET_ID = '1x_eM6R9c-K9YXT7WC27A8SLqiw34gbNMQqDP4ulLTGw';   // your Move ♥ Me Sheet
 const NOTE_TABS = { question: 'Questions', comment: 'Comments' };
 const FEEDBACK_TO = 'heatherlee.ux@gmail.com';
 const FEEDBACK_SUBJECT = 'Feedback from Move <3 Me Site';
@@ -16,7 +17,7 @@ function doPost(e) {
   lock.waitLock(10000);   // two visitors posting at the same moment never overwrite each other
   try {
     const d = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    const ss = SpreadsheetApp.getActive();
+    const ss = SpreadsheetApp.openById(SHEET_ID);   // always this exact Sheet
     if (d.type === 'feedback' || d.placeType === 'feedback') return saveFeedback(ss, d);
     if (d.type === 'question' || d.type === 'comment') return saveNote(ss, d);
     return saveQuiz(ss, d);
