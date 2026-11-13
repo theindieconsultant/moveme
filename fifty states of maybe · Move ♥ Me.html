@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="mm-source" content="GitHub"><!-- which copy of the site this is: shows in the Sheet's "Source" column -->
 <title>fifty states of maybe · Move ♥ Me</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1929,11 +1930,23 @@ ageSel.addEventListener("change", () => { A.age = ageSel.value; validate(); });
 document.getElementById("qzComment").addEventListener("input", e => { A.comment = e.target.value; });
 
 // --- send completed answers to the Move ♥ Me Google Sheet (Apps Script web app)
+// Which copy of the site sent this? A <meta name="mm-source" content="Lovable"> tag wins; otherwise it's worked out
+// from the web address. Sent with every quiz answer, question, comment and feedback ("Source" column in the Sheet).
+const SITE_SOURCE = (() => {
+  const h = location.hostname.toLowerCase();
+  if (h.includes("lovable")) return "Lovable";   // any *.lovable.app address, whatever the tag says
+  const meta = document.querySelector('meta[name="mm-source"]');
+  if (meta && meta.content.trim()) return meta.content.trim();
+  if (h.endsWith("github.io") || h.includes("github")) return "GitHub";
+  if (h.includes("claudeusercontent") || h.includes("claude.ai")) return "Claude preview";
+  if (!h || h === "localhost" || h.startsWith("127.")) return "Local test";
+  return h;
+})();
 const RESPONSES_URL = "https://script.google.com/macros/s/AKfycbzLx7BXcheaM9cw2nB7BH8zJ7YU24v8496YyeUmO9jRsvwsoDYGsh-USb8yimJZ_ZcI/exec";
 function sendAnswers(r){
   const payload = {
     reason: r.reason || "", scene: r.scene || "", age: r.age || "", sign: r.sign || "", industries: industryLabels(r), home: r.home || "",
-    places: (r.places || []).map(p => p.label), comment: (r.comment || "").slice(0, 1000)
+    places: (r.places || []).map(p => p.label), comment: (r.comment || "").slice(0, 1000), source: SITE_SOURCE
   };
   // text/plain + no-cors keeps this a "simple" request, which Apps Script accepts from any site.
   // The response can't be read in this mode, so failures are silent and never block the visitor.
@@ -2383,7 +2396,7 @@ askSend.addEventListener("click", () => {
   if (askSend.getAttribute("aria-disabled") === "true") { askText.focus(); return; }
   const c = askCtx, payload = {
     type: c.kind, map: c.map, topic: c.topic, place: c.ctx.place, placeType: c.ctx.placeType, state: c.ctx.state,
-    text: askText.value.trim().slice(0, 1000)
+    text: askText.value.trim().slice(0, 1000), source: SITE_SOURCE
   };
   try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).catch(() => {}); } catch (e) {}
   document.getElementById("askDoneText").textContent = c.kind === "question"
@@ -2449,7 +2462,7 @@ fbSend.addEventListener("click", () => {
   // the current script spots placeType "feedback", emails it to Heatherlee and logs it in the Feedback tab.
   const body = fbText.value.trim().slice(0, 2000);
   const payload = { type: "comment", placeType: "feedback", place: "Site feedback", state: "", map: MODE, topic: "site feedback",
-    rating, page: location.hash || "#map", text: (rating ? `[${rating}/5 stars] ` : "") + (body || "(no comment)") };
+    rating, page: location.hash || "#map", source: SITE_SOURCE, text: (rating ? `[${rating}/5 stars] ` : "") + (body || "(no comment)") };
   try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).catch(() => {}); } catch (e) {}
   document.getElementById("fbForm").hidden = true; document.getElementById("fbDone").hidden = false;
   setTimeout(() => fbM.querySelector("#fbDone .btn").focus(), 60);

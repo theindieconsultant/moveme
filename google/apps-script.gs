@@ -4,6 +4,8 @@
 // Comments       → "Comments" tab
 // Feedback       → emailed to Heatherlee + logged in the "Feedback" tab
 // Columns are matched by their heading text, so you can reorder or add columns safely.
+// Every tab gets a "Source" column (added automatically if missing) saying which copy of the site
+// sent the row: "GitHub", "Lovable", "Claude preview", or the site's web address.
 
 const NOTE_TABS = { question: 'Questions', comment: 'Comments' };
 const FEEDBACK_TO = 'heatherlee.ux@gmail.com';
@@ -23,6 +25,14 @@ function doPost(e) {
   }
 }
 
+// Adds a "Source" heading at the end of row 1 if the tab doesn't have one yet.
+function ensureSource(sheet) {
+  const last = Math.max(sheet.getLastColumn(), 1);
+  const heads = sheet.getRange(1, 1, 1, last).getValues()[0].map(h => String(h).toLowerCase());
+  if (!heads.some(h => h.includes('source'))) sheet.getRange(1, last + 1).setValue('Source').setFontWeight('bold');
+}
+const sourceOf = d => clean(d.source || 'GitHub');   // rows from before tagging existed came from the GitHub site
+
 // Trim, cap at 1,000 characters, and stop text that starts with = + - @ from running as a formula.
 function clean(v) {
   v = String(v == null ? '' : v).slice(0, 1000).trim();
@@ -38,16 +48,18 @@ function saveNote(ss, d) {
 
   // A brand-new (empty) tab gets headings automatically.
   if (sheet.getLastRow() === 0) {
-    const heads = ['Timestamp', 'Map', 'Topic', 'About', 'Place type', 'State', d.type === 'question' ? 'Question' : 'Comment'];
+    const heads = ['Timestamp', 'Map', 'Topic', 'About', 'Place type', 'State', d.type === 'question' ? 'Question' : 'Comment', 'Source'];
     sheet.appendRow(heads);
     sheet.setFrozenRows(1);
     sheet.getRange(1, 1, 1, heads.length).setFontWeight('bold');
   }
+  ensureSource(sheet);
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const valueFor = (heading) => {
     const h = String(heading).toLowerCase().trim();
     if (h.startsWith('time') || h === 'date') return new Date();
+    if (h.includes('source')) return sourceOf(d);
     if (h.includes('map')) return d.map === 'career' ? 'Career' : 'Love';
     if (h.includes('topic')) return clean(d.topic);
     if (h.includes('type')) return clean(d.placeType);
@@ -69,13 +81,16 @@ function saveFeedback(ss, d) {
   const when = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMM d, yyyy h:mm a');
   // save first, so feedback is never lost even if the email can't be sent
   const sheet = ss.getSheetByName('Feedback') || ss.insertSheet('Feedback');
-  if (sheet.getLastRow() === 0) { sheet.appendRow(['Timestamp', 'Rating', 'Feedback', 'Page']); sheet.setFrozenRows(1); sheet.getRange(1, 1, 1, 4).setFontWeight('bold'); }
-  sheet.appendRow([new Date(), rating || '', clean(text), clean(d.page)]);
+  if (sheet.getLastRow() === 0) { sheet.appendRow(['Timestamp', 'Rating', 'Feedback', 'Page', 'Source']); sheet.setFrozenRows(1); sheet.getRange(1, 1, 1, 5).setFontWeight('bold'); }
+  ensureSource(sheet);
+  const fh = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).toLowerCase());
+  sheet.appendRow(fh.map(h => h.startsWith('time') ? new Date() : h.includes('rating') ? (rating || '') : h.includes('feedback') ? clean(text)
+    : h.includes('page') ? clean(d.page) : h.includes('source') ? sourceOf(d) : ''));
   try {
     MailApp.sendEmail({
       to: FEEDBACK_TO,
       subject: FEEDBACK_SUBJECT,
-      body: 'Rating: ' + stars + '\n\n' + (text || '(no comment)') + '\n\n—\nSent ' + when + ' from the Move ♥ Me site (' + (d.page || '') + ', ' + (d.map === 'career' ? 'Career' : 'Love') + ' map).'
+      body: 'Rating: ' + stars + '\n\n' + (text || '(no comment)') + '\n\n—\nSent ' + when + ' from the Move ♥ Me site: ' + sourceOf(d) + ' (' + (d.page || '') + ', ' + (d.map === 'career' ? 'Career' : 'Love') + ' map).'
     });
   } catch (err) {
     console.error('Feedback email failed: ' + err);
@@ -87,10 +102,12 @@ function saveFeedback(ss, d) {
 // ---------- quiz answers (same as before) ----------
 function saveQuiz(ss, d) {
   const sheet = ss.getSheetByName('Responses');
+  ensureSource(sheet);
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const valueFor = (heading) => {
     const h = String(heading).toLowerCase();
     if (h.startsWith('time')) return new Date();
+    if (h.includes('source')) return sourceOf(d);
     if (h.includes('love')) return d.reason || '';
     if (h.includes('mountain') || h.includes('beach') || h.includes('skyline')) return d.scene || '';
     if (h.startsWith('age')) return d.age || '';
