@@ -319,6 +319,8 @@
   .lede{font-size:clamp(15px,1.6vw,19px);font-weight:500;color:var(--text-muted);margin:12px 0 0;max-width:40ch}
   .lede.two{max-width:none}   /* two set lines: "…1,000 miles away." / "Hover & tap… Or start with a quick quiz." */
   #quizCta{white-space:nowrap}
+  .convo-br{display:block}
+  .res-convo{margin-top:6px;font-weight:500;color:var(--text-muted)}
 
   .toggle{font:700 14px/1 var(--sans);color:var(--text);background:var(--surface);border:2px solid var(--border);border-radius:999px;
      padding:10px 16px;box-shadow:2px 2px 0 var(--shadow);cursor:pointer;display:inline-flex;gap:8px;align-items:center;transition:transform .15s, box-shadow .15s}
@@ -734,11 +736,12 @@
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
-      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
+      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta">Or start with <a class="quiz" href="#quiz" id="quizLink">a quick quiz</a>,<span class="convo-br">or, have a <a class="quiz convo-link" href="#chat">quick convo</a> with Monie.</span></span></p>
       <div class="quiz-result" id="quizResult" hidden>
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button>
         <span id="resLove"><span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span></span>
         <span id="resJobs" hidden><span id="resIndIcon" aria-hidden="true"></span><span>You work in <b id="resInd"></b></span></span>
+        <span class="convo-br res-convo">or, have a <a class="quiz convo-link" href="#chat">quick convo</a> with Monie.</span>
       </div>
     </div>
   </header>
@@ -2646,6 +2649,15 @@ btn.addEventListener("click", () => {
   panel.addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); close(); } });
   load();
 })();
+</script>
+<script>
+// "quick convo" links in the intro and the result line open the Monie chat
+document.querySelectorAll(".convo-link").forEach(a => a.addEventListener("click", e => {
+  e.preventDefault();
+  const panel = document.getElementById("mcPanel"), fab = document.getElementById("mcFab");
+  if (!panel || !fab) return;
+  if (panel.hidden) fab.click(); else { const i = document.getElementById("mcIn"); if (i) i.focus(); }
+}));
 </script>
 <!-- ============ /Monie chat ============ -->
 
