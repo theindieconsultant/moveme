@@ -2479,5 +2479,175 @@ btn.addEventListener("click", () => {
   syncLabel();
 });
 </script>
+<!-- ============ Monie chat (reads data/monie-feed.json) ============ -->
+<style>
+  .mc-fab{position:fixed;right:20px;bottom:20px;z-index:60;display:flex;align-items:center;gap:10px;padding:12px 18px 12px 14px;border-radius:999px;border:2px solid var(--border);background:var(--cobalt);color:#fff;font:700 15px/1 var(--display);box-shadow:4px 4px 0 var(--shadow);cursor:pointer}
+  .mc-fab:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--shadow)}
+  .mc-fab:focus-visible,.mc-panel :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .mc-fab .mc-dot{width:26px;height:26px;border-radius:50%;background:var(--chartreuse);color:var(--ink);display:grid;place-items:center;font-size:15px}
+  .mc-panel{position:fixed;right:20px;bottom:84px;z-index:61;width:min(400px,calc(100vw - 24px));height:min(600px,calc(100vh - 110px));display:flex;flex-direction:column;background:var(--surface);color:var(--text);border:2px solid var(--border);border-radius:20px;box-shadow:6px 6px 0 var(--shadow);overflow:hidden;font-family:var(--sans)}
+  .mc-panel[hidden]{display:none}
+  .mc-head{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--cobalt);color:#fff}
+  .mc-head b{font:700 17px/1.1 var(--display)}
+  .mc-head small{display:block;font:500 12px/1.3 var(--sans);opacity:.85}
+  .mc-head .mc-x{margin-left:auto;background:none;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:8px}
+  .mc-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+  .mc-msg{max-width:88%;padding:10px 13px;border-radius:16px;font-size:14.5px;line-height:1.45}
+  .mc-msg.m{align-self:flex-start;background:var(--surface);border:1.5px solid var(--hair);border-bottom-left-radius:4px}
+  .mc-msg.u{align-self:flex-end;background:var(--primary-soft);color:var(--text);border-bottom-right-radius:4px}
+  .mc-msg ol{margin:8px 0 2px;padding-left:20px}
+  .mc-msg li{margin:2px 0}
+  .mc-msg .mc-src{display:block;margin-top:8px;font-size:12px;color:var(--text-subtle)}
+  .mc-msg a{color:var(--link)}
+  .mc-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;background:var(--bg)}
+  .mc-chip{border:1.5px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:6px 11px;font:600 13px/1.2 var(--sans);cursor:pointer}
+  .mc-chip:hover{background:var(--accent-soft)}
+  .mc-form{display:flex;gap:8px;padding:10px;border-top:1.5px solid var(--hair);background:var(--surface)}
+  .mc-form input{flex:1;min-width:0;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font:500 14.5px var(--sans);background:var(--bg);color:var(--text)}
+  .mc-form button{border:2px solid var(--border);border-radius:12px;background:var(--ink);color:var(--paper);font:700 14px var(--display);padding:0 14px;cursor:pointer}
+  [data-theme="dark"] .mc-form button{background:var(--chartreuse);color:var(--ink)}
+  .mc-typing{opacity:.6;font-style:italic}
+  @media (max-width:520px){.mc-panel{right:12px;bottom:76px}.mc-fab{right:12px;bottom:12px}}
+  @media (prefers-reduced-motion:reduce){.mc-fab:hover{transform:none}}
+</style>
+<button class="mc-fab" id="mcFab" type="button" aria-expanded="false" aria-controls="mcPanel"><span class="mc-dot" aria-hidden="true">♥</span>ask Monie</button>
+<section class="mc-panel" id="mcPanel" role="dialog" aria-label="Chat with Monie" hidden>
+  <div class="mc-head"><span class="mc-dot" aria-hidden="true" style="width:30px;height:30px;border-radius:50%;background:var(--chartreuse);color:var(--ink);display:grid;place-items:center">♥</span>
+    <div><b>Monie</b><small>Your Move ♥ Me guide to love &amp; work</small></div>
+    <button class="mc-x" id="mcClose" type="button" aria-label="Close chat">×</button></div>
+  <div class="mc-log" id="mcLog" aria-live="polite"></div>
+  <div class="mc-chips" id="mcChips"></div>
+  <form class="mc-form" id="mcForm" autocomplete="off">
+    <label class="sr-only" for="mcIn">Ask Monie a question</label>
+    <input id="mcIn" maxlength="300" placeholder="Ask about dates, singles, pay, jobs…">
+    <button type="submit">send</button>
+  </form>
+</section>
+<script>
+(() => {
+  const FEED_URL = "data/monie-feed.json";
+  const $ = id => document.getElementById(id);
+  const fab = $("mcFab"), panel = $("mcPanel"), log = $("mcLog"), chips = $("mcChips"), form = $("mcForm"), inp = $("mcIn");
+  let feed = null, loading = null, greeted = false;
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const money = n => "$" + Number(n).toLocaleString("en-US");
+  const SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+  const ROUTES = [
+    ["horoscope", /horoscope|zodiac|astrolog|stars|sign\b|aries|taurus|gemini|cancer|leo\b|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces/],
+    ["fortune500", /fortune|500|headquarter|hq|big compan|corporat/],
+    ["business", /business|startup|start-up|entrepreneur|own company|launch/],
+    ["pay", /pay|salary|salaries|wage|earn|income|money|highest.?paying/],
+    ["hiring", /hiring|jobs?\b|job market|openings|work\b|employ|career/],
+    ["married", /marr(y|ied|iage)|wedding|elope|divorce|engag/],
+    ["family", /family|kids|children|raise|school|parent/],
+    ["singles", /single|dating pool|meet (people|someone)|odds/],
+    ["dates", /date|dating|romant|valentine|restaurant|love/],
+  ];
+  const LABELS = {dates:"Best cities for dates", singles:"Most singles", family:"Best for families", married:"Best to get married",
+    pay:"Highest pay in my industry", hiring:"Who's hiring now", fortune500:"Fortune 500 cities", business:"Start a business", horoscope:"What do the stars say?"};
+  const mode = () => (typeof MODE !== "undefined" && MODE === "career") ? "career" : "love";
+  const starter = () => mode() === "career" ? ["hiring","pay","business","fortune500","dates"] : ["dates","singles","married","family","horoscope"];
+
+  function load(){
+    if (!loading) loading = fetch(FEED_URL, {cache:"no-cache"}).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => feed = j).catch(() => null);
+    return loading;
+  }
+  function say(html, who = "m"){
+    const d = document.createElement("div"); d.className = "mc-msg " + who; d.innerHTML = html;
+    log.appendChild(d); log.scrollTop = log.scrollHeight; return d;
+  }
+  function setChips(list){
+    chips.innerHTML = "";
+    list.forEach(([label, fn]) => { const b = document.createElement("button"); b.type = "button"; b.className = "mc-chip"; b.textContent = label;
+      b.onclick = () => { say(esc(label), "u"); fn(); }; chips.appendChild(b); });
+  }
+  const topicChips = (skip) => setChips([...starter(), ...Object.keys(LABELS)].filter((k, i, a) => a.indexOf(k) === i && k !== skip).slice(0, 5).map(k => [LABELS[k], () => answer(k)]));
+  const srcLine = (sources, extra) => {
+    const links = (sources || []).slice(0, 3).map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`);
+    return `<span class="mc-src">${extra ? esc(extra) + " · " : ""}Sources: ${links.join(" · ")}</span>`;
+  };
+  const topList = (top, fmt) => !top ? "" : "<ol>" + top.slice(0, 10).map(([c, v]) => `<li>${esc(c)}${v != null && v !== "" ? ` <span style="color:var(--text-subtle)">· ${esc(fmt ? fmt(v) : v)}</span>` : ""}</li>`).join("") + "</ol>";
+  const reviewNote = k => (feed.sourceWatch || []).some(w => w.topic === k && w.needsReview) ? " A newer edition of one ranking just came out; Monie's list may be a step behind." : "";
+
+  async function answer(k){
+    const t = say('<span class="mc-typing">Monie is checking…</span>');
+    await load();
+    if (!feed) { t.innerHTML = "I can't reach my notes right now. Try again in a minute?"; return; }
+    const T = feed.topics[k];
+    if (k === "pay") { t.remove(); return askIndustry(); }
+    if (k === "horoscope") { t.remove(); return askSign(); }
+    let extra = "";
+    if (k === "hiring" && T.live) extra = topList(T.live.states.slice(0, 5).map(s => [s.state, `${s.index} (${s.vsYearAgo >= 0 ? "+" : ""}${s.vsYearAgo} in a year)`]));
+    else if (k === "business" && T.live) extra = "<b>Fastest-growing states for new businesses:</b>" + topList(T.live.statesByGrowth.slice(0, 5).map(s => [s.state, `+${s.vsYearAgoPct}% vs. a year ago`]));
+    else extra = topList(T.top, k === "fortune500" ? v => v + " HQs" : null);
+    const fact = (T.facts || [])[0] && k !== "married" && k !== "family" && k !== "business" ? `<br><br>${esc(T.facts[0])}` : "";
+    const fresh = T.live && T.live.asOf ? (k === "married" ? `CDC data year ${T.live.asOf}` : `Updated ${T.live.asOf}`) : "";
+    t.innerHTML = `${esc(T.saysNow || T.says)}${fact}${extra}${reviewNote(k) ? "<br>" + esc(reviewNote(k)) : ""}${srcLine(T.sources, fresh)}`;
+    topicChips(k);
+  }
+  function askIndustry(){
+    const by = feed.topics.pay.byIndustry;
+    say("Which industry are you in? I'll show the states with the highest median pay for the closest common job.");
+    setChips([...Object.keys(by), "Something else"].map(ind => [ind, () => payFor(ind)]));
+  }
+  function payFor(ind){
+    const P = feed.topics.pay, rows = P.byIndustry[ind];
+    if (!rows) say(`For other industries, the highest-paying metros overall are Bremerton WA, San Francisco, Seattle, San Jose and Boulder.${srcLine(P.sources)}`);
+    else say(`Top states for <b>${esc(ind)}</b> by median yearly pay:${topList(rows, money)}${srcLine(P.sources, "BLS, May 2025")}`);
+    topicChips("pay");
+  }
+  function askSign(){
+    say("Just for fun: what's your sign?");
+    setChips(SIGNS.map(s => [s, () => starsFor(s)]).slice(0, 12));
+  }
+  function starsFor(sign){
+    const H = feed.topics.horoscope, d = feed.topics.dates.top.slice(0, 3).map(x => x[0]);
+    say(`${esc(sign)}, the stars say it's a good week to be curious. If you're dreaming of a move, start with this year's top date-night cities: ${esc(d.join(", "))}. ` +
+      `Horoscopes are entertainment, not data. For real location astrology, try a free relocation chart at <a href="${esc(H.liveOptions[2][1])}" target="_blank" rel="noopener">Astro.com</a>.`);
+    topicChips("horoscope");
+  }
+  function route(text){
+    const s = text.toLowerCase();
+    if (feed) for (const ind of Object.keys(feed.topics.pay.byIndustry)) {
+      const words = ind.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3);
+      if (/pay|salar|wage|earn/.test(s) && words.some(w => s.includes(w))) return () => payFor(ind);
+    }
+    const hit = ROUTES.find(([, re]) => re.test(s));
+    return hit ? () => answer(hit[0]) : null;
+  }
+  function logQuestion(text){
+    try {
+      if (typeof RESPONSES_URL === "undefined") return;
+      fetch(RESPONSES_URL, {method:"POST", mode:"no-cors", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({type:"question", map: mode(), topic:"Monie chat", place:"Monie chat", placeType:"chat", state:"", text: text.slice(0, 1000),
+          source: typeof SITE_SOURCE !== "undefined" ? SITE_SOURCE : "GitHub"})}).catch(() => {});
+    } catch (e) {}
+  }
+  form.addEventListener("submit", async e => {
+    e.preventDefault(); const q = inp.value.trim(); if (!q) return;
+    say(esc(q), "u"); inp.value = ""; await load();
+    const go = route(q);
+    if (go) return go();
+    logQuestion(q);
+    say("Good question! I don't have numbers for that yet, so I've passed it to the Move ♥ Me team. Here's what I can answer today:");
+    topicChips();
+  });
+  function open(){
+    panel.hidden = false; fab.setAttribute("aria-expanded", "true"); load();
+    if (!greeted) { greeted = true;
+      say(mode() === "career" ? "Hi, I'm Monie! Ask me where the jobs and the money are, or pick a question below."
+                              : "Hi, I'm Monie! Ask me where to find love, dates and the most singles, or pick a question below.");
+      topicChips(); }
+    setTimeout(() => inp.focus(), 50);
+  }
+  function close(){ panel.hidden = true; fab.setAttribute("aria-expanded", "false"); fab.focus(); }
+  fab.addEventListener("click", () => panel.hidden ? open() : close());
+  $("mcClose").addEventListener("click", close);
+  panel.addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); close(); } });
+  load();
+})();
+</script>
+<!-- ============ /Monie chat ============ -->
+
 </body>
 </html>
