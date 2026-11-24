@@ -918,7 +918,7 @@
         <textarea id="chatInput" rows="1" placeholder="Message Monie…" aria-label="Message Monie"></textarea>
         <button class="chat-send" id="chatSend" type="submit" aria-label="Send" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </form>
-      <p class="chat-fine">Monie saves your answers to Move ♥ Me, the same way the quick quiz does.</p>
+      <p class="chat-fine">Monie saves this conversation to help improve Move ♥ Me.</p>
     </div>
   </div>
 </section>
@@ -2097,7 +2097,7 @@ const RESPONSES_URL = "https://script.google.com/macros/s/AKfycbzLx7BXcheaM9cw2n
 function sendAnswers(r){
   const payload = {
     reason: r.reason || "", scene: r.scene || "", age: r.age || "", sign: r.sign || "", industries: industryLabels(r), home: r.home || "",
-    places: (r.places || []).map(p => p.label), comment: (r.comment || "").slice(0, 1000), source: SITE_SOURCE
+    places: (r.places || []).map(p => p.label), comment: (r.comment || "").slice(0, 1000), source: SITE_SOURCE, via: r.via === "Chat" ? "Chat" : "Quiz"
   };
   // text/plain + no-cors keeps this a "simple" request, which Apps Script accepts from any site.
   // The response can't be read in this mode, so failures are silent and never block the visitor.
@@ -2334,7 +2334,9 @@ function addMsg(who, html){
   const cont = who === "m" && prev && prev.classList.contains("m") && !prev.classList.contains("typing-row");
   row.className = "msg " + who;
   row.innerHTML = who === "m" ? `<span class="monie-av${cont ? " ghost" : ""}" aria-hidden="true">${MONIE_SVG}</span><div class="txt">${html}</div>` : `<div class="txt">${html}</div>`;
-  if (who === "m") row.setAttribute("aria-label", "Monie: " + row.querySelector(".txt").textContent);
+  const plain = row.querySelector(".txt").textContent.trim();
+  if (who === "m") row.setAttribute("aria-label", "Monie: " + plain);
+  if (CH && CH.log) { CH.log.push((who === "m" ? "Monie: " : "You: ") + plain); if (who === "u") CH.said++; }
   chatLog.appendChild(row); scrollLog(); return row;
 }
 // Monie "types" each line, then it appears
@@ -2367,16 +2369,18 @@ const reEsc = w => w.replace(/[.*+?^$|()[\]{}\\]/g, "\\$&");
 const wordIn = (text, w) => new RegExp("(^|[^a-z])" + reEsc(w) + "([^a-z]|$)").test(text);
 const listText = arr => arr.length > 1 ? arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1] : arr.join("");
 const NO = /^(no|nope|nah|none|not (really|sure|yet)|not sure yet|idk|i don'?t know|skip|pass|nothing|anywhere|n\/a|na)\b/;
+const CITY_ALIAS = { "boise city": "boise" };   // official names people rarely type in full
 function findCities(raw){
   // longest names first, so "Kansas City" wins over "Kansas" and "New York" over "York"
   const t = norm(raw), found = [];
   let rest = " " + t + " ";
   const byLen = CITIES.slice().sort((a, b) => b.c.length - a.c.length);
   for (const c of byLen) {
-    const n = norm(c.c); if (n.length < 3 || !wordIn(rest, n)) continue;
+    const on = norm(c.c); let n = on; if (CITY_ALIAS[n] && !wordIn(rest, n) && wordIn(rest, CITY_ALIAS[n])) n = CITY_ALIAS[n];
+    if (n.length < 3 || !wordIn(rest, n)) continue;
     // prefer "Portland, ME" when the state is named right after the city
     const after = rest.slice(rest.indexOf(n) + n.length, rest.indexOf(n) + n.length + 24);
-    const twin = CITIES.filter(x => norm(x.c) === n);
+    const twin = CITIES.filter(x => norm(x.c) === on);
     let pick = twin[0];
     for (const x of twin) { const sName = norm((STATE_LIST.find(s => s.abbr === x.st) || {}).name || ""); if (new RegExp("^[ ,]*(" + x.st.toLowerCase() + "|" + sName + ")\\b").test(after)) pick = x; }
     if (!found.includes(pick)) found.push(pick);
@@ -2521,7 +2525,7 @@ const stepName = () => { const s = CH.flow[CH.i]; return s === "fifth" ? (CH.A.r
 function startChat(opts = {}){
   chatGen++; chatLog.innerHTML = ""; clearChips(); chatQueue = Promise.resolve();
   const reason = opts.reason || modeReason(), prev = getRes(otherReason(reason));
-  CH = { A: blank(), flow: FULL_CHAT, i: 0, pick: [], both: false };
+  CH = { A: blank(), flow: FULL_CHAT, i: 0, pick: [], both: false, ...newLog() };
   if (opts.reason || (prev && !getRes(reason))) {
     // second journey: reuse scenery, places, age and home from the first one
     const p = prev || {};
@@ -2535,7 +2539,7 @@ function startChat(opts = {}){
 function greetBack(){
   chatGen++; chatLog.innerHTML = ""; clearChips(); chatQueue = Promise.resolve();
   const r = getRes(modeReason()), other = otherReason(r.reason), both = !!getRes(other);
-  CH = { A: Object.assign(blank(), r), flow: [], i: 0, pick: [], done: true };
+  CH = { A: Object.assign(blank(), r), flow: [], i: 0, pick: [], done: true, ...newLog() };
   say(MONIE_SAYS.hiAgain(r.reason, both)).then(() => chips(both ? MONIE_SAYS.afterBoth : MONIE_SAYS.afterChips(other)));
 }
 function answer(text, val, shown){
@@ -2547,17 +2551,20 @@ function answerNow(text, val, shown){
   if (CH.done) return afterAnswer(val, text);
   const st = STEPS[stepName()];
   if (st === STEPS.industry && val && val !== "__done") return;   // toggles handled in the click handler
+  const prevChips = chatSug.innerHTML;
   addMsg("u", esc(shown || text)); clearChips();
-  if (!st.take(text, val)) { if (st === STEPS.industry) st.ask(); return; }
+  const c = CH, logAfter = () => { chatQueue = chatQueue.then(() => { if (CH === c) logChat(); }); };   // after Monie's reply is in
+  if (!st.take(text, val)) { if (!CH.both || st !== STEPS.reason || CH.A.reason) CH.misses++; if (!chatSug.innerHTML) chatSug.innerHTML = prevChips; return logAfter(); }   // keep the same suggestions on a retry
   CH.i++;
   if (CH.i < CH.flow.length) STEPS[stepName()].ask(); else finishChat();
+  logAfter();
 }
 function finishChat(){
   const a = CH.A, jobs = a.reason === "jobs";
   const result = { reason: a.reason, scene: a.scene, sign: jobs ? null : a.sign, industries: jobs ? a.industries : [], industryOther: jobs ? a.industryOther : "",
     places: a.places, age: a.age, home: a.home, comment: a.comment, at: new Date().toISOString() };
   setRes(a.reason, result);
-  sendAnswers(result);
+  sendAnswers({ ...result, via: "Chat" });
   LS.set("mm-quiz-seen", true);
   showResult(result);
   setMode(jobs ? "career" : "love", { quiet: true });
@@ -2573,11 +2580,22 @@ function afterAnswer(val, text){
   const t = norm(text || "");
   const v = val || (/map|show|done|thanks|thank/.test(t) ? "map" : /again|over|restart|reset/.test(t) ? "restart" : /work|job|career|love|dat/.test(t) ? "other" : null);
   if (text) addMsg("u", esc(text));
-  if (v === "map") { hideChat(); setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 320); return; }
+  if (v === "map") { logChat(); hideChat(); setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 320); return; }
   if (v === "restart") return startChat();
   if (v === "other") { const other = otherReason(CH.A.reason); setMode(other === "jobs" ? "career" : "love", { quiet: true }); clearChips(); return startChat({ reason: other }); }
-  say(MONIE_SAYS.idle);
+  say(MONIE_SAYS.idle); const c = CH; chatQueue = chatQueue.then(() => { if (CH === c) logChat(); });
 }
+
+// ---------- chat log → "Chats" tab in the Sheet (one row per conversation, updated after each reply) ----------
+function newLog(){ return { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), log: [], said: 0, misses: 0 }; }
+function logChat(status){
+  if (!CH || !CH.said) return;   // nothing typed or tapped yet: don't save an empty chat
+  const payload = { type: "chat", chatId: CH.id, status: status || (CH.done ? "finished" : "in progress"), map: MODE, reason: CH.A.reason || "",
+    messages: CH.said, misses: CH.misses, transcript: CH.log.join("\n"), source: SITE_SOURCE };
+  try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).catch(() => {}); } catch (e) {}
+}
+// leaving the page partway through: mark the row so drop-offs are easy to spot
+window.addEventListener("pagehide", () => { if (CH && CH.said && !CH.done) logChat("left"); });
 
 // ---------- open / hide ----------
 function fitMapAbove(){
@@ -2612,7 +2630,7 @@ document.getElementById("chatRestart").addEventListener("click", () => { startCh
 chatEl.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); hideChat(); } });
 chatSug.addEventListener("click", e => {
   const b = e.target.closest(".sug"); if (!b) return;
-  const val = b.dataset.val, label = b.querySelector("span").textContent;
+  const val = b.dataset.val, label = b.querySelector(":scope > span:last-child").textContent;
   if (b.hasAttribute("aria-pressed")) {
     // industries: tap to toggle, then "done"
     const on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on);
