@@ -2142,10 +2142,7 @@ function scrollToMap(){
   document.body.classList.remove("qz-open");   // let the page move while the card zooms out
   holdHovers();
   requestAnimationFrame(() => {
-    const res = document.getElementById("quizResult");
-    const anchor = res && !res.hidden ? res : stage;
-    const y = anchor.getBoundingClientRect().top + window.scrollY - 14;
-    window.scrollTo({ top: Math.max(0, y), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   });
 }
 function replayMapIntro(){
@@ -3203,7 +3200,7 @@ function afterAnswer(val, text){
   const t = norm(text || "");
   const v = val || (/map|show|done|thanks|thank/.test(t) ? "map" : /again|over|restart|reset/.test(t) ? "restart" : /work|job|career|love|dat/.test(t) ? "other" : null);
   if (text) addMsg("u", esc(text));
-  if (v === "map") { logChat(); close(); holdHovers(); setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 200); return; }
+  if (v === "map") { logChat(); close(); holdHovers(); return; }
   if (v === "restart") return startChat();
   if (v === "other") { const other = otherReason(CH.A.reason); setMode(other === "jobs" ? "career" : "love", { quiet: true }); renderTopics(); return startChat({ reason: other }); }
   if (text) logQuestion(text);
@@ -3227,10 +3224,10 @@ window.addEventListener("pagehide", () => { if (CH && CH.said && !CH.done) logCh
 const mapRatio = (() => { const svg = document.getElementById("map"), vb = svg && svg.viewBox && svg.viewBox.baseVal; return vb && vb.height ? vb.width / vb.height : 1.6; })();
 document.documentElement.style.setProperty("--map-ratio", mapRatio.toFixed(4));
 wide.addEventListener("change", () => { renderTopics(); if (!panel.hidden) { document.body.classList.toggle("chatting", wide.matches); if (wide.matches) fitMapAbove(); } });
-function fitMapAbove(){
-  setTimeout(() => { const st = document.getElementById("stage"); if (!st) return;
-    window.scrollTo({ top: Math.max(0, st.getBoundingClientRect().top + window.scrollY - 12), behavior: reduceMotion() ? "auto" : "smooth" }); }, 60);
-}
+// the page no longer glides down to the map when the chat opens; on close it returns to the top
+// so the header and the "your move" card are always in view
+function fitMapAbove(){}
+function backToTop(){ if (window.scrollY > 0) setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 120); }
 function open(){
   if (wide.matches) { document.body.classList.add("chatting"); holdHovers(); fitMapAbove(); }
   panel.hidden = false; fab.setAttribute("aria-expanded", "true"); fab.classList.add("seen"); load(); renderTopics();
@@ -3243,7 +3240,7 @@ function setFull(on){
   log.scrollTop = log.scrollHeight;
 }
 $("mcFull").addEventListener("click", () => setFull(!panel.classList.contains("full")));
-function close(){ setFull(false); panel.hidden = true; panel.classList.remove("tips-open"); document.body.classList.remove("chatting"); fab.setAttribute("aria-expanded", "false"); }
+function close(){ setFull(false); panel.hidden = true; panel.classList.remove("tips-open"); document.body.classList.remove("chatting"); fab.setAttribute("aria-expanded", "false"); backToTop(); }
 $("mcTips").addEventListener("click", () => { const on = panel.classList.toggle("tips-open"); $("mcTips").setAttribute("aria-expanded", String(on)); });
 fab.addEventListener("click", () => panel.hidden ? open() : (close(), fab.focus()));
 $("mcClose").addEventListener("click", () => { close(); fab.focus(); });
