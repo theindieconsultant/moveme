@@ -50,6 +50,8 @@
   .mc-chips:empty{display:none}
   @media (max-width:520px){.mc-panel{right:12px;bottom:96px;height:min(560px,calc(100vh - 120px))}.mc-fab{right:12px;bottom:12px;font-size:20px;padding:9px 22px 9px 9px;gap:10px}.mc-av{width:48px;height:48px}}
   @media (prefers-reduced-motion:reduce){.mc-fab,.mc-fab:hover{animation:none;transform:none}}
+  .mc-tips{display:none}
+  @media (min-width:761px){
   /* --- button: half size, neon glow --- */
   .mc-fab{right:20px;bottom:20px;gap:8px;padding:6px 16px 6px 6px;border-width:2px;font-size:14px;
      box-shadow:0 0 0 3px rgba(212,242,90,.45),0 0 18px 5px rgba(212,242,90,.55)}
@@ -59,12 +61,10 @@
   body.chatting .mc-fab{display:none}
   /* --- chat: full-width panel that rises from the bottom and pushes the map up --- */
   :root{--chat-h:clamp(410px,52vh,520px)}
-  @media (max-width:760px){ :root{--chat-h:60dvh} }
   body.chatting{padding-bottom:var(--chat-h)}
   body.chatting #mapView footer{visibility:hidden}
   #mapView .stage{transition:max-width .45s cubic-bezier(.22,1,.36,1)}
   body.chatting #mapView .stage{max-width:calc((100dvh - var(--chat-h) - 28px) * var(--map-ratio, 1.6));margin-inline:auto}
-  @media (max-width:760px){ body.chatting #mapView .stage{max-width:calc((100dvh - var(--chat-h) - 72px) * var(--map-ratio, 1.6))} }
   .mc-panel{left:0;right:0;bottom:0;width:100%;height:var(--chat-h);border:0;border-top:2px solid var(--border);border-radius:0;
      box-shadow:0 -10px 40px rgba(27,27,47,.16);animation:mcUp .4s cubic-bezier(.22,1,.36,1) both}
   @keyframes mcUp{from{transform:translateY(100%)}to{transform:none}}
@@ -81,15 +81,10 @@
   .mc-th{margin:6px 0 5px;font-weight:700;color:var(--text-subtle)}
   .mc-topics ul{margin:0 0 8px;padding-left:16px;display:flex;flex-direction:column;gap:5px}
   .mc-topics li::marker{color:var(--text-subtle)}
-  @media (max-width:760px){
-    .mc-tips{display:block}
-    .mc-tips + .mc-x{margin-left:0}
-    .mc-topics{display:none;position:absolute;inset:0;width:auto;border-left:0;z-index:2;font-size:15px;padding:16px 20px}
-    .mc-panel.tips-open .mc-topics{display:block}
-    .mc-panel.tips-open .mc-tips{background:rgba(255,255,255,.18)}
   }
-  @media (max-width:520px){ .mc-panel{right:0;bottom:0;height:var(--chat-h)} .mc-fab{right:12px;bottom:12px;font-size:13px;padding:5px 14px 5px 5px} .mc-fab .mc-av{width:28px;height:28px} }
   @media (prefers-reduced-motion:reduce){ .mc-panel{animation:none} #mapView .stage{transition:none} }
+  /* phones: the floating card, with the body flattened so quick answers sit between the reply buttons and the message box */
+  @media (max-width:760px){ .mc-body,.mc-main{display:contents} .mc-log{order:1} .mc-chips{order:2} .mc-topics{order:3} .mc-form{order:4} .mc-fine{order:5} }
 </style>
 <button class="mc-fab" id="mcFab" type="button" aria-expanded="false" aria-controls="mcPanel"><span class="mc-av" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="#1B1B2F" stroke-linejoin="round" stroke-linecap="round"><path d="M14 25C8.3 27.4 4.6 33.4 5 40.4c.3 4.2 2 7.8 4.6 10.4.3-4.2 1.4-7.7 3.2-10.7 1.7-2.9 2.6-7.3 1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M50 25c5.7 2.4 9.4 8.4 9 15.4-.3 4.2-2 7.8-4.6 10.4-.3-4.2-1.4-7.7-3.2-10.7-1.7-2.9-2.6-7.3-1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M15 25 12.5 6.5 28 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M49 25 51.5 6.5 36 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M16.6 20.5 15.4 11.5l7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M47.4 20.5l1.2-9-7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M12.5 32c0-10.5 8.7-17 19.5-17s19.5 6.5 19.5 17S43.3 49.5 32 49.5 12.5 42.5 12.5 32Z" fill="#FF8A65" stroke-width="2.4"/><path d="M19 38.5c3.2-4.6 8.6-5.4 13-2.4 4.4-3 9.8-2.2 13 2.4-2 6.4-7.2 9.6-13 9.6s-11-3.2-13-9.6Z" fill="#F5F1E8" stroke="none"/><circle cx="13.6" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><circle cx="50.4" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><ellipse cx="25" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><ellipse cx="39" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><circle cx="25.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><circle cx="39.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><path d="M30 36.4h4l-2 2.4Z" fill="#1B1B2F" stroke-width="1.2"/><path d="M32 38.8q-1.5 2.4-3.8 1.2M32 38.8q1.5 2.4 3.8 1.2" fill="none" stroke-width="1.6"/><path d="M18.5 36.5h-7M18.8 39.2l-6.2 2.2M45.5 36.5h7M45.2 39.2l6.2 2.2" fill="none" stroke-width="1.3"/><circle cx="21.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><circle cx="42.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><path d="M21 49.5q11 4.6 22 0" fill="none" stroke="#2F4BFF" stroke-width="2.4"/><path d="M32 60c-4.2-2.8-6.5-5.3-6.5-7.8a3.25 3.25 0 0 1 6.5-1.3 3.25 3.25 0 0 1 6.5 1.3c0 2.5-2.3 5-6.5 7.8Z" fill="#2F4BFF" stroke-width="2"/></g></svg></span><span class="mc-label">ask Monie</span></button>
 <section class="mc-panel" id="mcPanel" role="dialog" aria-label="Chat with Monie" hidden>
@@ -361,7 +356,14 @@ const ROUTES = [
 const TOPIC_Q = { dates: "Which cities are best for dates?", singles: "Which cities have the most singles?", family: "Which cities are best for starting a family?",
   married: "Best cities to get married in?", horoscope: "What do the stars say?", pay: "Which cities pay the highest in my industry?",
   hiring: "Which regions are hiring the most right now?", fortune500: "Which cities have the most Fortune 500 companies?", business: "Which cities are best for starting a business?" };
+const wide = matchMedia("(min-width: 761px)");
 function renderTopics(){
+  if (!wide.matches) {   // phones: one line of short links under a thin line
+    const keys = MODE === "career" ? ["hiring", "pay", "business", "fortune500", "dates", "singles", "married", "family", "horoscope"]
+      : ["dates", "singles", "married", "family", "horoscope", "hiring", "pay", "business", "fortune500"];
+    topicsEl.innerHTML = `<span class="mc-tl">Quick answers:</span> ` + keys.map(k => `<a href="#" data-topic="${k}">${LABELS[k]}</a>`).join('<span aria-hidden="true"> · </span>');
+    return;
+  }
   const group = (h, keys) => `<p class="mc-th">${h}</p><ul>${keys.map(k => `<li><a href="#" data-topic="${k}">${TOPIC_Q[k]}</a></li>`).join("")}</ul>`;
   const love = group("For Love:", ["dates", "singles", "family", "married", "horoscope"]), jobs = group("For Jobs:", ["pay", "hiring", "fortune500", "business"]);
   topicsEl.innerHTML = MODE === "career" ? jobs + love : love + jobs;
@@ -496,12 +498,13 @@ window.addEventListener("pagehide", () => { if (CH && CH.said && !CH.done) logCh
 // ---------- open / close / input ----------
 const mapRatio = (() => { const svg = document.getElementById("map"), vb = svg && svg.viewBox && svg.viewBox.baseVal; return vb && vb.height ? vb.width / vb.height : 1.6; })();
 document.documentElement.style.setProperty("--map-ratio", mapRatio.toFixed(4));
+wide.addEventListener("change", () => { renderTopics(); if (!panel.hidden) { document.body.classList.toggle("chatting", wide.matches); if (wide.matches) fitMapAbove(); } });
 function fitMapAbove(){
   setTimeout(() => { const st = document.getElementById("stage"); if (!st) return;
     window.scrollTo({ top: Math.max(0, st.getBoundingClientRect().top + window.scrollY - 12), behavior: reduceMotion() ? "auto" : "smooth" }); }, 60);
 }
 function open(){
-  document.body.classList.add("chatting"); holdHovers(); fitMapAbove();
+  if (wide.matches) { document.body.classList.add("chatting"); holdHovers(); fitMapAbove(); }
   panel.hidden = false; fab.setAttribute("aria-expanded", "true"); fab.classList.add("seen"); load(); renderTopics();
   if (!CH || !log.children.length) { if (getRes(modeReason())) greetBack(); else startChat(); }
   setTimeout(() => inp.focus(), 50);
