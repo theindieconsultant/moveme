@@ -696,6 +696,86 @@
   .foot-refresh:hover .tip,.foot-btn:focus-visible + .tip{opacity:1;transform:translate(0,0)}
   .key{display:flex;gap:8px;align-items:flex-start;flex-wrap:nowrap}
   .key i{display:inline-block;width:22px;height:0;border-top:3px dotted var(--route);vertical-align:middle;margin-right:6px}
+
+  /* ===== Monie: conversational alternative to the quick quiz (bottom panel) ===== */
+  .convo-br{display:block}
+  :root{--chat-h:clamp(340px,48vh,480px)}
+  @media (max-width:760px){ :root{--chat-h:58dvh} }
+  body.chatting{padding-bottom:var(--chat-h)}
+  body.chatting #mapView footer{visibility:hidden}
+  /* the map shrinks just enough to sit fully above the panel */
+  #mapView .stage{transition:max-width .45s cubic-bezier(.22,1,.36,1)}
+  body.chatting #mapView .stage{max-width:calc((100dvh - var(--chat-h) - 28px) * var(--map-ratio, 1.6));margin-inline:auto}
+  @media (max-width:760px){ body.chatting #mapView .stage{max-width:calc((100dvh - var(--chat-h) - 72px) * var(--map-ratio, 1.6))} }
+
+  .chat{position:fixed;left:0;right:0;bottom:0;z-index:60;height:var(--chat-h);display:flex;justify-content:center;pointer-events:none}
+  .chat[hidden]{display:none}
+  .chat-inner{pointer-events:auto;width:min(980px,100%);height:100%;display:flex;flex-direction:column;background:var(--surface);color:var(--text);
+     border:2px solid var(--border);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -10px 40px rgba(27,27,47,.14);
+     animation:chatUp .42s cubic-bezier(.22,1,.36,1) both}
+  .chat.closing .chat-inner{animation:chatDown .3s ease-in both}
+  @keyframes chatUp{from{transform:translateY(100%)}to{transform:none}}
+  @keyframes chatDown{from{transform:none}to{transform:translateY(100%)}}
+  @media (prefers-reduced-motion:reduce){ .chat-inner,.chat.closing .chat-inner{animation:none} #mapView .stage{transition:none} }
+
+  .chat-head{display:flex;align-items:center;gap:12px;padding:12px 14px 10px 18px;border-bottom:1px solid var(--hair)}
+  .chat-grab{position:absolute;left:50%;top:6px;width:44px;height:4px;border-radius:4px;background:var(--hair);translate:-50% 0}
+  .monie-av{flex:none;width:38px;height:38px;display:block}
+  .monie-av svg{width:100%;height:100%;display:block}
+  .chat-who{display:flex;flex-direction:column;line-height:1.2;margin-right:auto}
+  .chat-who b{font:600 16px/1.2 var(--display);text-transform:lowercase;letter-spacing:-.01em}
+  .chat-who span{font-size:13px;color:var(--text-subtle)}
+  .chat-who .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3BB273;margin-right:6px;vertical-align:1px}
+  .chat-ic{width:38px;height:38px;border-radius:50%;border:0;background:transparent;color:var(--text-muted);display:grid;place-items:center;cursor:pointer;transition:background .2s,color .2s}
+  .chat-ic:hover{background:var(--bg-sunken);color:var(--text)}
+  .chat-ic:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  .chat-ic svg{width:20px;height:20px}
+
+  .chat-log{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:18px clamp(14px,4vw,40px) 8px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+  .msg{display:flex;gap:10px;max-width:640px;width:100%;margin:0 auto;animation:msgIn .28s ease both}
+  @keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .msg .monie-av{width:28px;height:28px;margin-top:1px}
+  .msg.m .monie-av.ghost{visibility:hidden}
+  .msg .txt{font-size:16px;line-height:1.55;color:var(--text);padding-top:2px}
+  .msg .txt b{font-weight:700}
+  .msg.u{justify-content:flex-end}
+  .msg.u .txt{background:var(--cobalt);color:#fff;padding:9px 15px;border-radius:20px 20px 6px 20px;max-width:78%;white-space:pre-wrap;overflow-wrap:anywhere}
+  .msg.u .txt b{color:#fff}
+  .typing{display:inline-flex;gap:5px;padding:10px 2px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--text-subtle);animation:tdot 1.1s infinite ease-in-out}
+  .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
+  @keyframes tdot{0%,60%,100%{transform:none;opacity:.45}30%{transform:translateY(-4px);opacity:1}}
+  .zinline{display:inline-block;width:1.25em;height:1.25em;vertical-align:-.28em;margin-right:2px}
+  .zinline svg{width:100%;height:100%}
+
+  .chat-dock{padding:6px clamp(12px,4vw,40px) 12px}
+  .chat-suggest{max-width:640px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 10px}
+  .chat-suggest:empty{display:none}
+  .sug{font:600 14px/1 var(--sans);color:var(--text);background:var(--surface);border:2px solid var(--border);border-radius:999px;padding:9px 14px;
+     display:inline-flex;align-items:center;gap:7px;cursor:pointer;box-shadow:2px 2px 0 var(--shadow);transition:transform .15s,box-shadow .15s,background .15s;animation:msgIn .25s ease both}
+  .sug:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--shadow)}
+  .sug:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--shadow)}
+  .sug:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .sug svg.ico,.sug .zi{width:18px;height:18px;flex:none}
+  .sug .zi svg{width:100%;height:100%;display:block}
+  .sug[aria-pressed="true"]{background:var(--accent-soft)}
+  .sug[aria-pressed="true"]::before{content:"✓";font-weight:800}
+  .sug.go{background:var(--cobalt);color:#fff;border-color:var(--border)}
+  .sug.quiet{box-shadow:none;border-style:dashed}
+  .chat-suggest.many .sug{padding:7px 11px;font-size:13px}
+
+  .chat-compose{max-width:640px;margin:0 auto;display:flex;align-items:flex-end;gap:8px;background:var(--bg);border:2px solid var(--border);border-radius:26px;padding:6px 6px 6px 18px;
+     transition:box-shadow .2s}
+  .chat-compose:focus-within{box-shadow:3px 3px 0 var(--shadow)}
+  .chat-compose textarea{flex:1;border:0;background:transparent;color:var(--text);font:500 16px/1.5 var(--sans);resize:none;padding:7px 0;max-height:120px;outline:none}
+  .chat-compose textarea::placeholder{color:var(--text-subtle)}
+  .chat-send{flex:none;width:38px;height:38px;border-radius:50%;border:0;background:var(--cobalt);color:#fff;display:grid;place-items:center;cursor:pointer;transition:opacity .2s,transform .15s}
+  .chat-send[aria-disabled="true"]{opacity:.35;cursor:default}
+  .chat-send:not([aria-disabled="true"]):hover{transform:scale(1.06)}
+  .chat-send:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .chat-send svg{width:18px;height:18px}
+  .chat-fine{max-width:640px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--text-subtle)}
+  @media (max-width:560px){ .chat-suggest.many{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:calc(-1 * clamp(12px,4vw,40px));padding-inline:clamp(12px,4vw,40px)} .chat-suggest.many .sug{flex:none} .chat-fine{display:none} .chat-head{padding:10px 8px 8px 14px} }
 </style>
 </head>
 <body>
@@ -734,7 +814,7 @@
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
-      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta">Or <a class="quiz" href="#quiz" id="quizLink">start with a quick quiz</a>.</span></p>
+      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta">Or start with <a class="quiz" href="#quiz" id="quizLink">a quick quiz</a>,<span class="convo-br">or, have a <a class="quiz" href="#chat" id="chatLink">quick convo</a> with Monie.</span></span></p>
       <div class="quiz-result" id="quizResult" hidden>
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button>
         <span id="resLove"><span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span></span>
@@ -771,6 +851,27 @@
     <span>move ♥ me</span>
   </footer>
 </div>
+
+<!-- ===== Monie: chat alternative to the quick quiz (bottom panel) ===== -->
+<section class="chat" id="chat" hidden aria-label="Chat with Monie">
+  <div class="chat-inner">
+    <header class="chat-head">
+      <span class="monie-av" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 34C8 18 24 8 38 11c14 3 20 19 14 31C46 54 26 58 16 50c-5-4-5.5-10-6-16Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="2.6" transform="rotate(-8 32 32)"/><circle cx="25.5" cy="30.5" r="3" fill="#1B1B2F"/><circle cx="39.5" cy="30.5" r="3" fill="#1B1B2F"/><path d="M26 38.5q6.5 5.6 13 0" fill="none" stroke="#1B1B2F" stroke-width="2.8" stroke-linecap="round"/><circle cx="20.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><circle cx="44.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><path d="M50 16c-4-2.7-6.2-5.1-6.2-7.5a3.1 3.1 0 0 1 6.2-1.2 3.1 3.1 0 0 1 6.2 1.2c0 2.4-2.2 4.8-6.2 7.5Z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="2" stroke-linejoin="round"/></svg></span>
+      <div class="chat-who"><b>Monie</b><span><i class="dot" aria-hidden="true"></i>your Move ♥ Me guide</span></div>
+      <button class="chat-ic" id="chatRestart" type="button" aria-label="Start over" title="Start over"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 8.6A8 8 0 1 0 20 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M20 3.5v5.4h-5.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="chat-ic" id="chatHide" type="button" aria-label="Hide chat" title="Hide chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </header>
+    <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-label="Conversation with Monie"></div>
+    <div class="chat-dock">
+      <div class="chat-suggest" id="chatSuggest" aria-label="Suggested replies"></div>
+      <form class="chat-compose" id="chatForm" autocomplete="off">
+        <textarea id="chatInput" rows="1" placeholder="Message Monie…" aria-label="Message Monie"></textarea>
+        <button class="chat-send" id="chatSend" type="submit" aria-label="Send" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </form>
+      <p class="chat-fine">Monie saves your answers to Move ♥ Me, the same way the quick quiz does.</p>
+    </div>
+  </div>
+</section>
 
 <!-- ===== Quick quiz (first-time user experience) ===== -->
 <div class="qz" id="quiz" hidden>
@@ -2119,6 +2220,365 @@ function showResult(r){
 }
 function refreshResult(){ showResult(getRes(modeReason())); }
 document.getElementById("quizLink").addEventListener("click", e => { e.preventDefault(); openQuiz(); });
+
+// ===================== Monie: chat alternative to the quick quiz =====================
+// A scripted conversation that collects the same answers as the quiz (reason, scenery, places, home city,
+// age, sign or industries, comment), then saves and shows the result exactly like the quiz does.
+// All of Monie's lines live in MONIE_SAYS below, so the wording can be tuned without touching the logic.
+const MONIE_SVG = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 34C8 18 24 8 38 11c14 3 20 19 14 31C46 54 26 58 16 50c-5-4-5.5-10-6-16Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="2.6" transform="rotate(-8 32 32)"/><circle cx="25.5" cy="30.5" r="3" fill="#1B1B2F"/><circle cx="39.5" cy="30.5" r="3" fill="#1B1B2F"/><path d="M26 38.5q6.5 5.6 13 0" fill="none" stroke="#1B1B2F" stroke-width="2.8" stroke-linecap="round"/><circle cx="20.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><circle cx="44.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><path d="M50 16c-4-2.7-6.2-5.1-6.2-7.5a3.1 3.1 0 0 1 6.2-1.2 3.1 3.1 0 0 1 6.2 1.2c0 2.4-2.2 4.8-6.2 7.5Z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="2" stroke-linejoin="round"/></svg>`;
+const MONIE_SAYS = {
+  hello: ["hey, i’m <b>Monie</b> 👋", "i help people find the places in America most likely to move them. so, what are you moving for?"],
+  reasonChips: [["for love ♥", "love"], ["for work 💼", "jobs"], ["honestly, both", "both"]],
+  both: "love that. let’s do one now and the other right after. which first?",
+  reasonRetry: "ha, fair. if you had to start with one: love, or work?",
+  welcomeBack: (prev, now) => [`welcome back 💛 last time we talked ${prev === "jobs" ? "work" : "love"}.`,
+    `this time is about ${now === "jobs" ? "work" : "love"}, and i remember the rest, so it’s just two quick questions.`],
+  scene: r => r === "jobs" ? "a dream job hits different with the right view. which of these moves you most?"
+    : "picture your perfect first date. what’s the backdrop?",
+  sceneEcho: { "Mountains": "mountain person, noted 🏔️", "Beach fronts": "beach person, noted 🌊", "City skylines": "city lights it is 🌆", "Trees & Trails": "trees & trails, noted 🌲" },
+  sceneRetry: "i didn’t quite catch that. mountains, beach fronts, city skylines, or trees & trails?",
+  places: "any states or cities already on your radar? name as many as you like.",
+  placesEcho: list => `ooh, ${list}. noted ✍️`,
+  placesNone: "totally fine, that’s what the map is for.",
+  placesRetry: "i couldn’t match that to a state or city. try something like <b>Colorado</b> or <b>Austin, TX</b>, or tap <b>not sure yet</b>.",
+  home: "where are you living right now? the city is perfect.",
+  homeState: st => `which city in ${st}?`,
+  homeRetry: "i just need a city here, so i can compare it with where you might go.",
+  age: "and how old are you? just the number. it stays between us (and a spreadsheet).",
+  ageRetry: "just the number works, like <b>29</b>.",
+  sign: "ok, the fun one ✨ what’s your sign? if you’re not sure, tell me your birthday.",
+  signFromBday: s => `that makes you a <b>${s}</b>.`,
+  signRetry: "hmm, i couldn’t find a sign in that. try one like <b>Leo</b>, or a birthday like <b>Aug 3</b>.",
+  industry: "what field do you work in, or want to? tap all that fit, then <b>done</b>. or just tell me.",
+  industryEcho: list => `${list}, got it.`,
+  comment: r => r === "jobs" ? "last one, and totally optional: what’s the job hunt like where you live?"
+    : "last one, and totally optional: what’s dating like where you live?",
+  commentThanks: "thank you for sharing that 💛",
+  doneLove: (sign, pairs, scene) => [`you’re a ${sign}, and you pair nicely with <b>${pairs}</b>.`,
+    `i lit up the love map with hot spots${scene ? ` for ${MONIE_SAYS.people[scene]}` : ""}. hover any state for its love snapshot, or tap a hot spot for local facts.`],
+  doneJobs: (inds, scene) => [`you work in <b>${inds}</b>.`,
+    `the career map is all yours now${scene ? `, with hot spots for ${MONIE_SAYS.people[scene]}` : ""}. hover any state for its career snapshot.`],
+  afterChips: other => [["show me the map", "map"], [other === "jobs" ? "now do work 💼" : "now do love ♥", "other"], ["start over", "restart"]],
+  afterBoth: [["show me the map", "map"], ["start over", "restart"]],
+  people: { "Mountains": "mountain people", "Beach fronts": "beach people", "City skylines": "city people", "Trees & Trails": "trees-and-trails people" },
+  idle: "i’m still here whenever you’re ready."
+};
+
+const chatEl = document.getElementById("chat"), chatLog = document.getElementById("chatLog"), chatSug = document.getElementById("chatSuggest");
+const chatForm = document.getElementById("chatForm"), chatInput = document.getElementById("chatInput"), chatSend = document.getElementById("chatSend");
+let CH = null;           // { A, flow, i, pending, other }
+let chatQueue = Promise.resolve(), lastFocusChat = null, chatGen = 0;
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduceMotion() ? Math.min(ms, 120) : ms));
+
+// map aspect ratio, so the open panel can shrink the map to fit above it
+(() => { const vb = svg.viewBox && svg.viewBox.baseVal; if (vb && vb.width && vb.height) document.documentElement.style.setProperty("--map-ratio", (vb.width / vb.height).toFixed(4)); })();
+
+// ---------- rendering ----------
+function scrollLog(){ chatLog.scrollTop = chatLog.scrollHeight; }
+new ResizeObserver(scrollLog).observe(chatLog);
+function addMsg(who, html){
+  const row = document.createElement("div");
+  const prev = chatLog.lastElementChild;
+  const cont = who === "m" && prev && prev.classList.contains("m") && !prev.classList.contains("typing-row");
+  row.className = "msg " + who;
+  row.innerHTML = who === "m" ? `<span class="monie-av${cont ? " ghost" : ""}" aria-hidden="true">${MONIE_SVG}</span><div class="txt">${html}</div>` : `<div class="txt">${html}</div>`;
+  if (who === "m") row.setAttribute("aria-label", "Monie: " + row.querySelector(".txt").textContent);
+  chatLog.appendChild(row); scrollLog(); return row;
+}
+// Monie "types" each line, then it appears
+function say(lines){
+  lines = [].concat(lines); const gen = chatGen;
+  chatQueue = chatQueue.then(async () => {
+    for (const html of lines) {
+      if (gen !== chatGen) return;
+      const t = document.createElement("div");
+      t.className = "msg m typing-row";
+      t.innerHTML = `<span class="monie-av" aria-hidden="true">${MONIE_SVG}</span><div class="typing" aria-label="Monie is typing"><i></i><i></i><i></i></div>`;
+      chatLog.appendChild(t); scrollLog();
+      await wait(380 + Math.min(900, html.replace(/<[^>]+>/g, "").length * 11));
+      t.remove(); if (gen !== chatGen) return; addMsg("m", html);
+      await wait(140);
+    }
+  });
+  return chatQueue;
+}
+function chips(list, opts = {}){
+  chatSug.classList.toggle("many", list.length > 6);
+  chatSug.innerHTML = list.map(([label, val, icon]) =>
+    `<button type="button" class="sug${val === "__done" ? " go" : ""}${opts.quiet && opts.quiet.includes(val) ? " quiet" : ""}" data-val="${esc(String(val))}"${opts.multi && val !== "__done" ? ' aria-pressed="false"' : ""}>${icon || ""}<span>${label}</span></button>`).join("");
+}
+function clearChips(){ chatSug.innerHTML = ""; }
+
+// ---------- understanding free text ----------
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 ,&'.-]/g, " ").replace(/\s+/g, " ").trim();
+const reEsc = w => w.replace(/[.*+?^$|()[\]{}\\]/g, "\\$&");
+const wordIn = (text, w) => new RegExp("(^|[^a-z])" + reEsc(w) + "([^a-z]|$)").test(text);
+const listText = arr => arr.length > 1 ? arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1] : arr.join("");
+const NO = /^(no|nope|nah|none|not (really|sure|yet)|not sure yet|idk|i don'?t know|skip|pass|nothing|anywhere|n\/a|na)\b/;
+function findCities(raw){
+  // longest names first, so "Kansas City" wins over "Kansas" and "New York" over "York"
+  const t = norm(raw), found = [];
+  let rest = " " + t + " ";
+  const byLen = CITIES.slice().sort((a, b) => b.c.length - a.c.length);
+  for (const c of byLen) {
+    const n = norm(c.c); if (n.length < 3 || !wordIn(rest, n)) continue;
+    // prefer "Portland, ME" when the state is named right after the city
+    const after = rest.slice(rest.indexOf(n) + n.length, rest.indexOf(n) + n.length + 24);
+    const twin = CITIES.filter(x => norm(x.c) === n);
+    let pick = twin[0];
+    for (const x of twin) { const sName = norm((STATE_LIST.find(s => s.abbr === x.st) || {}).name || ""); if (new RegExp("^[ ,]*(" + x.st.toLowerCase() + "|" + sName + ")\\b").test(after)) pick = x; }
+    if (!found.includes(pick)) found.push(pick);
+    rest = rest.replace(n, " ");
+  }
+  return { cities: found, rest };
+}
+function findStates(text, rawText){
+  const out = [];
+  STATE_LIST.slice().sort((a, b) => b.name.length - a.name.length).forEach(s => { const n = norm(s.name); if (wordIn(text, n)) { out.push(s); text = text.replace(n, " "); } });
+  // two-letter codes only when typed in capitals, skipping ones that are also everyday words
+  (rawText.match(/\b[A-Z]{2}\b/g) || []).forEach(code => {
+    if (["OK", "HI", "ME", "OR", "IN", "OH", "AS"].includes(code)) return;
+    const s = STATE_LIST.find(x => x.abbr === code); if (s && !out.includes(s)) out.push(s);
+  });
+  return out;
+}
+function parsePlaces(raw){
+  const { cities, rest } = findCities(raw);
+  // drop states that only appear as the ", TX" after a city
+  let rawRest = raw; cities.forEach(c => { rawRest = rawRest.replace(new RegExp(reEsc(c.c) + "\\s*,?\\s*(" + c.st + "|" + ((STATE_LIST.find(s => s.abbr === c.st) || {}).name || c.st) + ")?", "i"), " "); });
+  const states = findStates(norm(rawRest), rawRest);
+  return states.map(s => ({ type: "state", value: s.abbr, label: s.name })).concat(cities.map(c => ({ type: "city", value: c.label, label: c.label })));
+}
+function parseReason(t){
+  if (/\bboth\b|\b(and|&) (work|love|job)/.test(t)) return "both";
+  const love = /lov|dat(e|ing)|partner|relationship|romance|my person|single|boyfriend|girlfriend|wife|husband|spouse|match|crush/.test(t);
+  const job = /\bjob|work|career|employ|hire|hiring|salary|paycheck|gig|profession|industry|money/.test(t);
+  return love && job ? "both" : love ? "love" : job ? "jobs" : null;
+}
+const SCENE_WORDS = [["Mountains", /mountain|peak|ski|snow|hik|alpine|rock|summit|elevation/], ["Beach fronts", /beach|ocean|coast|sea\b|seaside|surf|sand|shore|water|lake|island|wave/],
+  ["City skylines", /city|skyline|urban|downtown|lights|tall building|metro|nightlife|rooftop/], ["Trees & Trails", /tree|trail|forest|wood|nature|green|park|outdoor|camp|leaf|leaves/]];
+function parseScene(t){ const hit = SCENE_WORDS.filter(([, re]) => re.test(t)); return hit.length === 1 ? hit[0][0] : hit.length ? hit[0][0] : null; }
+const MON3 = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+function signFromDate(m, d){
+  // [month, last day of the earlier sign, earlier sign, later sign]
+  const cut = [[1, 19, "Capricorn", "Aquarius"], [2, 18, "Aquarius", "Pisces"], [3, 20, "Pisces", "Aries"], [4, 19, "Aries", "Taurus"], [5, 20, "Taurus", "Gemini"], [6, 20, "Gemini", "Cancer"],
+    [7, 22, "Cancer", "Leo"], [8, 22, "Leo", "Virgo"], [9, 22, "Virgo", "Libra"], [10, 22, "Libra", "Scorpio"], [11, 21, "Scorpio", "Sagittarius"], [12, 21, "Sagittarius", "Capricorn"]][m - 1];
+  return d <= cut[1] ? cut[2] : cut[3];
+}
+function parseSign(t){
+  const named = SIGN_INFO.map(([n]) => n).find(n => wordIn(t, n.toLowerCase()) || (n === "Sagittarius" && /\bsag\b/.test(t)) || (n === "Capricorn" && /\bcap\b/.test(t)));
+  if (named) return { sign: named };
+  let m = t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.? (\d{1,2})/), mo, dd;
+  if (m) { mo = MON3.indexOf(m[1]) + 1; dd = +m[2]; }
+  else if ((m = t.match(/\b(\d{1,2}) (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/))) { mo = MON3.indexOf(m[2]) + 1; dd = +m[1]; }
+  else if ((m = t.match(/\b(\d{1,2})[\/.-](\d{1,2})\b/))) { mo = +m[1]; dd = +m[2]; }
+  if (mo >= 1 && mo <= 12 && dd >= 1 && dd <= 31) return { sign: signFromDate(mo, dd), fromBday: true };
+  return null;
+}
+const IND_WORDS = [["Tech & software", /tech|software|engineer|developer|\bdev\b|coding|program|\bit\b|data|product manag|\bai\b/], ["Healthcare", /health|nurs|doctor|hospital|medic|clinic|pharma|therap|dental|dentist/],
+  ["Education", /educat|teach|school|professor|tutor|universit|college/], ["Finance & business", /financ|bank|account|business|consult|sales|insurance|real estate|\bhr\b|operations/],
+  ["Creative & design", /design|creative|\bart|writer|writing|\bux\b|photograph|film|music|illustrat/], ["Retail & hospitality", /retail|restaurant|hospitality|hotel|server|bartend|barista|chef|cook|store|shop/],
+  ["Trades & construction", /trade|construct|electric|plumb|carpent|mechanic|welder|weld|hvac|contractor/], ["Government & nonprofit", /govern|nonprofit|non-profit|public sector|civil|military|ngo|social work/],
+  ["Marketing & media", /market|media|journalis|\bpr\b|social media|advertis|content|comms|communication/], ["Science & research", /scien|research|\blab\b|biolog|chemist|physic|academ/],
+  ["Transportation & logistics", /transport|logistic|driver|driving|truck|shipping|warehouse|delivery|supply chain|airline|pilot/]];
+function parseIndustries(t){ return IND_WORDS.filter(([, re]) => re.test(t)).map(([n]) => n); }
+const INDICON = n => `<svg class="ico" aria-hidden="true"><use href="#i-${(INDUSTRIES.find(([x]) => x === n) || ["", "other"])[1]}"/></svg>`;
+const ZI = (s, cls = "zi") => `<span class="${cls}" aria-hidden="true">${zIcon(s, "twotone", "coral")}</span>`;
+const titleCase = s => s.replace(/\b([a-z])/g, c => c.toUpperCase());
+
+// ---------- the conversation ----------
+// Each step: ask() says the question and shows suggestions; take(text, val) handles a typed or tapped answer
+// and returns true when the step is answered.
+const STEPS = {
+  reason: {
+    ask(){ say(MONIE_SAYS.hello); chips(MONIE_SAYS.reasonChips); },
+    take(text, val){
+      const r = val || parseReason(norm(text));
+      if (r === "both") { say(MONIE_SAYS.both); chips(MONIE_SAYS.reasonChips.slice(0, 2)); CH.both = true; return false; }
+      if (!r) { say(MONIE_SAYS.reasonRetry); chips(MONIE_SAYS.reasonChips.slice(0, 2)); return false; }
+      CH.A.reason = r; return true;
+    }
+  },
+  scene: {
+    ask(){ say(MONIE_SAYS.scene(CH.A.reason)); chips([["⛰️ Mountains", "Mountains"], ["🏖️ Beach fronts", "Beach fronts"], ["🏙️ City skylines", "City skylines"], ["🌲 Trees & Trails", "Trees & Trails"]]); },
+    take(text, val){
+      const s = val || parseScene(norm(text));
+      if (!s) { say(MONIE_SAYS.sceneRetry); return false; }
+      CH.A.scene = s; say(MONIE_SAYS.sceneEcho[s]); return true;
+    }
+  },
+  places: {
+    ask(){ say(MONIE_SAYS.places); chips([["not sure yet", "__none"]], { quiet: ["__none"] }); },
+    take(text, val){
+      if (val === "__none" || NO.test(norm(text))) { CH.A.places = []; say(MONIE_SAYS.placesNone); return true; }
+      const p = parsePlaces(text);
+      if (!p.length) { say(MONIE_SAYS.placesRetry); return false; }
+      CH.A.places = p; say(MONIE_SAYS.placesEcho(listText(p.map(x => `<b>${esc(x.label)}</b>`)))); return true;
+    }
+  },
+  home: {
+    ask(){ say(MONIE_SAYS.home); clearChips(); },
+    take(text){
+      const raw = text.trim(); if (raw.length < 2) { say(MONIE_SAYS.homeRetry); return false; }
+      const { cities } = findCities(raw);
+      if (cities.length) { CH.A.home = cities[0].label; return true; }
+      const st = STATE_LIST.find(s => norm(s.name) === norm(raw) || s.abbr === raw.toUpperCase());
+      if (st) { say(MONIE_SAYS.homeState(st.name)); return false; }
+      CH.A.home = (raw === raw.toLowerCase() ? titleCase(raw) : raw).slice(0, 60); return true;
+    }
+  },
+  age: {
+    ask(){ say(MONIE_SAYS.age); clearChips(); },
+    take(text){
+      const m = text.match(/\b(\d{2})\b/); const n = m ? +m[1] : NaN;
+      if (!(n >= 16 && n <= 99)) { say(MONIE_SAYS.ageRetry); return false; }
+      const lo = Math.max(20, n - (n % 5)); CH.A.age = `${lo}–${lo + 4}`; return true;
+    }
+  },
+  sign: {
+    ask(){ say(MONIE_SAYS.sign); chips(SIGN_INFO.map(([n]) => [n, n, ZI(n)])); },
+    take(text, val){
+      const r = val ? { sign: val } : parseSign(norm(text));
+      if (!r) { say(MONIE_SAYS.signRetry); return false; }
+      CH.A.sign = r.sign; if (r.fromBday) say(MONIE_SAYS.signFromBday(`${ZI(r.sign, "zinline")}${r.sign}`)); return true;
+    }
+  },
+  industry: {
+    ask(){ say(MONIE_SAYS.industry); CH.pick = []; chips(INDUSTRIES.filter(([n]) => n !== "Other").map(([n]) => [n, n, INDICON(n)]), { multi: true }); },
+    take(text, val){
+      if (val === "__done") { if (!CH.pick.length) return false; CH.A.industries = CH.pick.slice(); }
+      else {
+        const found = parseIndustries(norm(text));
+        CH.A.industries = found.length ? found : ["Other"];
+        CH.A.industryOther = found.length ? "" : text.trim().slice(0, 80);
+      }
+      say(MONIE_SAYS.industryEcho(listText(industryLabels(CH.A).map(x => `<b>${esc(x)}</b>`)))); return true;
+    }
+  },
+  comment: {
+    ask(){ say(MONIE_SAYS.comment(CH.A.reason)); chips([["skip", "__skip"]], { quiet: ["__skip"] }); },
+    take(text, val){
+      if (val === "__skip" || NO.test(norm(text))) { CH.A.comment = ""; return true; }
+      CH.A.comment = text.trim().slice(0, 1000); say(MONIE_SAYS.commentThanks); return true;
+    }
+  }
+};
+const FULL_CHAT = ["reason", "scene", "places", "home", "age", "fifth", "comment"], SHORT_CHAT = ["fifth", "comment"];
+const stepName = () => { const s = CH.flow[CH.i]; return s === "fifth" ? (CH.A.reason === "jobs" ? "industry" : "sign") : s; };
+
+function startChat(opts = {}){
+  chatGen++; chatLog.innerHTML = ""; clearChips(); chatQueue = Promise.resolve();
+  const reason = opts.reason || modeReason(), prev = getRes(otherReason(reason));
+  CH = { A: blank(), flow: FULL_CHAT, i: 0, pick: [], both: false };
+  if (opts.reason || (prev && !getRes(reason))) {
+    // second journey: reuse scenery, places, age and home from the first one
+    const p = prev || {};
+    CH.flow = p.reason ? SHORT_CHAT : FULL_CHAT.slice(1);
+    Object.assign(CH.A, { reason, scene: p.scene || null, places: (p.places || []).slice(), age: p.age || "", home: p.home || "" });
+    if (p.reason) say(MONIE_SAYS.welcomeBack(p.reason, reason));
+  }
+  STEPS[stepName()].ask();
+}
+function answer(text, val, shown){
+  if (!CH) return;
+  if (!(CH.flow && STEPS[stepName()] === STEPS.industry && val && val !== "__done")) { const c = CH; chatQueue = chatQueue.then(() => { if (CH === c) answerNow(text, val, shown); }); return; }
+}
+function answerNow(text, val, shown){
+  if (!CH) return;
+  if (CH.done) return afterAnswer(val, text);
+  const st = STEPS[stepName()];
+  if (st === STEPS.industry && val && val !== "__done") return;   // toggles handled in the click handler
+  addMsg("u", esc(shown || text)); clearChips();
+  if (!st.take(text, val)) { if (st === STEPS.industry) st.ask(); return; }
+  CH.i++;
+  if (CH.i < CH.flow.length) STEPS[stepName()].ask(); else finishChat();
+}
+function finishChat(){
+  const a = CH.A, jobs = a.reason === "jobs";
+  const result = { reason: a.reason, scene: a.scene, sign: jobs ? null : a.sign, industries: jobs ? a.industries : [], industryOther: jobs ? a.industryOther : "",
+    places: a.places, age: a.age, home: a.home, comment: a.comment, at: new Date().toISOString() };
+  setRes(a.reason, result);
+  sendAnswers(result);
+  LS.set("mm-quiz-seen", true);
+  showResult(result);
+  setMode(jobs ? "career" : "love", { quiet: true });
+  replayMapIntro(); fitMapAbove();
+  const pairs = PAIRS[result.sign] || [];
+  say(jobs ? MONIE_SAYS.doneJobs(listText(industryLabels(result)), result.scene)
+    : MONIE_SAYS.doneLove(`${ZI(result.sign, "zinline")}<b>${result.sign}</b>`, pairs.length > 1 ? pairs.slice(0, -1).join(", ") + " & " + pairs[pairs.length - 1] : pairs.join(""), result.scene))
+    .then(() => { const other = otherReason(a.reason); chips(getRes(other) ? MONIE_SAYS.afterBoth : MONIE_SAYS.afterChips(other)); });
+  CH.done = true;
+  if (CH.both && !getRes(otherReason(a.reason))) CH.both = false;
+}
+function afterAnswer(val, text){
+  const t = norm(text || "");
+  const v = val || (/map|show|done|thanks|thank/.test(t) ? "map" : /again|over|restart|reset/.test(t) ? "restart" : /work|job|career|love|dat/.test(t) ? "other" : null);
+  if (text) addMsg("u", esc(text));
+  if (v === "map") return hideChat();
+  if (v === "restart") return startChat();
+  if (v === "other") { const other = otherReason(CH.A.reason); setMode(other === "jobs" ? "career" : "love", { quiet: true }); clearChips(); return startChat({ reason: other }); }
+  say(MONIE_SAYS.idle);
+}
+
+// ---------- open / hide ----------
+function fitMapAbove(){
+  // after the panel and the smaller map settle, glide so the whole map sits above the panel
+  setTimeout(() => {
+    const y = stage.getBoundingClientRect().top + window.scrollY - 12;
+    window.scrollTo({ top: Math.max(0, y), behavior: reduceMotion() ? "auto" : "smooth" });
+  }, 60);
+}
+function openChat(){
+  if (typeof closeSheet === "function") closeSheet();
+  lastFocusChat = document.activeElement;
+  chatEl.hidden = false; chatEl.classList.remove("closing");
+  document.body.classList.add("chatting");
+  holdHovers();
+  fitMapAbove();
+  if (!CH || (CH.done && !chatLog.children.length)) startChat();
+  setTimeout(() => chatInput.focus({ preventScroll: true }), 80);
+}
+function hideChat(){
+  if (chatEl.hidden) return;
+  const done = () => { chatEl.hidden = true; chatEl.classList.remove("closing"); document.body.classList.remove("chatting"); if (CH && CH.done) CH = null; };
+  if (reduceMotion()) done(); else { chatEl.classList.add("closing"); setTimeout(done, 280); }
+  const f = CH && CH.done ? document.getElementById("retake") : lastFocusChat;
+  if (f && f.focus && !f.closest("[hidden]")) f.focus({ preventScroll: true });
+}
+
+document.getElementById("chatLink").addEventListener("click", e => { e.preventDefault(); openChat(); });
+document.getElementById("chatHide").addEventListener("click", hideChat);
+document.getElementById("chatRestart").addEventListener("click", () => { startChat(); chatInput.focus(); });
+chatEl.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); hideChat(); } });
+chatSug.addEventListener("click", e => {
+  const b = e.target.closest(".sug"); if (!b) return;
+  const val = b.dataset.val, label = b.querySelector("span").textContent;
+  if (b.hasAttribute("aria-pressed")) {
+    // industries: tap to toggle, then "done"
+    const on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on);
+    CH.pick = on ? CH.pick.concat(val) : CH.pick.filter(x => x !== val);
+    let go = chatSug.querySelector(".sug.go");
+    if (CH.pick.length && !go) { chatSug.insertAdjacentHTML("beforeend", `<button type="button" class="sug go" data-val="__done"><span>done →</span></button>`); }
+    else if (!CH.pick.length && go) go.remove();
+    return;
+  }
+  if (val === "__done") return answer("", "__done", listText(CH.pick));
+  answer(label, val, label);
+});
+function syncSend(){
+  chatSend.setAttribute("aria-disabled", chatInput.value.trim() ? "false" : "true");
+  chatInput.style.height = "auto"; chatInput.style.height = Math.min(120, chatInput.scrollHeight) + "px";
+}
+chatInput.addEventListener("input", syncSend);
+chatInput.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); chatForm.requestSubmit(); } });
+chatForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const v = chatInput.value.trim(); if (!v) return;
+  chatInput.value = ""; syncSend();
+  answer(v, null);
+});
+
 document.getElementById("retake").addEventListener("click", () => { delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
 // state badges: most common zodiac sign (Love) and pay rank of 50 (Career), right under each abbreviation
 var BADGES = [];
