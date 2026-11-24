@@ -830,6 +830,12 @@
   .you-row > span{min-width:0}
   .you-badges #resIcon{order:-1}
   .you-card[data-mode="career"] .you-badges #resIndIcon{order:-2}
+  /* avatar top lines up with the eyebrow; sign + industry icons stack freely under it */
+  .you-front{align-items:flex-start}
+  .you-av-wrap{height:auto;margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .you-badges{position:static;transform:none;flex-direction:column;align-items:center;gap:6px}
+  .you-badge{width:28px;height:28px;border:0;border-radius:0;background:none}
+  .you-badge svg,.you-badge .ico{width:28px;height:28px}
 </style>
 </head>
 <body>
