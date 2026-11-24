@@ -817,6 +817,30 @@
   .wip{margin:0;font:700 12px/1 var(--sans);letter-spacing:.14em;color:var(--text-subtle);white-space:nowrap;pointer-events:none}
   @media (min-width:761px){ .wip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)} }
   @media (max-width:760px){ .wip{order:-1;width:100%;text-align:center;font-size:11px} }
+  /* chat body: conversation + convo starters column */
+  .chat-body{flex:1;display:flex;min-height:0;position:relative}
+  .chat-main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .chat-aside{flex:none;width:250px;border-left:1px solid var(--hair);padding:18px 20px;overflow-y:auto;font-size:13px;line-height:1.45;color:var(--text-subtle)}
+  .aside-title{margin:0 0 12px;font-weight:700;color:var(--text-subtle)}
+  .aside-h{margin:14px 0 6px;font-weight:700;color:var(--text-subtle)}
+  .chat-aside ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:7px}
+  .chat-aside li::marker{color:var(--text-subtle)}
+  .chat-aside a{color:var(--text-muted);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb, var(--text-subtle) 45%, transparent);transition:color .15s,text-decoration-color .15s}
+  .chat-aside a:hover{color:var(--text);text-decoration-color:var(--coral)}
+  .chat-aside a:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+  .chat-tips-btn{display:none}
+  @media (max-width:760px){
+    .chat-tips-btn{display:grid}
+    .chat-aside{display:none;position:absolute;inset:0;width:auto;border-left:0;background:var(--surface);z-index:2;padding:16px 20px;font-size:15px}
+    .chat.tips-open .chat-aside{display:block}
+    .chat.tips-open .chat-tips-btn{background:var(--bg-sunken);color:var(--text)}
+  }
+  .chat-log .msg{max-width:600px}
+  .m-list{margin:6px 0 2px;padding-left:22px}
+  .m-list li{margin:2px 0}
+  .m-list .n{color:var(--text-muted);font-weight:500}
+  .m-src{display:block;margin-top:4px;font-size:12px;color:var(--text-subtle)}
+  .msg .txt .m-more{color:var(--text-muted)}
 </style>
 </head>
 <body>
@@ -906,11 +930,14 @@
 <section class="chat" id="chat" hidden aria-label="Chat with Monie">
   <div class="chat-inner">
     <header class="chat-head">
-      <span class="monie-av" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 34C8 18 24 8 38 11c14 3 20 19 14 31C46 54 26 58 16 50c-5-4-5.5-10-6-16Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="2.6" transform="rotate(-8 32 32)"/><circle cx="25.5" cy="30.5" r="3" fill="#1B1B2F"/><circle cx="39.5" cy="30.5" r="3" fill="#1B1B2F"/><path d="M26 38.5q6.5 5.6 13 0" fill="none" stroke="#1B1B2F" stroke-width="2.8" stroke-linecap="round"/><circle cx="20.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><circle cx="44.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><path d="M50 16c-4-2.7-6.2-5.1-6.2-7.5a3.1 3.1 0 0 1 6.2-1.2 3.1 3.1 0 0 1 6.2 1.2c0 2.4-2.2 4.8-6.2 7.5Z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="2" stroke-linejoin="round"/></svg></span>
+      <span class="monie-av" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="#1B1B2F" stroke-linejoin="round" stroke-linecap="round"><path d="M14 25C8.3 27.4 4.6 33.4 5 40.4c.3 4.2 2 7.8 4.6 10.4.3-4.2 1.4-7.7 3.2-10.7 1.7-2.9 2.6-7.3 1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M50 25c5.7 2.4 9.4 8.4 9 15.4-.3 4.2-2 7.8-4.6 10.4-.3-4.2-1.4-7.7-3.2-10.7-1.7-2.9-2.6-7.3-1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M15 25 12.5 6.5 28 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M49 25 51.5 6.5 36 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M16.6 20.5 15.4 11.5l7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M47.4 20.5l1.2-9-7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M12.5 32c0-10.5 8.7-17 19.5-17s19.5 6.5 19.5 17S43.3 49.5 32 49.5 12.5 42.5 12.5 32Z" fill="#FF8A65" stroke-width="2.4"/><path d="M19 38.5c3.2-4.6 8.6-5.4 13-2.4 4.4-3 9.8-2.2 13 2.4-2 6.4-7.2 9.6-13 9.6s-11-3.2-13-9.6Z" fill="#F5F1E8" stroke="none"/><circle cx="13.6" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><circle cx="50.4" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><ellipse cx="25" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><ellipse cx="39" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><circle cx="25.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><circle cx="39.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><path d="M30 36.4h4l-2 2.4Z" fill="#1B1B2F" stroke-width="1.2"/><path d="M32 38.8q-1.5 2.4-3.8 1.2M32 38.8q1.5 2.4 3.8 1.2" fill="none" stroke-width="1.6"/><path d="M18.5 36.5h-7M18.8 39.2l-6.2 2.2M45.5 36.5h7M45.2 39.2l6.2 2.2" fill="none" stroke-width="1.3"/><circle cx="21.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><circle cx="42.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><path d="M21 49.5q11 4.6 22 0" fill="none" stroke="#2F4BFF" stroke-width="2.4"/><path d="M32 60c-4.2-2.8-6.5-5.3-6.5-7.8a3.25 3.25 0 0 1 6.5-1.3 3.25 3.25 0 0 1 6.5 1.3c0 2.5-2.3 5-6.5 7.8Z" fill="#2F4BFF" stroke-width="2"/></g></svg></span>
       <div class="chat-who"><b>Monie</b><span><i class="dot" aria-hidden="true"></i>your Move ♥ Me guide</span></div>
+      <button class="chat-ic chat-tips-btn" id="chatTips" type="button" aria-label="Convo starters" aria-expanded="false" aria-controls="chatAside" title="Convo starters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="chat-ic" id="chatRestart" type="button" aria-label="Start over" title="Start over"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 8.6A8 8 0 1 0 20 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M20 3.5v5.4h-5.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="chat-ic" id="chatHide" type="button" aria-label="Hide chat" title="Hide chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </header>
+    <div class="chat-body">
+    <div class="chat-main">
     <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-label="Conversation with Monie"></div>
     <div class="chat-dock">
       <div class="chat-suggest" id="chatSuggest" aria-label="Suggested replies"></div>
@@ -919,6 +946,25 @@
         <button class="chat-send" id="chatSend" type="submit" aria-label="Send" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </form>
       <p class="chat-fine">Monie saves this conversation to help improve Move ♥ Me.</p>
+    </div>
+    </div>
+    <aside class="chat-aside" id="chatAside" aria-label="Questions for Monie">
+      <p class="aside-title">Questions for Monie / convo starters</p>
+      <p class="aside-h">For Love:</p>
+      <ul>
+        <li><a href="#" data-ask="dates">Which cities are best for dates?</a></li>
+        <li><a href="#" data-ask="singles">Which cities have the most singles?</a></li>
+        <li><a href="#" data-ask="family">Which cities are best for starting a family?</a></li>
+        <li><a href="#" data-ask="married">Best cities to get married in?</a></li>
+      </ul>
+      <p class="aside-h">For Jobs:</p>
+      <ul>
+        <li><a href="#" data-ask="pay">Which cities pay the highest in my industry?</a></li>
+        <li><a href="#" data-ask="hiring">Which regions are hiring the most right now?</a></li>
+        <li><a href="#" data-ask="fortune">Which cities have the most Fortune 500 companies?</a></li>
+        <li><a href="#" data-ask="business">Which cities are best for starting a business?</a></li>
+      </ul>
+    </aside>
     </div>
   </div>
 </section>
@@ -1835,11 +1881,11 @@ function showRoute(){
   buildPins(true);
   layout(lastSpread, lastScale);
   routeUnder.classList.remove("drawin"); routeUnder.style.strokeDasharray = "1 1"; void routeUnder.getBoundingClientRect(); routeUnder.classList.add("drawin");
-  const sc = ROUTES === ALL_ROUTES || ROUTES === CAREER_ROUTES ? null : userScene();
+  const sc = ROUTES === ALL_ROUTES || ROUTES === CAREER_ROUTES || r.custom ? null : userScene();
   const hits = sc ? r.cities.filter(c => setScore(c, sc) === 2).length : 0;
   document.getElementById("routeLabel").textContent = sc
     ? `10 hot spots, picked for your love of ${SET_LABEL[sc]} (${hits} of 10 fit): ${r.label}`
-    : "10 hot spots, for inspiration: " + r.label;
+    : `${r.cities.length} hot spots, for inspiration: ` + r.label;
   document.getElementById("nowN").textContent = `#${routeIdx + 1} of ${ROUTES.length}`;
   document.getElementById("nowName").textContent = r.name;
   nowEl.classList.remove("pop"); void nowEl.offsetWidth; nowEl.classList.add("pop");
@@ -2275,7 +2321,7 @@ document.getElementById("quizLink").addEventListener("click", e => { e.preventDe
 // A scripted conversation that collects the same answers as the quiz (reason, scenery, places, home city,
 // age, sign or industries, comment), then saves and shows the result exactly like the quiz does.
 // All of Monie's lines live in MONIE_SAYS below, so the wording can be tuned without touching the logic.
-const MONIE_SVG = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 34C8 18 24 8 38 11c14 3 20 19 14 31C46 54 26 58 16 50c-5-4-5.5-10-6-16Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="2.6" transform="rotate(-8 32 32)"/><circle cx="25.5" cy="30.5" r="3" fill="#1B1B2F"/><circle cx="39.5" cy="30.5" r="3" fill="#1B1B2F"/><path d="M26 38.5q6.5 5.6 13 0" fill="none" stroke="#1B1B2F" stroke-width="2.8" stroke-linecap="round"/><circle cx="20.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><circle cx="44.5" cy="36.5" r="2.6" fill="#FF8A65" opacity=".75"/><path d="M50 16c-4-2.7-6.2-5.1-6.2-7.5a3.1 3.1 0 0 1 6.2-1.2 3.1 3.1 0 0 1 6.2 1.2c0 2.4-2.2 4.8-6.2 7.5Z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="2" stroke-linejoin="round"/></svg>`;
+const MONIE_SVG = `<svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="#1B1B2F" stroke-linejoin="round" stroke-linecap="round"><path d="M14 25C8.3 27.4 4.6 33.4 5 40.4c.3 4.2 2 7.8 4.6 10.4.3-4.2 1.4-7.7 3.2-10.7 1.7-2.9 2.6-7.3 1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M50 25c5.7 2.4 9.4 8.4 9 15.4-.3 4.2-2 7.8-4.6 10.4-.3-4.2-1.4-7.7-3.2-10.7-1.7-2.9-2.6-7.3-1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M15 25 12.5 6.5 28 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M49 25 51.5 6.5 36 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M16.6 20.5 15.4 11.5l7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M47.4 20.5l1.2-9-7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M12.5 32c0-10.5 8.7-17 19.5-17s19.5 6.5 19.5 17S43.3 49.5 32 49.5 12.5 42.5 12.5 32Z" fill="#FF8A65" stroke-width="2.4"/><path d="M19 38.5c3.2-4.6 8.6-5.4 13-2.4 4.4-3 9.8-2.2 13 2.4-2 6.4-7.2 9.6-13 9.6s-11-3.2-13-9.6Z" fill="#F5F1E8" stroke="none"/><circle cx="13.6" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><circle cx="50.4" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><ellipse cx="25" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><ellipse cx="39" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><circle cx="25.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><circle cx="39.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><path d="M30 36.4h4l-2 2.4Z" fill="#1B1B2F" stroke-width="1.2"/><path d="M32 38.8q-1.5 2.4-3.8 1.2M32 38.8q1.5 2.4 3.8 1.2" fill="none" stroke-width="1.6"/><path d="M18.5 36.5h-7M18.8 39.2l-6.2 2.2M45.5 36.5h7M45.2 39.2l6.2 2.2" fill="none" stroke-width="1.3"/><circle cx="21.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><circle cx="42.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><path d="M21 49.5q11 4.6 22 0" fill="none" stroke="#2F4BFF" stroke-width="2.4"/><path d="M32 60c-4.2-2.8-6.5-5.3-6.5-7.8a3.25 3.25 0 0 1 6.5-1.3 3.25 3.25 0 0 1 6.5 1.3c0 2.5-2.3 5-6.5 7.8Z" fill="#2F4BFF" stroke-width="2"/></g></svg>`;
 const MONIE_SAYS = {
   hello: ["hey, i’m <b>Monie</b> 👋", "i help people find the places in America most likely to move them. so, what are you moving for?"],
   reasonChips: [["for love ♥", "love"], ["for work 💼", "jobs"], ["honestly, both", "both"]],
@@ -2544,13 +2590,14 @@ function greetBack(){
 }
 function answer(text, val, shown){
   if (!CH) return;
-  if (!(CH.flow && STEPS[stepName()] === STEPS.industry && val && val !== "__done")) { const c = CH; chatQueue = chatQueue.then(() => { if (CH === c) answerNow(text, val, shown); }); return; }
+  if (!(CH.flow && STEPS[stepName()] === STEPS.industry && val && val !== "__done" && !val.startsWith("__"))) { const c = CH; chatQueue = chatQueue.then(() => { if (CH === c) answerNow(text, val, shown); }); return; }
 }
 function answerNow(text, val, shown){
   if (!CH) return;
+  if (answerSpecial(text, val, shown)) return;
   if (CH.done) return afterAnswer(val, text);
   const st = STEPS[stepName()];
-  if (st === STEPS.industry && val && val !== "__done") return;   // toggles handled in the click handler
+  if (st === STEPS.industry && val && val !== "__done" && !val.startsWith("__")) return;   // toggles handled in the click handler
   const prevChips = chatSug.innerHTML;
   addMsg("u", esc(shown || text)); clearChips();
   const c = CH, logAfter = () => { chatQueue = chatQueue.then(() => { if (CH === c) logChat(); }); };   // after Monie's reply is in
@@ -2580,7 +2627,7 @@ function afterAnswer(val, text){
   const t = norm(text || "");
   const v = val || (/map|show|done|thanks|thank/.test(t) ? "map" : /again|over|restart|reset/.test(t) ? "restart" : /work|job|career|love|dat/.test(t) ? "other" : null);
   if (text) addMsg("u", esc(text));
-  if (v === "map") { logChat(); hideChat(); setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 320); return; }
+  if (v === "map") { logChat(); hideChat(); holdHovers(); setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 320); return; }
   if (v === "restart") return startChat();
   if (v === "other") { const other = otherReason(CH.A.reason); setMode(other === "jobs" ? "career" : "love", { quiet: true }); clearChips(); return startChat({ reason: other }); }
   say(MONIE_SAYS.idle); const c = CH; chatQueue = chatQueue.then(() => { if (CH === c) logChat(); });
@@ -2688,6 +2735,116 @@ showResult = r => {
 document.getElementById("retakeLink").addEventListener("click", e => { e.preventDefault(); delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
 document.getElementById("convoLink").addEventListener("click", e => { e.preventDefault(); openChat(); });
 refreshResult();
+
+// ---------- convo starters: questions Monie answers from the map's data ----------
+const ASK = {"family":{"name":"best places to raise a family","source":"WalletHub, 2025","cities":[{"name":"Fremont","st":"CA","x":40.8,"y":268.5},{"name":"Overland Park","st":"KS","x":521.2,"y":298.4},{"name":"Plano","st":"TX","x":484.8,"y":435},{"name":"Irvine","st":"CA","x":92.5,"y":373.1},{"name":"South Burlington","st":"VT","x":863.2,"y":129.2},{"name":"Seattle","st":"WA","x":97.6,"y":46.3},{"name":"Boise","st":"ID","x":170.1,"y":157.7},{"name":"Gilbert","st":"AZ","x":202.2,"y":402.8},{"name":"Bismarck","st":"ND","x":423.5,"y":118.3},{"name":"San Diego","st":"CA","x":99.7,"y":397.5}]},"married":{"name":"best places to get married","source":"WalletHub, 2026","ranked":7,"cities":[{"name":"Las Vegas","st":"NV","x":153,"y":328.1},{"name":"Orlando","st":"FL","x":789,"y":514.6},{"name":"Miami","st":"FL","x":822.7,"y":572.5},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Tampa","st":"FL","x":769.5,"y":530.9},{"name":"Austin","st":"TX","x":463.9,"y":497.5},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"Fort Lauderdale","st":"FL","x":822.5,"y":564.4},{"name":"San Diego","st":"CA","x":99.7,"y":397.5},{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1}]},"fortune":{"name":"most Fortune 500 headquarters","source":"RealPage, 2026","cities":[{"name":"New York","st":"NY","x":869.7,"y":215.7},{"name":"Chicago","st":"IL","x":638.2,"y":226.1},{"name":"Houston","st":"TX","x":510.4,"y":509.2},{"name":"San Jose","st":"CA","x":41.1,"y":273.6},{"name":"Washington","st":"DC","x":827.4,"y":267.3},{"name":"Dallas","st":"TX","x":482.9,"y":440.5},{"name":"Minneapolis","st":"MN","x":541.9,"y":161},{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"San Francisco","st":"CA","x":34.8,"y":261.4},{"name":"Boston","st":"MA","x":908.7,"y":167.1}],"counts":[49,30,26,21,20,19,15,15,14,14]},"hiring":{"name":"where hiring is hottest","source":"BLS JOLTS 2025 + WalletHub 2026","states":[["Georgia","5.5%"],["Alaska","5.4%"],["West Virginia","5%+"],["Oklahoma","5%+"],["Mississippi","5%+"]],"cities":[{"name":"Atlanta","st":"GA","x":715,"y":405.1},{"name":"Anchorage","st":"AK","x":112.3,"y":544.3},{"name":"Charleston","st":"WV","x":750.2,"y":294},{"name":"Oklahoma City","st":"OK","x":470.3,"y":378.8},{"name":"Jackson","st":"MS","x":609,"y":448.1}]},"mainCity":{"AL":{"name":"Birmingham","st":"AL","x":670.4,"y":415.3},"AK":{"name":"Anchorage","st":"AK","x":112.3,"y":544.3},"AZ":{"name":"Phoenix","st":"AZ","x":197.2,"y":399.8},"AR":{"name":"Little Rock","st":"AR","x":566.6,"y":394.2},"CA":{"name":"Los Angeles","st":"CA","x":86.8,"y":363.1},"CO":{"name":"Denver","st":"CO","x":342.9,"y":273.9},"CT":{"name":"Hartford","st":"CT","x":885.8,"y":187.1},"DE":{"name":"Wilmington","st":"DE","x":848.8,"y":243.3},"DC":{"name":"Washington","st":"DC","x":827.4,"y":267.3},"FL":{"name":"Jacksonville","st":"FL","x":777.4,"y":475.2},"GA":{"name":"Atlanta","st":"GA","x":715,"y":405.1},"HI":{"name":"Honolulu","st":"HI","x":267,"y":549.2},"ID":{"name":"Boise","st":"ID","x":170.1,"y":157.7},"IL":{"name":"Chicago","st":"IL","x":638.2,"y":226.1},"IN":{"name":"Carmel","st":"IN","x":668,"y":266.9},"IA":{"name":"Des Moines","st":"IA","x":538.1,"y":238.4},"KS":{"name":"Wichita","st":"KS","x":474.4,"y":328.1},"KY":{"name":"Lexington","st":"KY","x":701,"y":307.8},"LA":{"name":"New Orleans","st":"LA","x":614.4,"y":501.3},"ME":{"name":"Portland","st":"ME","x":913.6,"y":135},"MD":{"name":"Baltimore","st":"MD","x":832.9,"y":257.2},"MA":{"name":"Boston","st":"MA","x":908.7,"y":167.1},"MI":{"name":"Detroit","st":"MI","x":713.2,"y":207.3},"MN":{"name":"Minneapolis","st":"MN","x":541.9,"y":161},"MS":{"name":"Jackson","st":"MS","x":609,"y":448.1},"MO":{"name":"Kansas City","st":"MO","x":522.8,"y":295.7},"MT":{"name":"Billings","st":"MT","x":300.6,"y":130.3},"NE":{"name":"Omaha","st":"NE","x":499.1,"y":246.5},"NV":{"name":"Las Vegas","st":"NV","x":153,"y":328.1},"NH":{"name":"Manchester","st":"NH","x":898.5,"y":154.9},"NJ":{"name":"Newark","st":"NJ","x":866.8,"y":215.9},"NM":{"name":"Albuquerque","st":"NM","x":302.4,"y":376.9},"NY":{"name":"New York","st":"NY","x":869.7,"y":215.7},"NC":{"name":"Charlotte","st":"NC","x":775.3,"y":362.4},"ND":{"name":"Fargo","st":"ND","x":485.7,"y":118.5},"OH":{"name":"Columbus","st":"OH","x":721.4,"y":260.9},"OK":{"name":"Oklahoma City","st":"OK","x":470.3,"y":378.8},"OR":{"name":"Portland","st":"OR","x":79.4,"y":90.3},"PA":{"name":"Philadelphia","st":"PA","x":854.2,"y":237.1},"RI":{"name":"Providence","st":"RI","x":906.1,"y":180.4},"SC":{"name":"Columbia","st":"SC","x":776.3,"y":390.7},"SD":{"name":"Sioux Falls","st":"SD","x":486.1,"y":194.2},"TN":{"name":"Memphis","st":"TN","x":607.4,"y":382.9},"TX":{"name":"Houston","st":"TX","x":510.4,"y":509.2},"UT":{"name":"Salt Lake City","st":"UT","x":228.5,"y":235.3},"VT":{"name":"Burlington","st":"VT","x":862.5,"y":129.1},"VA":{"name":"Virginia Beach","st":"VA","x":855.4,"y":309.6},"WA":{"name":"Seattle","st":"WA","x":97.6,"y":46.3},"WV":{"name":"Charleston","st":"WV","x":750.2,"y":294},"WI":{"name":"Milwaukee","st":"WI","x":631.3,"y":200.1},"WY":{"name":"Cheyenne","st":"WY","x":348.7,"y":242.2}}};
+const IND_TITLE = { "Tech & software": 14, "Healthcare": 4, "Education": 19, "Finance & business": 16, "Retail & hospitality": 1, "Trades & construction": 15, "Transportation & logistics": 12 };
+const stName = st => (STATE_LIST.find(s => s.abbr === st) || { name: st }).name;
+const fromRoutes = (list, name) => { const r = list.find(x => x.name === name); return r ? { name: r.name, source: r.source, cities: r.cities.slice(0, 10) } : null; };
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+function topList(cities, extra){
+  return `<ol class="m-list">${cities.slice(0, 5).map((c, i) => `<li><b>${esc(c.name)}, ${c.st}</b>${extra ? ` <span class="n">· ${extra(c, i)}</span>` : ""}</li>`).join("")}</ol>` +
+    (cities.length > 5 ? `<span class="m-more">plus ${cities.length - 5} more on the map.</span>` : "");
+}
+const src = s => `<span class="m-src">source: ${esc(s)}</span>`;
+// Each starter: which map it belongs to, what Monie says while she "looks", and how she answers.
+// answer() returns { lines, list } where list becomes the map's hot spots.
+const STARTERS = {
+  dates: { mode: "love", think: "ooh, good one. checking the date-night rankings… 🔍", answer(){
+    const l = fromRoutes(ALL_ROUTES, "best date-night cities");
+    return { list: l, lines: [`these cities are tops for a great night out:${topList(l.cities)}${src(l.source)}`] }; } },
+  singles: { mode: "love", think: "let me look at where the singles are… 👀", answer(){
+    const l = fromRoutes(ALL_ROUTES, "cities with the most singles");
+    return { list: l, lines: [`these cities have the biggest share of single adults:${topList(l.cities)}${src(l.source)}`] }; } },
+  family: { mode: "love", think: "thinking schools, safety, parks and costs… 🏡", answer(){
+    const l = ASK.family;
+    return { list: l, lines: [`for raising a family, these cities score highest on schools, safety, affordability and family fun:${topList(l.cities)}${src(l.source)}`] }; } },
+  married: { mode: "love", think: "ooh, wedding bells 💍 checking costs, venues and things for guests to do…", answer(){
+    const l = ASK.married;
+    return { list: l, lines: [`the best-value cities to say “i do”:${topList(l.cities)}${src(l.source)}`] }; } },
+  pay: { mode: "jobs", think: "let me pull the pay numbers… 💸", needsIndustry: true, answer(ind){
+    const t = IND_TITLE[ind];
+    if (t == null) {
+      const l = fromRoutes(CAREER_ROUTES, "highest-paying metros");
+      return { list: l, lines: [`i don’t have pay data for <b>${esc(ind)}</b> jobs yet, so here are the highest-paying metros overall:${topList(l.cities)}${src(l.source)}`] };
+    }
+    const title = CR.titles[t][0];
+    const states = Object.entries(CR.states).filter(([st, v]) => v.pay && v.pay[t] && ASK.mainCity[st]).sort((a, b) => b[1].pay[t] - a[1].pay[t]).slice(0, 10);
+    const cities = states.map(([st]) => ASK.mainCity[st]);
+    const l = { name: `top pay: ${title.toLowerCase()}`, source: "BLS OEWS, May 2025", cities };
+    const items = `<ol class="m-list">${states.slice(0, 5).map(([st, v]) => `<li><b>${stName(st)}</b> <span class="n">· ${money(v.pay[t])} a year</span></li>`).join("")}</ol><span class="m-more">i put the biggest city in each of the top 10 states on the map.</span>`;
+    return { list: l, lines: [`for ${esc(ind)}, i looked at <b>${title.toLowerCase()}</b>. they earn the most in these states (median yearly pay):${items}${src(l.source)}`] };
+  } },
+  hiring: { mode: "jobs", think: "checking job openings by state… 📈", answer(){
+    const jobs = fromRoutes(CAREER_ROUTES, "best cities to find a job") || fromRoutes(ALL_ROUTES, "best cities to find a job");
+    const h = ASK.hiring, seen = new Set(h.cities.map(c => c.name + c.st));
+    const cities = h.cities.concat(jobs.cities.filter(c => !seen.has(c.name + c.st))).slice(0, 10);
+    return { list: { name: "where hiring is hottest", source: h.source, cities }, lines: [
+      `the South is hiring hardest. in 2025, the share of jobs waiting to be filled was highest in <b>Georgia (5.5%)</b> and <b>Alaska (5.4%)</b>, with <b>West Virginia, Oklahoma and Mississippi</b> at 5% or more. the U.S. average was 4.3%.${src("BLS Job Openings and Labor Turnover Survey, 2025")}`,
+      `and city by city, these are the easiest places to find a job right now:${topList(jobs.cities)}${src(jobs.source)}`] };
+  } },
+  fortune: { mode: "jobs", think: "counting corporate headquarters… 🏢", answer(){
+    const l = ASK.fortune;
+    return { list: l, lines: [`these metros are home to the most Fortune 500 headquarters:${topList(l.cities, (c, i) => l.counts[i] + " HQs")}${src(l.source)}`] }; } },
+  business: { mode: "jobs", think: "looking at startup costs, financing and business climate… 🚀", answer(){
+    const l = fromRoutes(CAREER_ROUTES, "best large cities to start a business");
+    return { list: l, lines: [`for starting a business, these large cities rank highest:${topList(l.cities)}${src(l.source)}`] }; } }
+};
+
+function askStarter(key){
+  const s = STARTERS[key]; if (!s || !CH) return;
+  chatEl.classList.remove("tips-open"); document.getElementById("chatTips").setAttribute("aria-expanded", "false");
+  const c = CH;
+  chatQueue = chatQueue.then(() => {
+    if (CH !== c) return;
+    const q = document.querySelector(`.chat-aside [data-ask="${key}"]`).textContent;
+    addMsg("u", esc(q)); clearChips();
+    if (s.needsIndustry) {
+      const J = getRes("jobs"), ind = J && J.industries && J.industries[0];
+      if (!ind) { CH.awaitInd = key; say("happy to! which field are you in?"); chips(INDUSTRIES.filter(([n]) => n !== "Other").map(([n]) => [n, "__ind:" + n, INDICON(n)])); logAfterNow(); return; }
+      return runStarter(key, ind === "Other" ? (J.industryOther || "Other") : ind);
+    }
+    runStarter(key);
+  });
+}
+function logAfterNow(){ const c = CH; chatQueue = chatQueue.then(() => { if (CH === c) logChat(); }); }
+function runStarter(key, ind){
+  const s = STARTERS[key], res = s.answer(ind);
+  CH.lists = CH.lists || {}; CH.lists[key] = { ...res.list, mode: s.mode };
+  say(s.think);
+  chatQueue = chatQueue.then(() => wait(650));
+  say(res.lines).then(() => {
+    const opts = [["show me the map", "__show:" + key]];
+    if (!CH.done && CH.flow && CH.flow.length && CH.i < CH.flow.length && CH.said > 1) opts.push(["pick up where we left off", "__resume"]);
+    chips(opts, { quiet: ["__resume"] });
+  });
+  logAfterNow();
+}
+// put a starter's cities on the map as the hot spots
+function showStarterList(key){
+  const l = CH && CH.lists && CH.lists[key]; if (!l) return;
+  setMode(l.mode === "jobs" ? "career" : "love", { quiet: true });
+  ROUTES = [{ n: 0, name: l.name, cat: "monie", source: l.source, cities: l.cities, label: `${l.name} (${l.source})`, custom: true }].concat(ROUTES);
+  routeIdx = 0; showRoute(); replayMapIntro();
+  hideChat(); holdHovers();   // no state/city hover cards until the mouse actually moves
+  setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 320);
+}
+// special replies (starter buttons) are handled before the scripted steps
+function answerSpecial(text, val, shown){
+  if (val && val.startsWith("__show:")) { addMsg("u", esc(shown || text)); clearChips(); logChat(); showStarterList(val.slice(7)); return true; }
+  if (val === "__resume") { addMsg("u", esc(shown || text)); clearChips(); STEPS[stepName()].ask(); logAfterNow(); return true; }
+  if (CH.awaitInd && (val ? val.startsWith("__ind:") : true)) {
+    const key = CH.awaitInd; CH.awaitInd = null;
+    addMsg("u", esc(shown || text)); clearChips();
+    const ind = val ? val.slice(6) : (parseIndustries(norm(text))[0] || text.trim().slice(0, 60) || "Other");
+    runStarter(key, ind); return true;
+  }
+  return false;
+}
+document.getElementById("chatAside").addEventListener("click", e => { const a = e.target.closest("[data-ask]"); if (!a) return; e.preventDefault(); askStarter(a.dataset.ask); });
+document.getElementById("chatTips").addEventListener("click", () => {
+  const on = chatEl.classList.toggle("tips-open"); document.getElementById("chatTips").setAttribute("aria-expanded", String(on));
+});
 
 document.getElementById("retake").addEventListener("click", () => { delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
 // state badges: most common zodiac sign (Love) and pay rank of 50 (Career), right under each abbreviation
