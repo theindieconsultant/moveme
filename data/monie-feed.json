@@ -197,7 +197,7 @@
    "live": {
     "see": "married.live (divorce rates)"
    },
-   "saysNow": "For raising a family, these cities score highest on schools, safety, affordability and family fun: Fremont, Overland Park, Plano, Irvine, South Burlington. Fremont has been #1 four years running."
+   "saysNow": "For raising a family, these cities score highest on schools, safety, affordability and family fun: Fremont, Overland Park, Plano, Irvine, South Burlington. Fremont has been #1 four years running. Lowest divorce rates in 2024: Louisiana (0.8), Illinois (1.3), Massachusetts (1.5), Kansas (1.7) and Iowa (1.8) per 1,000 residents (CDC)."
   },
   "married": {
    "question": "Best cities to get married in?",
@@ -271,8 +271,273 @@
     ]
    ],
    "refresh": "Yearly: The Knot (Feb), WalletHub (Jan), CDC/NCHS (spring)",
-   "live": null,
-   "saysNow": "The best-value cities to say \"I do\": Las Vegas, Orlando, Miami, Atlanta, Tampa (then Austin and Houston). The average U.S. wedding cost $34,200 in 2025; New Jersey is priciest (about $57k), Wyoming cheapest (about $17k)."
+   "live": {
+    "label": "Marriages and divorces per 1,000 residents (counted in the state where they happen)",
+    "asOf": "2024",
+    "divorceYear": "2024",
+    "source": [
+     "CDC/NCHS National Vital Statistics System",
+     "https://www.cdc.gov/nchs/nvss/marriage-divorce.htm"
+    ],
+    "states": [
+     {
+      "state": "Nevada",
+      "marriageRate": 24.8,
+      "divorceRate": 3.8
+     },
+     {
+      "state": "Utah",
+      "marriageRate": 13.4,
+      "divorceRate": 3.0
+     },
+     {
+      "state": "Hawaii",
+      "marriageRate": 12.4,
+      "divorceRate": null
+     },
+     {
+      "state": "District of Columbia",
+      "marriageRate": 10.1,
+      "divorceRate": 2.1
+     },
+     {
+      "state": "Montana",
+      "marriageRate": 9.2,
+      "divorceRate": 1.9
+     },
+     {
+      "state": "Colorado",
+      "marriageRate": 8.1,
+      "divorceRate": 2.9
+     },
+     {
+      "state": "Arkansas",
+      "marriageRate": 7.9,
+      "divorceRate": 3.3
+     },
+     {
+      "state": "Tennessee",
+      "marriageRate": 7.6,
+      "divorceRate": 2.7
+     },
+     {
+      "state": "Wyoming",
+      "marriageRate": 7.6,
+      "divorceRate": 3.2
+     },
+     {
+      "state": "Vermont",
+      "marriageRate": 7.4,
+      "divorceRate": 2.3
+     },
+     {
+      "state": "Idaho",
+      "marriageRate": 7.1,
+      "divorceRate": 3.2
+     },
+     {
+      "state": "Kentucky",
+      "marriageRate": 7.0,
+      "divorceRate": 2.9
+     },
+     {
+      "state": "Florida",
+      "marriageRate": 7.0,
+      "divorceRate": 2.8
+     },
+     {
+      "state": "Alabama",
+      "marriageRate": 7.0,
+      "divorceRate": 2.9
+     },
+     {
+      "state": "Connecticut",
+      "marriageRate": 6.9,
+      "divorceRate": 2.5
+     },
+     {
+      "state": "Maine",
+      "marriageRate": 6.9,
+      "divorceRate": 2.5
+     },
+     {
+      "state": "New York",
+      "marriageRate": 6.7,
+      "divorceRate": 2.3
+     },
+     {
+      "state": "Alaska",
+      "marriageRate": 6.6,
+      "divorceRate": 3.1
+     },
+     {
+      "state": "New Hampshire",
+      "marriageRate": 6.5,
+      "divorceRate": 2.5
+     },
+     {
+      "state": "South Carolina",
+      "marriageRate": 6.2,
+      "divorceRate": 2.2
+     },
+     {
+      "state": "South Dakota",
+      "marriageRate": 6.2,
+      "divorceRate": 2.3
+     },
+     {
+      "state": "Indiana",
+      "marriageRate": 6.2,
+      "divorceRate": null
+     },
+     {
+      "state": "North Carolina",
+      "marriageRate": 6.1,
+      "divorceRate": 2.5
+     },
+     {
+      "state": "West Virginia",
+      "marriageRate": 6.0,
+      "divorceRate": 2.8
+     },
+     {
+      "state": "Rhode Island",
+      "marriageRate": 6.0,
+      "divorceRate": 2.3
+     },
+     {
+      "state": "Virginia",
+      "marriageRate": 6.0,
+      "divorceRate": 2.6
+     },
+     {
+      "state": "Oklahoma",
+      "marriageRate": 5.9,
+      "divorceRate": 3.3
+     },
+     {
+      "state": "Oregon",
+      "marriageRate": 5.9,
+      "divorceRate": 2.8
+     },
+     {
+      "state": "California",
+      "marriageRate": 5.8,
+      "divorceRate": null
+     },
+     {
+      "state": "Missouri",
+      "marriageRate": 5.8,
+      "divorceRate": 2.4
+     },
+     {
+      "state": "Georgia",
+      "marriageRate": 5.8,
+      "divorceRate": 2.2
+     },
+     {
+      "state": "Arizona",
+      "marriageRate": 5.8,
+      "divorceRate": 2.1
+     },
+     {
+      "state": "Texas",
+      "marriageRate": 5.8,
+      "divorceRate": 1.9
+     },
+     {
+      "state": "Washington",
+      "marriageRate": 5.7,
+      "divorceRate": 2.5
+     },
+     {
+      "state": "Mississippi",
+      "marriageRate": 5.6,
+      "divorceRate": 2.7
+     },
+     {
+      "state": "Nebraska",
+      "marriageRate": 5.6,
+      "divorceRate": 2.4
+     },
+     {
+      "state": "Kansas",
+      "marriageRate": 5.6,
+      "divorceRate": 1.7
+     },
+     {
+      "state": "Pennsylvania",
+      "marriageRate": 5.5,
+      "divorceRate": 2.1
+     },
+     {
+      "state": "Massachusetts",
+      "marriageRate": 5.4,
+      "divorceRate": 1.5
+     },
+     {
+      "state": "New Mexico",
+      "marriageRate": 5.4,
+      "divorceRate": null
+     },
+     {
+      "state": "Maryland",
+      "marriageRate": 5.3,
+      "divorceRate": 2.8
+     },
+     {
+      "state": "Iowa",
+      "marriageRate": 5.3,
+      "divorceRate": 1.8
+     },
+     {
+      "state": "North Dakota",
+      "marriageRate": 5.2,
+      "divorceRate": 2.6
+     },
+     {
+      "state": "Wisconsin",
+      "marriageRate": 5.2,
+      "divorceRate": 2.0
+     },
+     {
+      "state": "Illinois",
+      "marriageRate": 5.2,
+      "divorceRate": 1.3
+     },
+     {
+      "state": "Minnesota",
+      "marriageRate": 5.1,
+      "divorceRate": null
+     },
+     {
+      "state": "Michigan",
+      "marriageRate": 5.1,
+      "divorceRate": 2.2
+     },
+     {
+      "state": "New Jersey",
+      "marriageRate": 5.0,
+      "divorceRate": 2.3
+     },
+     {
+      "state": "Delaware",
+      "marriageRate": 4.9,
+      "divorceRate": 2.4
+     },
+     {
+      "state": "Ohio",
+      "marriageRate": 4.9,
+      "divorceRate": 2.3
+     },
+     {
+      "state": "Louisiana",
+      "marriageRate": 3.7,
+      "divorceRate": 0.8
+     }
+    ]
+   },
+   "saysNow": "The best-value cities to say \"I do\": Las Vegas, Orlando, Miami, Atlanta, Tampa (then Austin and Houston). The average U.S. wedding cost $34,200 in 2025; New Jersey is priciest (about $57k), Wyoming cheapest (about $17k). Most weddings per 1,000 residents in 2024: Nevada (24.8), Utah (13.4), Hawaii (12.4), District of Columbia (10.1) and Montana (9.2) (CDC)."
   },
   "pay": {
    "question": "Which cities pay the highest in my industry?",
@@ -899,8 +1164,325 @@
     ]
    ],
    "refresh": "Monthly: Census BFS (mid-month). Yearly: WalletHub (spring)",
-   "live": null,
-   "saysNow": "Florida sweeps the top 5 for starting a business (Tampa, Orlando, Jacksonville, Hialeah, St. Petersburg). Americans filed a record 5.7 million business applications in 2025, and Wyoming files the most per person."
+   "live": {
+    "label": "New business applications, seasonally adjusted (EIN filings)",
+    "asOf": "2026-10",
+    "us": 501609,
+    "usVsYearAgoPct": -1.0,
+    "source": [
+     "U.S. Census Bureau, Business Formation Statistics",
+     "https://www.census.gov/econ/bfs/current/index.html"
+    ],
+    "statesByGrowth": [
+     {
+      "state": "Alaska",
+      "code": "AK",
+      "applications": 1074,
+      "vsYearAgoPct": 28.2
+     },
+     {
+      "state": "New Hampshire",
+      "code": "NH",
+      "applications": 1835,
+      "vsYearAgoPct": 27.2
+     },
+     {
+      "state": "South Dakota",
+      "code": "SD",
+      "applications": 1249,
+      "vsYearAgoPct": 26.3
+     },
+     {
+      "state": "North Dakota",
+      "code": "ND",
+      "applications": 916,
+      "vsYearAgoPct": 25.0
+     },
+     {
+      "state": "Montana",
+      "code": "MT",
+      "applications": 3174,
+      "vsYearAgoPct": 24.8
+     },
+     {
+      "state": "Idaho",
+      "code": "ID",
+      "applications": 3415,
+      "vsYearAgoPct": 18.3
+     },
+     {
+      "state": "New Mexico",
+      "code": "NM",
+      "applications": 3913,
+      "vsYearAgoPct": 18.2
+     },
+     {
+      "state": "Oregon",
+      "code": "OR",
+      "applications": 5686,
+      "vsYearAgoPct": 18.2
+     },
+     {
+      "state": "New Jersey",
+      "code": "NJ",
+      "applications": 15819,
+      "vsYearAgoPct": 16.4
+     },
+     {
+      "state": "Utah",
+      "code": "UT",
+      "applications": 7703,
+      "vsYearAgoPct": 16.3
+     },
+     {
+      "state": "West Virginia",
+      "code": "WV",
+      "applications": 1631,
+      "vsYearAgoPct": 14.6
+     },
+     {
+      "state": "Missouri",
+      "code": "MO",
+      "applications": 11854,
+      "vsYearAgoPct": 14.1
+     },
+     {
+      "state": "Arizona",
+      "code": "AZ",
+      "applications": 12935,
+      "vsYearAgoPct": 10.5
+     },
+     {
+      "state": "Colorado",
+      "code": "CO",
+      "applications": 13327,
+      "vsYearAgoPct": 9.7
+     },
+     {
+      "state": "Massachusetts",
+      "code": "MA",
+      "applications": 7343,
+      "vsYearAgoPct": 9.5
+     },
+     {
+      "state": "New York",
+      "code": "NY",
+      "applications": 27656,
+      "vsYearAgoPct": 9.5
+     },
+     {
+      "state": "Wyoming",
+      "code": "WY",
+      "applications": 7630,
+      "vsYearAgoPct": 9.3
+     },
+     {
+      "state": "Maine",
+      "code": "ME",
+      "applications": 1261,
+      "vsYearAgoPct": 8.0
+     },
+     {
+      "state": "Rhode Island",
+      "code": "RI",
+      "applications": 1121,
+      "vsYearAgoPct": 7.6
+     },
+     {
+      "state": "Washington",
+      "code": "WA",
+      "applications": 10103,
+      "vsYearAgoPct": 7.3
+     },
+     {
+      "state": "Arkansas",
+      "code": "AR",
+      "applications": 3777,
+      "vsYearAgoPct": 7.2
+     },
+     {
+      "state": "Iowa",
+      "code": "IA",
+      "applications": 3163,
+      "vsYearAgoPct": 6.1
+     },
+     {
+      "state": "Connecticut",
+      "code": "CT",
+      "applications": 4709,
+      "vsYearAgoPct": 4.8
+     },
+     {
+      "state": "Kentucky",
+      "code": "KY",
+      "applications": 6604,
+      "vsYearAgoPct": 4.4
+     },
+     {
+      "state": "Maryland",
+      "code": "MD",
+      "applications": 8909,
+      "vsYearAgoPct": 4.0
+     },
+     {
+      "state": "California",
+      "code": "CA",
+      "applications": 51285,
+      "vsYearAgoPct": 3.8
+     },
+     {
+      "state": "North Carolina",
+      "code": "NC",
+      "applications": 16220,
+      "vsYearAgoPct": 3.8
+     },
+     {
+      "state": "Vermont",
+      "code": "VT",
+      "applications": 750,
+      "vsYearAgoPct": 3.2
+     },
+     {
+      "state": "Florida",
+      "code": "FL",
+      "applications": 58917,
+      "vsYearAgoPct": 1.8
+     },
+     {
+      "state": "Virginia",
+      "code": "VA",
+      "applications": 12652,
+      "vsYearAgoPct": 1.4
+     },
+     {
+      "state": "South Carolina",
+      "code": "SC",
+      "applications": 8350,
+      "vsYearAgoPct": 0.8
+     },
+     {
+      "state": "Nevada",
+      "code": "NV",
+      "applications": 5489,
+      "vsYearAgoPct": 0.4
+     },
+     {
+      "state": "Indiana",
+      "code": "IN",
+      "applications": 7815,
+      "vsYearAgoPct": 0.3
+     },
+     {
+      "state": "Minnesota",
+      "code": "MN",
+      "applications": 6215,
+      "vsYearAgoPct": -0.5
+     },
+     {
+      "state": "District of Columbia",
+      "code": "DC",
+      "applications": 1149,
+      "vsYearAgoPct": -2.0
+     },
+     {
+      "state": "Pennsylvania",
+      "code": "PA",
+      "applications": 13973,
+      "vsYearAgoPct": -2.0
+     },
+     {
+      "state": "Georgia",
+      "code": "GA",
+      "applications": 21619,
+      "vsYearAgoPct": -3.4
+     },
+     {
+      "state": "Nebraska",
+      "code": "NE",
+      "applications": 1950,
+      "vsYearAgoPct": -3.5
+     },
+     {
+      "state": "Delaware",
+      "code": "DE",
+      "applications": 4979,
+      "vsYearAgoPct": -4.2
+     },
+     {
+      "state": "Oklahoma",
+      "code": "OK",
+      "applications": 4897,
+      "vsYearAgoPct": -4.8
+     },
+     {
+      "state": "Hawaii",
+      "code": "HI",
+      "applications": 1434,
+      "vsYearAgoPct": -6.1
+     },
+     {
+      "state": "Michigan",
+      "code": "MI",
+      "applications": 13094,
+      "vsYearAgoPct": -8.6
+     },
+     {
+      "state": "Wisconsin",
+      "code": "WI",
+      "applications": 6141,
+      "vsYearAgoPct": -9.4
+     },
+     {
+      "state": "Mississippi",
+      "code": "MS",
+      "applications": 4635,
+      "vsYearAgoPct": -9.5
+     },
+     {
+      "state": "Kansas",
+      "code": "KS",
+      "applications": 3401,
+      "vsYearAgoPct": -10.1
+     },
+     {
+      "state": "Tennessee",
+      "code": "TN",
+      "applications": 8171,
+      "vsYearAgoPct": -13.7
+     },
+     {
+      "state": "Illinois",
+      "code": "IL",
+      "applications": 15742,
+      "vsYearAgoPct": -14.9
+     },
+     {
+      "state": "Alabama",
+      "code": "AL",
+      "applications": 5784,
+      "vsYearAgoPct": -15.8
+     },
+     {
+      "state": "Ohio",
+      "code": "OH",
+      "applications": 14519,
+      "vsYearAgoPct": -17.8
+     },
+     {
+      "state": "Louisiana",
+      "code": "LA",
+      "applications": 6536,
+      "vsYearAgoPct": -17.9
+     },
+     {
+      "state": "Texas",
+      "code": "TX",
+      "applications": 39085,
+      "vsYearAgoPct": -22.9
+     }
+    ]
+   },
+   "saysNow": "Florida sweeps the top 5 for starting a business (Tampa, Orlando, Jacksonville, Hialeah, St. Petersburg). Americans filed a record 5.7 million business applications in 2025, and Wyoming files the most per person. Latest month (2026-10): 501,609 U.S. business applications (-1.0% vs. a year ago). Fastest growth vs. a year ago: Alaska (+28.2%), New Hampshire (+27.2%) and South Dakota (+26.3%) (Census)."
   },
   "horoscope": {
    "question": "What do the stars say about moving there?",
@@ -929,110 +1511,110 @@
    "topic": "dates",
    "label": "WalletHub: Best Places for Valentine's Day 2026 (LongIsland.com)",
    "url": "https://www.longisland.com/news/02-04-26/2-in-5-people-say-valentines-day-activities-are-not-affordable-this-year-best-places-for-valentines-day-2026.html",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "2 in 5 People Say Valentine’s Day Activities Are Not Affordable This Year + Best Places for Valentine’s Day 2026 | LongIsland.com",
+   "modified": "",
+   "sig": "09951b9c07dfc66e",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   },
   {
    "topic": "singles",
    "label": "SmartAsset: Where Most People Are Single or Married, 2026",
    "url": "https://smartasset.com/data-studies/single-married-2026",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "Where Most People Are Single or Married – 2026 Study",
+   "modified": "2026-02-04T16:14:02.000Z",
+   "sig": "ed415ee7d881f0f5",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   },
   {
    "topic": "singles",
    "label": "Time Out: WalletHub best cities for singles 2026",
    "url": "https://www.timeout.com/usa/news/here-are-the-worst-and-best-cities-for-singles-in-the-u-s-120325",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "Here Are the 10 Worst Cities for Singles in the U.S.",
+   "modified": "2025-12-04T00:34:49Z",
+   "sig": "6c8af2dc5e527757",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   },
   {
    "topic": "married",
    "label": "The Knot: average wedding cost",
    "url": "https://www.theknot.com/content/most-expensive-weddings-and-cheapest-weddings",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "This Is the Average Wedding Cost, Backed By Data",
+   "modified": "2026-11-04",
+   "sig": "6b1aa90b52bc8d71",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   },
   {
    "topic": "married",
    "label": "Self: wedding costs by state",
    "url": "https://www.self.inc/info/average-wedding-costs/",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "Average Cost of Weddings: How Couples Pay For It | Self Financial",
+   "modified": "2026-10-23",
+   "sig": "099184297b6ef1f4",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   },
   {
    "topic": "hiring",
    "label": "BLS: job openings rates by state, 2025",
    "url": "https://www.bls.gov/opub/ted/2026/job-openings-rate-5-5-percent-in-georgia-5-4-percent-in-alaska-during-2025.htm",
-   "checked": "2026-11-23",
+   "checked": "2026-11-24",
    "title": null,
    "modified": null,
    "sig": null,
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "unreachable: HTTPError"
   },
   {
    "topic": "business",
    "label": "KTVU: WalletHub best large cities to start a business 2026",
    "url": "https://www.ktvu.com/news/best-large-cities-to-start-business-2026",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "Looking to start a business? Here are the best large cities to launch a company | KTVU FOX 2",
+   "modified": "2026-04-21T16:54:28-04:00",
+   "sig": "1767e4cd616a6875",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   },
   {
    "topic": "fortune500",
    "label": "Fortune: Texas leads Fortune 500 HQs, 2026",
    "url": "https://fortune.com/2026/06/03/which-state-has-the-most-fortune-500-companies-texas-2026/",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "Texas is the new capital of the Fortune 500—taking California’s crown | Fortune",
+   "modified": "2026-06-03T13:38:53-00:00",
+   "sig": "8f2acd4a820032d3",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   },
   {
    "topic": "business",
    "label": "LendingTree: business applications study",
    "url": "https://www.lendingtree.com/business/small/starting-business-study/",
-   "checked": "2026-11-23",
-   "title": null,
-   "modified": null,
-   "sig": null,
+   "checked": "2026-11-24",
+   "title": "Gen Z Fuels Startup Interest | LendingTree",
+   "modified": "2026-05-26T13:22:01Z",
+   "sig": "10455d6a61ed8b4e",
    "lastChanged": null,
    "needsReview": false,
-   "status": "unreachable: URLError"
+   "status": "ok"
   }
  ],
- "generatedAt": "2026-11-24T02:33:53Z"
+ "generatedAt": "2026-11-24T02:34:27Z"
 }
