@@ -778,6 +778,49 @@
   .qz-li-err{margin:6px 0 0;font-size:13px;color:#C2410C}
   .qz-li-err[hidden]{display:none}
   .qz-li[hidden],.qz-li-label[hidden]{display:none !important}
+  /* "your move" card flips to a LinkedIn box */
+  .you-card{display:block;background:none;border:0;box-shadow:none;padding:0;perspective:1000px}
+  .you-inner{display:grid;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,.7,.3,1)}
+  .you-card.flipped .you-inner{transform:rotateY(180deg)}
+  .you-face{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden;background:var(--surface);color:var(--text);
+    border:2px solid var(--border);border-radius:20px;box-shadow:4px 4px 0 var(--shadow);padding:14px 16px 14px 14px}
+  .you-front{display:flex;gap:14px;align-items:flex-start}
+  .you-back{transform:rotateY(180deg);display:flex;flex-direction:column;gap:8px;margin:0;padding:14px 16px}
+  @media (prefers-reduced-motion:reduce){ .you-inner{transition:none} }
+  .you-li-add,.you-li-on,.you-li-cancel{align-self:flex-start;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer}
+  .you-li-add{font-size:13.5px;font-weight:700;text-decoration:underline;text-decoration-color:var(--cobalt,#2F4BFF);text-underline-offset:4px;text-decoration-thickness:2px}
+  .you-li-add[hidden],.you-li-on[hidden]{display:none}
+  .you-li-on{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700}
+  .you-li-add:focus-visible,.you-li-on:focus-visible,.you-li-cancel:focus-visible,.you-li-done:focus-visible{outline:2px solid var(--focus,#2F4BFF);outline-offset:3px;border-radius:6px}
+  .li-badge,.li-pop-badge{position:relative;display:inline-block;width:24px;height:24px;flex:none}
+  .li-ico{width:100%;height:100%;display:block}
+  .li-check{position:absolute;right:-6px;bottom:-5px;width:15px;height:15px;border-radius:50%;background:#D4F25A;color:#1B1B2F;border:1.5px solid #1B1B2F;display:grid;place-items:center}
+  .li-check svg{width:11px;height:11px}
+  .you-back .opt{font-weight:500;letter-spacing:0;text-transform:none}
+  .you-li-label{font-size:14px;font-weight:600}
+  .you-li-in{width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:9px 12px;border:2px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text)}
+  .you-li-in:focus{outline:2px solid var(--focus,#2F4BFF);outline-offset:1px}
+  .you-li-err{margin:0;font-size:12.5px;color:#C2410C}
+  .you-li-err[hidden]{display:none}
+  .you-li-btns{display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:2px}
+  .you-li-cancel{font-size:13px;color:var(--text-subtle);text-decoration:underline;text-underline-offset:3px}
+  .you-li-done{font:inherit;font-size:14px;font-weight:800;padding:7px 20px;border-radius:999px;border:2px solid var(--border);cursor:pointer;
+    background:var(--surface);color:var(--text-subtle);transition:background .2s,color .2s,box-shadow .2s}
+  .you-li-done[aria-disabled="false"]{background:#D4F25A;color:#1B1B2F;box-shadow:0 0 0 4px rgba(212,242,90,.35),2px 2px 0 var(--shadow)}
+  /* thank-you pop-up */
+  .li-pop{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:20px}
+  .li-pop[hidden]{display:none}
+  .li-pop-bg{position:absolute;inset:0;background:rgba(27,27,47,.45);animation:liFade .25s ease both}
+  .li-pop-card{position:relative;max-width:420px;background:var(--surface);color:var(--text);border:2px solid var(--border);border-radius:22px;
+    box-shadow:6px 6px 0 var(--shadow);padding:26px 26px 22px;text-align:center;animation:msgIn .35s ease both}
+  .li-pop-badge{width:44px;height:44px;margin-bottom:6px}
+  .li-pop-badge .li-check{width:22px;height:22px;right:-8px;bottom:-6px}
+  .li-pop-badge .li-check svg{width:15px;height:15px}
+  .li-pop-card h2{font-family:var(--display,Unbounded),sans-serif;font-size:20px;margin:6px 0 10px;text-transform:lowercase}
+  .li-pop-card p{margin:0 0 18px;font-size:15px;line-height:1.55;color:var(--text-muted)}
+  .li-pop-card .btn{min-width:140px}
+  @keyframes liFade{from{opacity:0}}
+  .you-front{align-items:center}
 </style>
 </head>
 <body>
@@ -822,6 +865,8 @@
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button><button class="retake convo" id="convoBtn" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 12h36a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8H32L18 56V46h-4a8 8 0 0 1-8-8V20a8 8 0 0 1 8-8Z"/><circle cx="22" cy="29" r="3.5"/><circle cx="32" cy="29" r="3.5"/><circle cx="42" cy="29" r="3.5"/></svg>Continue the Convo</button>
       </div>
       <aside class="you-card" id="youCard" hidden aria-label="Your Move ♥ Me results">
+       <div class="you-inner">
+        <div class="you-face you-front" id="youFront">
         <div class="you-av-wrap">
           <span class="you-av" id="youAv"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#FFE3DA"/><path d="M14 40C12 26 24 16 36 18c12 2 17 15 13 26-4 9-20 13-29 8-4-3-5.5-7-6-12Z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="2.4" transform="rotate(6 32 34)"/><circle cx="27" cy="33" r="2.6" fill="#1B1B2F"/><circle cx="39" cy="33" r="2.6" fill="#1B1B2F"/><path d="M28 40q5 4.4 10 0" fill="none" stroke="#1B1B2F" stroke-width="2.6" stroke-linecap="round"/><path d="M50 12l1.6 4.2L56 18l-4.4 1.8L50 24l-1.6-4.2L44 18l4.4-1.8Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 52c4 4 10 6 16 6" fill="none" stroke="#2F4BFF" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1 4"/></svg></span>
         </div>
@@ -829,8 +874,31 @@
           <p class="you-eyebrow">your move ♥ me</p>
           <p class="you-row" id="resLove"><span id="resIcon"></span><span>You’re a <b id="resSign">Virgo</b><span class="you-sub">you pair nicely with: <b id="resPairs"></b></span></span></p>
           <p class="you-row" id="resJobs" hidden><span id="resIndIcon" aria-hidden="true"></span><span>You work in <b id="resInd"></b></span></p>
+          <button class="you-li-add" id="youLiAdd" type="button" aria-controls="youBack">+ LinkedIn profile</button>
+          <button class="you-li-on" id="youLiOn" type="button" hidden aria-label="LinkedIn connected. Change your LinkedIn link"><span class="li-badge" aria-hidden="true"><svg class="li-ico" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M6.6 9.6h2.6V18H6.6zM7.9 5.6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.8 9.6h2.5v1.15h.04c.35-.66 1.2-1.36 2.47-1.36 2.64 0 3.13 1.74 3.13 4V18h-2.6v-4.1c0-.98-.02-2.24-1.37-2.24-1.37 0-1.58 1.07-1.58 2.17V18h-2.6z" fill="#fff"/></svg><span class="li-check"><svg viewBox="0 0 16 16"><path d="M4 8.4l2.6 2.6L12 5.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span>LinkedIn connected</span></button>
         </div>
+        </div>
+        <form class="you-face you-back" id="youBack" aria-hidden="true" inert novalidate>
+          <p class="you-eyebrow">your linkedin <span class="opt">(optional)</span></p>
+          <label class="you-li-label" for="youLiIn">Paste your LinkedIn profile link</label>
+          <input class="you-li-in" id="youLiIn" type="url" inputmode="url" maxlength="200" placeholder="linkedin.com/in/yourname" autocomplete="url" aria-describedby="youLiErr">
+          <p class="you-li-err" id="youLiErr" role="alert" hidden>That should look like linkedin.com/in/yourname</p>
+          <div class="you-li-btns">
+            <button class="you-li-cancel" id="youLiCancel" type="button">cancel</button>
+            <button class="you-li-done" id="youLiDone" type="submit" aria-disabled="true">done</button>
+          </div>
+        </form>
+       </div>
       </aside>
+      <div class="li-pop" id="liPop" hidden>
+        <div class="li-pop-bg" id="liPopBg"></div>
+        <div class="li-pop-card" role="dialog" aria-modal="true" aria-labelledby="liPopTitle" aria-describedby="liPopText">
+          <span class="li-pop-badge" aria-hidden="true"><svg class="li-ico" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M6.6 9.6h2.6V18H6.6zM7.9 5.6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.8 9.6h2.5v1.15h.04c.35-.66 1.2-1.36 2.47-1.36 2.64 0 3.13 1.74 3.13 4V18h-2.6v-4.1c0-.98-.02-2.24-1.37-2.24-1.37 0-1.58 1.07-1.58 2.17V18h-2.6z" fill="#fff"/></svg><span class="li-check"><svg viewBox="0 0 16 16"><path d="M4 8.4l2.6 2.6L12 5.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+          <h2 id="liPopTitle">thank you for connecting</h2>
+          <p id="liPopText">We are working on integrating LinkedIn profile information with map data. Thank you for connecting your profile, this helps strengthen the experience for everyone.</p>
+          <button class="btn btn-primary" id="liPopClose" type="button">Close</button>
+        </div>
+      </div>
     </div>
   </header>
   <div class="stage" id="stage">
@@ -2288,7 +2356,7 @@ let contactsOn = null;   // the Sheet's script gets a Contacts tab in its "conta
 const contactsCheck = fetch(RESPONSES_URL).then(r => r.text()).then(t => contactsOn = /contacts/i.test(t)).catch(() => contactsOn = false);
 function saveContact(url, from, r){
   if (!url) return;
-  LS.set("mm-li-shared", true); hideQzLi();
+  LS.set("mm-li-shared", true); LS.set("mm-li-url", url); hideQzLi(); renderLi();
   const post = body => { try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }).catch(() => {}); } catch (e) {} };
   contactsCheck.finally(() => post(contactsOn
     ? { type: "contact", linkedin: url, from, map: MODE, reason: (r && r.reason) || "", industries: r ? industryLabels(r).join(", ") : "", home: (r && r.home) || "", source: SITE_SOURCE }
@@ -2309,6 +2377,41 @@ sendAnswers = r => {
   sendAnswersBase(r);
   if (r.via !== "Chat") { const u = linkedInUrl(qzLi.value); if (u) saveContact(u, "Quiz", r); qzLi.value = ""; }
 };
+
+// "+ LinkedIn profile" on the results card: flip to a paste box, flip back connected, then a thank-you note
+const yc = document.getElementById("youCard"), ycBack = document.getElementById("youBack"), ycFront = document.getElementById("youFront");
+const liIn = document.getElementById("youLiIn"), liDone = document.getElementById("youLiDone"), liErr = document.getElementById("youLiErr");
+const liAdd = document.getElementById("youLiAdd"), liOn = document.getElementById("youLiOn"), liPop = document.getElementById("liPop");
+function renderLi(){ const on = !!LS.get("mm-li-url"); liAdd.hidden = on; liOn.hidden = !on; }
+function flipCard(back){
+  yc.classList.toggle("flipped", back);
+  ycBack.toggleAttribute("inert", !back); ycBack.setAttribute("aria-hidden", String(!back));
+  ycFront.toggleAttribute("inert", back); ycFront.setAttribute("aria-hidden", String(back));
+  if (back) { liIn.value = LS.get("mm-li-url") || ""; liCheck(); liErr.hidden = true; setTimeout(() => liIn.focus({ preventScroll: true }), reduceMotionLi() ? 0 : 350); }
+}
+const reduceMotionLi = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+function liCheck(){ liDone.setAttribute("aria-disabled", String(!linkedInUrl(liIn.value))); }
+liIn.addEventListener("input", () => { liErr.hidden = true; liCheck(); });
+liAdd.addEventListener("click", () => flipCard(true));
+liOn.addEventListener("click", () => flipCard(true));
+document.getElementById("youLiCancel").addEventListener("click", () => { flipCard(false); (LS.get("mm-li-url") ? liOn : liAdd).focus({ preventScroll: true }); });
+ycBack.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); document.getElementById("youLiCancel").click(); } });
+ycBack.addEventListener("submit", e => {
+  e.preventDefault();
+  const u = linkedInUrl(liIn.value);
+  if (!u) { liErr.hidden = false; liIn.focus(); return; }
+  const isNew = u !== LS.get("mm-li-url");
+  if (isNew) saveContact(u, "Card", getRes(modeReason()) || getRes("jobs") || getRes("love"));
+  renderLi(); flipCard(false); liOn.focus({ preventScroll: true });
+  if (isNew) setTimeout(openLiPop, 2200);
+});
+let liPopReturn = null;
+function openLiPop(){ liPopReturn = document.activeElement; liPop.hidden = false; document.getElementById("liPopClose").focus(); }
+function closeLiPop(){ liPop.hidden = true; if (liPopReturn && liPopReturn.focus) liPopReturn.focus({ preventScroll: true }); }
+document.getElementById("liPopClose").addEventListener("click", closeLiPop);
+document.getElementById("liPopBg").addEventListener("click", closeLiPop);
+liPop.addEventListener("keydown", e => { if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); if (e.key === "Escape") closeLiPop(); } });
+renderLi();
 
 document.getElementById("retake").addEventListener("click", () => { delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
 // state badges: most common zodiac sign (Love) and pay rank of 50 (Career), right under each abbreviation
