@@ -821,6 +821,15 @@
   .li-pop-card .btn{min-width:140px}
   @keyframes liFade{from{opacity:0}}
   .you-front{align-items:center}
+  /* sign + industry icons sit on the avatar, so the text lines up under the eyebrow */
+  .you-av-wrap{margin-bottom:8px}
+  .you-badges{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);display:flex;gap:2px}
+  .you-badge{width:28px;height:28px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:grid;place-items:center;box-sizing:border-box}
+  .you-badge[hidden]{display:none}
+  .you-badge svg,.you-badge .ico{width:20px;height:20px;display:block;--ln:1.7}
+  .you-row > span{min-width:0}
+  .you-badges #resIcon{order:-1}
+  .you-card[data-mode="career"] .you-badges #resIndIcon{order:-2}
 </style>
 </head>
 <body>
@@ -869,11 +878,12 @@
         <div class="you-face you-front" id="youFront">
         <div class="you-av-wrap">
           <span class="you-av" id="youAv"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#FFE3DA"/><path d="M14 40C12 26 24 16 36 18c12 2 17 15 13 26-4 9-20 13-29 8-4-3-5.5-7-6-12Z" fill="#FF8A65" stroke="#1B1B2F" stroke-width="2.4" transform="rotate(6 32 34)"/><circle cx="27" cy="33" r="2.6" fill="#1B1B2F"/><circle cx="39" cy="33" r="2.6" fill="#1B1B2F"/><path d="M28 40q5 4.4 10 0" fill="none" stroke="#1B1B2F" stroke-width="2.6" stroke-linecap="round"/><path d="M50 12l1.6 4.2L56 18l-4.4 1.8L50 24l-1.6-4.2L44 18l4.4-1.8Z" fill="#D4F25A" stroke="#1B1B2F" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 52c4 4 10 6 16 6" fill="none" stroke="#2F4BFF" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1 4"/></svg></span>
+          <span class="you-badges"><span class="you-badge" id="resIndIcon" aria-hidden="true" hidden></span><span class="you-badge" id="resIcon" hidden></span></span>
         </div>
         <div class="you-rows">
           <p class="you-eyebrow">your move ♥ me</p>
-          <p class="you-row" id="resLove"><span id="resIcon"></span><span>You’re a <b id="resSign">Virgo</b><span class="you-sub">you pair nicely with: <b id="resPairs"></b></span></span></p>
-          <p class="you-row" id="resJobs" hidden><span id="resIndIcon" aria-hidden="true"></span><span>You work in <b id="resInd"></b></span></p>
+          <p class="you-row" id="resLove"><span>You’re a <b id="resSign">Virgo</b><span class="you-sub">you pair nicely with: <b id="resPairs"></b></span></span></p>
+          <p class="you-row" id="resJobs" hidden><span>You work in <b id="resInd"></b></span></p>
           <button class="you-li-add" id="youLiAdd" type="button" aria-controls="youBack">+ LinkedIn profile</button>
           <button class="you-li-on" id="youLiOn" type="button" hidden aria-label="LinkedIn connected. Change your LinkedIn link"><span class="li-badge" aria-hidden="true"><svg class="li-ico" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M6.6 9.6h2.6V18H6.6zM7.9 5.6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.8 9.6h2.5v1.15h.04c.35-.66 1.2-1.36 2.47-1.36 2.64 0 3.13 1.74 3.13 4V18h-2.6v-4.1c0-.98-.02-2.24-1.37-2.24-1.37 0-1.58 1.07-1.58 2.17V18h-2.6z" fill="#fff"/></svg><span class="li-check"><svg viewBox="0 0 16 16"><path d="M4 8.4l2.6 2.6L12 5.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span>LinkedIn connected</span></button>
         </div>
@@ -2287,7 +2297,7 @@ function renderCard(){
   const L = getRes("love"), J = getRes("jobs"), card = document.getElementById("youCard");
   const hasL = !!(L && L.sign), hasJ = !!(J && J.reason === "jobs" && (J.industries || []).length);
   card.hidden = !(hasL || hasJ);
-  document.getElementById("resLove").hidden = !hasL; document.getElementById("resJobs").hidden = !hasJ;
+  document.getElementById("resLove").hidden = !hasL; document.getElementById("resJobs").hidden = !hasJ; document.getElementById("resIcon").hidden = !hasL; document.getElementById("resIndIcon").hidden = !hasJ;
   if (hasL) {
     const pairs = PAIRS[L.sign] || [];
     document.getElementById("resSign").textContent = L.sign;
