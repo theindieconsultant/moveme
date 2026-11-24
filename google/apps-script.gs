@@ -5,6 +5,7 @@
 // Feedback       → emailed to Heatherlee + logged in the "Feedback" tab
 // Monie chats    → "Chats" tab, one row per conversation, updated after every reply
 //                  (finished chats also save their answers to "Responses", with Via = Chat)
+// LinkedIn links → "Contacts" tab, kept apart from the anonymous answers and chats
 // Columns are matched by their heading text, so you can reorder or add columns safely.
 // Every tab gets a "Source" column (added automatically if missing) saying which copy of the site
 // sent the row: "GitHub", "Lovable", "Claude preview", or the site's web address.
@@ -16,7 +17,7 @@ const FEEDBACK_SUBJECT = 'Feedback from Move <3 Me Site';
 
 // Visiting the web app address shows which version is live (handy after a new deployment).
 function doGet() {
-  return ContentService.createTextOutput('Move ♥ Me script: chats version (Nov 2026)');
+  return ContentService.createTextOutput('Move ♥ Me script: chats version + contacts (Nov 2026)');
 }
 
 function doPost(e) {
@@ -28,6 +29,7 @@ function doPost(e) {
     if (d.type === 'feedback' || d.placeType === 'feedback') return saveFeedback(ss, d);
     if (d.type === 'question' || d.type === 'comment') return saveNote(ss, d);
     if (d.type === 'chat') return saveChat(ss, d);
+    if (d.type === 'contact') return saveContact(ss, d);
     return saveQuiz(ss, d);
   } finally {
     lock.releaseLock();
@@ -178,5 +180,24 @@ function saveChat(ss, d) {
     values['started'] = new Date();
     sheet.appendRow(heads.map(h => values[h] === undefined ? '' : values[h]));
   }
+  return ContentService.createTextOutput('ok');
+}
+
+
+// ---------- LinkedIn "stay in touch" links → Contacts tab ----------
+// Only profile links (linkedin.com/in/…) are saved. Nothing here links back to a chat or quiz row.
+function saveContact(ss, d) {
+  const m = String(d.linkedin || '').match(/linkedin\.com\/in\/([A-Za-z0-9\-_%]{2,100})/i);
+  if (!m) return ContentService.createTextOutput('not a profile link');
+  const url = 'https://www.linkedin.com/in/' + m[1] + '/';
+  const sheet = ss.getSheetByName('Contacts') || ss.insertSheet('Contacts');
+  if (sheet.getLastRow() === 0) {
+    const heads = ['Timestamp', 'LinkedIn', 'From', 'Map', 'Journey', 'Industry', 'Lives in', 'Source'];
+    sheet.appendRow(heads); sheet.setFrozenRows(1); sheet.getRange(1, 1, 1, heads.length).setFontWeight('bold');
+  }
+  const heads = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).toLowerCase());
+  sheet.appendRow(heads.map(h => h.startsWith('time') ? new Date() : h.includes('linkedin') ? url : h === 'from' ? clean(d.from)
+    : h.includes('map') ? (d.map === 'career' ? 'Career' : 'Love') : h.includes('journey') ? (d.reason === 'jobs' ? 'Jobs' : d.reason === 'love' ? 'Love' : '')
+    : h.includes('industr') ? clean(d.industries) : h.includes('live') ? clean(d.home) : h.includes('source') ? sourceOf(d) : ''));
   return ContentService.createTextOutput('ok');
 }

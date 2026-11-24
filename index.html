@@ -768,6 +768,16 @@
   .m-list .n{color:var(--text-muted);font-weight:500}
   .m-src{display:block;margin-top:4px;font-size:12px;color:var(--text-subtle)}
   .msg .txt .m-more{color:var(--text-muted)}
+  .cm-jobs{display:flex;gap:10px;align-items:flex-start;margin:18px 0 0;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--cobalt,#2F4BFF) 8%,transparent);font-size:14px;line-height:1.5}
+  .cm-jobs[hidden]{display:none}
+  .cm-jobs .ico{flex:0 0 26px;width:26px;height:26px}
+  .cm-jobs a{color:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+  .cm-jobs .jobs-tip{display:block;font-size:12.5px;color:var(--text-subtle)}
+  .qz-li-label{margin-top:18px !important}
+  .qz-li{width:100%}
+  .qz-li-err{margin:6px 0 0;font-size:13px;color:#C2410C}
+  .qz-li-err[hidden]{display:none}
+  .qz-li[hidden],.qz-li-label[hidden]{display:none !important}
 </style>
 </head>
 <body>
@@ -966,7 +976,10 @@
       <h2 id="qzTitle6">anything else?</h2>
       <label class="qz-comment-label" for="qzComment" style="margin-top:0"><span id="commentQ">Do you want to share any comments about what it’s like dating and finding love where you live?</span> <span class="opt">(optional, but this info helps everyone!)</span></label>
       <textarea class="qz-textarea" id="qzComment" maxlength="1000"></textarea>
-      <p class="qz-hint">Your answers are saved anonymously to help shape Move ♥ Me. No names or emails, ever.</p>
+      <label class="qz-comment-label qz-li-label" for="qzLinkedIn">Want to stay in touch? Paste your LinkedIn profile link <span class="opt">(optional)</span></label>
+      <input class="qz-input qz-li" id="qzLinkedIn" type="url" inputmode="url" maxlength="200" placeholder="linkedin.com/in/yourname" autocomplete="url" aria-describedby="qzLiErr qzHint">
+      <p class="qz-li-err" id="qzLiErr" role="alert" hidden>That doesn’t look like a LinkedIn profile link. It should look like linkedin.com/in/yourname, or leave it blank.</p>
+      <p class="qz-hint" id="qzHint">Your answers are saved anonymously to help shape Move ♥ Me. If you add your LinkedIn, it’s kept separately from your answers and only the Move ♥ Me team sees it.</p>
     </section>
 
     <div class="qz-actions" id="qzNav" hidden>
@@ -989,6 +1002,7 @@
       <div class="cm-shape" id="cmShapeWrap"><svg id="cmShape" role="img" aria-label="State outline"></svg></div>
       <ol class="cm-facts" id="cmFacts" aria-label="Three things to know"></ol>
     </div>
+    <p class="cm-jobs" id="cmJobs" hidden></p>
     <div class="cm-foot">
       <p id="cmAsk"></p>
       <div class="cm-btns">
@@ -1078,6 +1092,7 @@
     <div class="stickers" id="sStickers"></div>
     <hr class="rule">
     <div id="sAcc"></div>
+    <p class="cm-jobs" id="sJobs" hidden></p>
     <section class="sheet-ask" aria-labelledby="sAskTitle">
       <h3 id="sAskTitle">add a question or comment</h3>
       <p id="sAsk">Ask a question or post a random fact about this state. Please only comment if you know this place well. We count on accurate content from our users, thanks.</p>
@@ -2240,6 +2255,64 @@ refreshResult();
   if (p.hidden) f.click(); else { const i = document.getElementById("mcIn"); if (i) i.focus(); }
 }));
 
+// ===== LinkedIn: job-search links (career map + Monie) and an optional "stay in touch" profile link =====
+const JOB_KW = { "Tech & software": "software", "Healthcare": "healthcare", "Education": "education", "Finance & business": "finance",
+  "Creative & design": "designer", "Retail & hospitality": "hospitality", "Trades & construction": "construction", "Government & nonprofit": "nonprofit",
+  "Marketing & media": "marketing", "Science & research": "research", "Transportation & logistics": "logistics" };
+function jobField(r){   // → { kw: search words, label: shown words } from the visitor's saved jobs answers
+  r = r || getRes("jobs");
+  const ind = r && (r.industries || [])[0];
+  if (!ind) return { kw: "", label: "" };
+  if (ind === "Other") { const o = (r.industryOther || "").trim().slice(0, 40); return { kw: o, label: o.toLowerCase() }; }
+  return { kw: JOB_KW[ind] || ind, label: ind.toLowerCase() };
+}
+function jobLinks(loc, r){
+  const f = jobField(r), q = encodeURIComponent(f.kw || ""), l = encodeURIComponent(loc);
+  return { field: f.label, linkedin: `https://www.linkedin.com/jobs/search/?keywords=${q}&location=${l}`, indeed: `https://www.indeed.com/jobs?q=${q}&l=${l}` };
+}
+const jobLinksHTML = (loc, r) => { const j = jobLinks(loc, r);
+  return `<a href="${j.linkedin}" target="_blank" rel="noopener">LinkedIn</a> · <a href="${j.indeed}" target="_blank" rel="noopener">Indeed</a>`; };
+function fillJobs(el, loc, name){
+  if (!el) return;
+  el.hidden = MODE !== "career"; if (el.hidden) return;
+  const f = jobField();
+  el.innerHTML = `<svg class="ico" aria-hidden="true"><use href="#i-${(INDUSTRIES.find(([n]) => n === ((getRes("jobs") || {}).industries || [])[0]) || ["", "brief"])[1]}"/></svg>`
+    + `<span>See ${f.label ? `<b>${esc(f.label)}</b> ` : ""}jobs in ${esc(name)}: ${jobLinksHTML(loc)}`
+    + `${f.label ? "" : `<span class="jobs-tip">Tell Monie or the quiz your field and these links will match it.</span>`}</span>`;
+}
+const openCityBase = openCity;
+openCity = (c, pinG) => { openCityBase(c, pinG); fillJobs(document.getElementById("cmJobs"), `${c.name}, ${c.st}`, c.name); };
+const openSheetBase = openSheet;
+openSheet = abbr => { openSheetBase(abbr); const s = byAbbr[abbr] && byAbbr[abbr].s; if (s) fillJobs(document.getElementById("sJobs"), s.name, s.name); };
+
+const LI_RE = /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/([A-Za-z0-9\-_%]{2,100})\/?/i;
+const linkedInUrl = t => { const m = String(t || "").match(LI_RE); return m ? `https://www.linkedin.com/in/${m[1]}/` : ""; };
+let contactsOn = null;   // the Sheet's script gets a Contacts tab in its "contacts" version
+const contactsCheck = fetch(RESPONSES_URL).then(r => r.text()).then(t => contactsOn = /contacts/i.test(t)).catch(() => contactsOn = false);
+function saveContact(url, from, r){
+  if (!url) return;
+  LS.set("mm-li-shared", true); hideQzLi();
+  const post = body => { try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }).catch(() => {}); } catch (e) {} };
+  contactsCheck.finally(() => post(contactsOn
+    ? { type: "contact", linkedin: url, from, map: MODE, reason: (r && r.reason) || "", industries: r ? industryLabels(r).join(", ") : "", home: (r && r.home) || "", source: SITE_SOURCE }
+    // older script: keep it out of Responses by filing it as a comment
+    : { type: "comment", map: MODE, topic: "LinkedIn contact (" + from + ")", place: "LinkedIn", placeType: "contact", state: "", text: url, source: SITE_SOURCE }));
+}
+// quiz: the optional LinkedIn box on the last screen
+const qzLi = document.getElementById("qzLinkedIn"), qzLiErr = document.getElementById("qzLiErr");
+function hideQzLi(){ if (!LS.get("mm-li-shared")) return; [qzLi, qzLiErr, document.querySelector(".qz-li-label")].forEach(el => el && (el.hidden = true)); }
+hideQzLi();
+qzLi.addEventListener("input", () => { qzLiErr.hidden = true; qzLi.removeAttribute("aria-invalid"); });
+nextBtn.addEventListener("click", e => {
+  if (step !== LAST || !qzLi.value.trim() || linkedInUrl(qzLi.value)) return;
+  e.stopImmediatePropagation(); qzLiErr.hidden = false; qzLi.setAttribute("aria-invalid", "true"); qzLi.focus();
+}, true);
+const sendAnswersBase = sendAnswers;
+sendAnswers = r => {
+  sendAnswersBase(r);
+  if (r.via !== "Chat") { const u = linkedInUrl(qzLi.value); if (u) saveContact(u, "Quiz", r); qzLi.value = ""; }
+};
+
 document.getElementById("retake").addEventListener("click", () => { delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
 // state badges: most common zodiac sign (Love) and pay rank of 50 (Career), right under each abbreviation
 var BADGES = [];
@@ -2357,7 +2430,8 @@ buildBadges(); resize();
 // First visit: pop the quiz up about 6 seconds in. If they're on About or reading a state's sheet
 // at that moment, wait until they're back on the map with nothing open.
 function tryAutoOpen(){
-  if (!qz.hidden || getRes("love") || getRes("jobs")) return;
+  const mc = document.getElementById("mcPanel");
+  if (!qz.hidden || getRes("love") || getRes("jobs") || (mc && !mc.hidden)) return;   // already chatting with Monie: no welcome pop-up
   if (location.hash === "#about" || sheet.classList.contains("open")) { setTimeout(tryAutoOpen, 1500); return; }
   openQuiz();
 }
@@ -2624,6 +2698,8 @@ btn.addEventListener("click", () => {
   .mc-msg.u{align-self:flex-end;background:var(--primary-soft);color:var(--text);border-bottom-right-radius:4px}
   .mc-msg ol{margin:8px 0 2px;padding-left:20px}
   .mc-msg li{margin:2px 0}
+  .mc-msg ul.mc-jobs{margin:8px 0 2px;padding-left:18px}
+  .mc-msg a{color:inherit}
   .mc-msg .mc-src{display:block;margin-top:8px;font-size:12px;color:var(--text-subtle)}
   .mc-msg a{color:var(--link)}
   .mc-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;background:var(--bg)}
@@ -2733,7 +2809,7 @@ btn.addEventListener("click", () => {
     <input id="mcIn" maxlength="300" placeholder="Ask about dates, singles, pay, jobs…">
     <button type="submit">send</button>
   </form>
-  <p class="mc-fine">Monie saves this conversation to help improve Move ♥ Me. Your identity remains anonymous.</p>
+  <p class="mc-fine">Monie saves this conversation to help improve Move ♥ Me. Your identity remains anonymous unless you choose to share your LinkedIn.</p>
   </div>
   <aside class="mc-topics" id="mcTopics" aria-label="Questions for Monie"></aside>
   </div>
@@ -2944,13 +3020,22 @@ const STEPS = {
     }
   }
 };
-const FULL_CHAT = ["reason", "scene", "places", "home", "age", "fifth", "comment"], SHORT_CHAT = ["fifth", "comment"];
+STEPS.linkedin = {
+  ask(){ say("one more, totally optional: want to stay in touch with the Move ♥ Me team? paste your LinkedIn profile link (like linkedin.com/in/yourname). it’s saved apart from this chat, so your answers stay anonymous."); chips([["no thanks", "__skip"]], { quiet: ["__skip"] }); },
+  take(text, val){
+    if (val === "__skip" || NO.test(norm(text)) || /^(skip|nah|nope|no thanks?)\b/i.test(text.trim())) { CH.A.linkedin = ""; say("no problem!"); return true; }
+    const u = linkedInUrl(text);
+    if (!u) { say("hmm, that doesn’t look like a LinkedIn profile link. it should look like <b>linkedin.com/in/yourname</b>, or tap “no thanks”."); chips([["no thanks", "__skip"]], { quiet: ["__skip"] }); return false; }
+    CH.A.linkedin = u; say("got it, thank you! only the Move ♥ Me team will see that link 💛"); return true;
+  }
+};
+const FULL_CHAT = ["reason", "scene", "places", "home", "age", "fifth", "comment", "linkedin"], SHORT_CHAT = ["fifth", "comment", "linkedin"];
 const stepName = () => { const s = CH.flow[CH.i]; return s === "fifth" ? (CH.A.reason === "jobs" ? "industry" : "sign") : s; };
 // ---------- rendering ----------
 function addMsg(who, html){
   const d = document.createElement("div"); d.className = "mc-msg " + who; d.innerHTML = html;
   log.appendChild(d); log.scrollTop = log.scrollHeight;
-  if (CH && CH.log) { CH.log.push((who === "m" ? "Monie: " : "You: ") + d.textContent.trim()); if (who === "u") CH.said++; }
+  if (CH && CH.log) { CH.log.push((who === "m" ? "Monie: " : "You: ") + (who === "u" && LI_RE.test(d.textContent) ? "[LinkedIn link shared]" : d.textContent.trim())); if (who === "u") CH.said++; }
   return d;
 }
 function say(lines){
@@ -3060,6 +3145,7 @@ function startChat(opts = {}){
     Object.assign(CH.A, { reason, scene: p.scene || null, places: (p.places || []).slice(), age: p.age || "", home: p.home || "" });
     if (p.reason) say(MONIE_SAYS.welcomeBack(p.reason, reason));
   }
+  if (LS.get("mm-li-shared")) CH.flow = CH.flow.filter(x => x !== "linkedin");
   STEPS[stepName()].ask();
 }
 function greetBack(){
@@ -3093,6 +3179,7 @@ function finishChat(){
     places: a.places, age: a.age, home: a.home, comment: a.comment, at: new Date().toISOString() };
   setRes(a.reason, result);
   sendAnswers({ ...result, via: "Chat" });
+  if (a.linkedin) saveContact(a.linkedin, "Chat", result);
   LS.set("mm-quiz-seen", true);
   showResult(result);
   setMode(jobs ? "career" : "love", { quiet: true });
@@ -3100,8 +3187,17 @@ function finishChat(){
   const pairs = PAIRS[result.sign] || [];
   say(jobs ? MONIE_SAYS.doneJobs(listText(industryLabels(result)), result.scene)
     : MONIE_SAYS.doneLove(`<b>${result.sign}</b>`, pairs.length > 1 ? pairs.slice(0, -1).join(", ") + " & " + pairs[pairs.length - 1] : pairs.join(""), result.scene))
+    .then(() => jobs ? say(jobsMsg(result)) : null)
     .then(() => { const other = otherReason(a.reason); chips(getRes(other) ? MONIE_SAYS.afterBoth : MONIE_SAYS.afterChips(other)); });
   CH.done = true;
+}
+// LinkedIn / Indeed searches for the visitor's field in the places they named (or where they live)
+function jobsMsg(r){
+  const locs = (r.places || []).map(p => p.label).slice(0, 3);
+  if (!locs.length && r.home) locs.push(r.home);
+  const f = jobField(r);
+  if (!locs.length) return `want to browse openings? here are ${f.label ? `<b>${esc(f.label)}</b> ` : ""}jobs across the US: ${jobLinksHTML("United States", r)}`;
+  return `want to browse openings? ${f.label ? `<b>${esc(f.label)}</b> ` : ""}jobs in:<ul class="mc-jobs">${locs.map(l => `<li>${esc(l)}: ${jobLinksHTML(l, r)}</li>`).join("")}</ul>`;
 }
 function afterAnswer(val, text){
   const t = norm(text || "");
