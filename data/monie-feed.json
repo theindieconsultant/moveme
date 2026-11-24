@@ -65,7 +65,8 @@
      "https://njbiz.com/nj-restaurants-opentable-most-romantic-2026/"
     ]
    ],
-   "refresh": "Yearly: WalletHub (early Feb), OpenTable Top 100 (late Jan)"
+   "refresh": "Yearly: WalletHub (early Feb), OpenTable Top 100 (late Jan)",
+   "saysNow": "San Francisco tops the 2026 date-night ranking: lots of affordable restaurants, florists and things to do, and it's the most walkable big city. Top 5: San Francisco, San Diego, Las Vegas, Atlanta, Seattle."
   },
   "singles": {
    "question": "Which cities have the most singles?",
@@ -125,9 +126,14 @@
     [
      "Match: Singles in America 2026 (DatingNews)",
      "https://www.datingnews.com/industry-trends/match-study-finds-76-percent-of-u-s-singles-believe-love-can-last-forever/"
+    ],
+    [
+     "Time Out: WalletHub best cities for singles 2026",
+     "https://www.timeout.com/usa/news/here-are-the-worst-and-best-cities-for-singles-in-the-u-s-120325"
     ]
    ],
-   "refresh": "Yearly: Census ACS (Sept), Singles in America (Sept), WalletHub singles (Dec)"
+   "refresh": "Yearly: Census ACS (Sept), Singles in America (Sept), WalletHub singles (Dec)",
+   "saysNow": "These cities have the biggest share of adults who've never married: Detroit (57.4%), Boston (56.6%), Rochester (56.4%), Washington DC (55.1%), Milwaukee (55.1%). For the best odds overall, WalletHub ranks Atlanta #1 for singles and Las Vegas #2."
   },
   "family": {
    "question": "Which cities are best for starting a family?",
@@ -187,7 +193,11 @@
      "https://www.cdc.gov/nchs/data/dvs/marriage-divorce/state-divorce-rates-90-95-00-24.pdf"
     ]
    ],
-   "refresh": "Yearly: WalletHub (spring), CDC/NCHS state rates (spring)"
+   "refresh": "Yearly: WalletHub (spring), CDC/NCHS state rates (spring)",
+   "live": {
+    "see": "married.live (divorce rates)"
+   },
+   "saysNow": "For raising a family, these cities score highest on schools, safety, affordability and family fun: Fremont, Overland Park, Plano, Irvine, South Burlington. Fremont has been #1 four years running."
   },
   "married": {
    "question": "Best cities to get married in?",
@@ -250,9 +260,19 @@
     [
      "CDC/NCHS: marriage rates by state, 2024",
      "https://www.cdc.gov/nchs/data/dvs/marriage-divorce/state-marriage-rates-90-95-00-24.pdf"
+    ],
+    [
+     "The Knot: most and least expensive places to marry",
+     "https://www.theknot.com/content/most-expensive-weddings-and-cheapest-weddings"
+    ],
+    [
+     "Self: wedding costs by state",
+     "https://www.self.inc/info/average-wedding-costs/"
     ]
    ],
-   "refresh": "Yearly: The Knot (Feb), WalletHub (Jan), CDC/NCHS (spring)"
+   "refresh": "Yearly: The Knot (Feb), WalletHub (Jan), CDC/NCHS (spring)",
+   "live": null,
+   "saysNow": "The best-value cities to say \"I do\": Las Vegas, Orlando, Miami, Atlanta, Tampa (then Austin and Houston). The average U.S. wedding cost $34,200 in 2025; New Jersey is priciest (about $57k), Wyoming cheapest (about $17k)."
   },
   "pay": {
    "question": "Which cities pay the highest in my industry?",
@@ -419,7 +439,8 @@
      "https://www.bls.gov/oes/"
     ]
    ],
-   "refresh": "Yearly: BLS OEWS (spring)"
+   "refresh": "Yearly: BLS OEWS (spring)",
+   "saysNow": "Match the person's industry to the closest common job and list the five states with the highest median pay for it (BLS OEWS, May 2025). Unmatched industries get the highest-paying metros: Bremerton, San Francisco, Seattle, San Jose, Boulder."
   },
   "hiring": {
    "question": "Which regions are hiring the most right now?",
@@ -754,7 +775,8 @@
       "vsYearAgo": 9.1
      }
     ]
-   }
+   },
+   "saysNow": "Right now job postings are furthest above their pre-pandemic level in Alaska (159.0), South Dakota (147.7) and West Virginia (137.8), where 100 = Feb 2020. They're weakest in California (88.3), Washington (77.8) and District of Columbia (73.2). (Indeed Hiring Lab, week of 2026-11-13.)"
   },
   "fortune500": {
    "question": "Which cities have the most Fortune 500 companies?",
@@ -811,7 +833,8 @@
      "https://fortune.com/2026/06/03/which-state-has-the-most-fortune-500-companies-texas-2026/"
     ]
    ],
-   "refresh": "Yearly: Fortune 500 list (early June)"
+   "refresh": "Yearly: Fortune 500 list (early June)",
+   "saysNow": "These metros are home to the most Fortune 500 headquarters: New York (49), Chicago (30), Houston (26), San Jose (21), Washington DC (20). By state, Texas leads with 57, just ahead of California (56) and New York (53)."
   },
   "business": {
    "question": "Which cities are best for starting a business?",
@@ -869,9 +892,15 @@
     [
      "Census Business Formation Statistics",
      "https://www.census.gov/econ/bfs/current/index.html"
+    ],
+    [
+     "LendingTree: business applications study",
+     "https://www.lendingtree.com/business/small/starting-business-study/"
     ]
    ],
-   "refresh": "Monthly: Census BFS (mid-month). Yearly: WalletHub (spring)"
+   "refresh": "Monthly: Census BFS (mid-month). Yearly: WalletHub (spring)",
+   "live": null,
+   "saysNow": "Florida sweeps the top 5 for starting a business (Tampa, Orlando, Jacksonville, Hialeah, St. Petersburg). Americans filed a record 5.7 million business applications in 2025, and Wyoming files the most per person."
   },
   "horoscope": {
    "question": "What do the stars say about moving there?",
@@ -890,8 +919,120 @@
      "https://www.astro.com/cgi/h.cgi?f=gch&h=gch22"
     ]
    ],
-   "refresh": "On request (live API call), never stored"
+   "refresh": "On request (live API call), never stored",
+   "saysNow": "Monie pairs the person's sun sign with their top cities for fun. Horoscopes are entertainment, not data. Location astrology (astrocartography) needs birth date, time and place."
   }
  },
- "generatedAt": "2026-11-24T02:31:19Z"
+ "chatGuide": "Answer with topics.<topic>.saysNow (fresh numbers merged in), then offer the top-10 hot spots. Name the source in plain words (e.g. 'Indeed Hiring Lab', 'CDC', 'Census'); Indeed data must always be credited. If a sourceWatch entry for the topic has needsReview=true, the ranking may have a newer edition: say the list is from the date in the source label. Horoscopes are for fun only.",
+ "sourceWatch": [
+  {
+   "topic": "dates",
+   "label": "WalletHub: Best Places for Valentine's Day 2026 (LongIsland.com)",
+   "url": "https://www.longisland.com/news/02-04-26/2-in-5-people-say-valentines-day-activities-are-not-affordable-this-year-best-places-for-valentines-day-2026.html",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "singles",
+   "label": "SmartAsset: Where Most People Are Single or Married, 2026",
+   "url": "https://smartasset.com/data-studies/single-married-2026",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "singles",
+   "label": "Time Out: WalletHub best cities for singles 2026",
+   "url": "https://www.timeout.com/usa/news/here-are-the-worst-and-best-cities-for-singles-in-the-u-s-120325",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "married",
+   "label": "The Knot: average wedding cost",
+   "url": "https://www.theknot.com/content/most-expensive-weddings-and-cheapest-weddings",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "married",
+   "label": "Self: wedding costs by state",
+   "url": "https://www.self.inc/info/average-wedding-costs/",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "hiring",
+   "label": "BLS: job openings rates by state, 2025",
+   "url": "https://www.bls.gov/opub/ted/2026/job-openings-rate-5-5-percent-in-georgia-5-4-percent-in-alaska-during-2025.htm",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "business",
+   "label": "KTVU: WalletHub best large cities to start a business 2026",
+   "url": "https://www.ktvu.com/news/best-large-cities-to-start-business-2026",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "fortune500",
+   "label": "Fortune: Texas leads Fortune 500 HQs, 2026",
+   "url": "https://fortune.com/2026/06/03/which-state-has-the-most-fortune-500-companies-texas-2026/",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  },
+  {
+   "topic": "business",
+   "label": "LendingTree: business applications study",
+   "url": "https://www.lendingtree.com/business/small/starting-business-study/",
+   "checked": "2026-11-23",
+   "title": null,
+   "modified": null,
+   "sig": null,
+   "lastChanged": null,
+   "needsReview": false,
+   "status": "unreachable: URLError"
+  }
+ ],
+ "generatedAt": "2026-11-24T02:33:53Z"
 }

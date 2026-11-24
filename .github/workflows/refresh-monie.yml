@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   refresh:
@@ -16,6 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: pip install pypdf
       - run: python scripts/refresh_feed.py
       - name: Commit if changed
         run: |
@@ -24,3 +26,8 @@ jobs:
           git add data/monie-feed.json
           git diff --cached --quiet || git commit -m "Refresh Monie data feed"
           git push
+      - name: Open an issue when a ranking source publishes something new
+        if: hashFiles('changed_sources.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "Monie sources updated $(date +%F)" --body-file changed_sources.md
