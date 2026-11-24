@@ -699,7 +699,7 @@
 
   /* ===== Monie: conversational alternative to the quick quiz (bottom panel) ===== */
   .convo-br{display:block}
-  :root{--chat-h:clamp(340px,48vh,480px)}
+  :root{--chat-h:clamp(410px,52vh,520px)}
   @media (max-width:760px){ :root{--chat-h:58dvh} }
   body.chatting{padding-bottom:var(--chat-h)}
   body.chatting #mapView footer{visibility:hidden}
@@ -820,10 +820,10 @@
   /* chat body: conversation + convo starters column */
   .chat-body{flex:1;display:flex;min-height:0;position:relative}
   .chat-main{flex:1;display:flex;flex-direction:column;min-width:0}
-  .chat-aside{flex:none;width:300px;border-left:1px solid var(--hair);padding:18px 20px;overflow-y:auto;font-size:13px;line-height:1.45;color:var(--text-subtle)}
+  .chat-aside{flex:none;width:350px;border-left:1px solid var(--hair);padding:12px 22px 14px;overflow-y:auto;font-size:13px;line-height:1.45;color:var(--text-subtle)}
   .aside-title{margin:0 0 12px;font-weight:700;color:var(--text-subtle)}
-  .aside-h{margin:14px 0 6px;font-weight:700;color:var(--text-subtle)}
-  .chat-aside ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:7px}
+  .aside-h{margin:8px 0 5px;font-weight:700;color:var(--text-subtle)}
+  .chat-aside ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px}
   .chat-aside li::marker{color:var(--text-subtle)}
   .chat-aside a{color:var(--text-muted);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb, var(--text-subtle) 45%, transparent);transition:color .15s,text-decoration-color .15s}
   .chat-aside a:hover{color:var(--text);text-decoration-color:var(--coral)}
@@ -841,6 +841,15 @@
   .m-list .n{color:var(--text-muted);font-weight:500}
   .m-src{display:block;margin-top:4px;font-size:12px;color:var(--text-subtle)}
   .msg .txt .m-more{color:var(--text-muted)}
+  /* Monie's avatar sits in a neon circle */
+  .monie-av{border-radius:50%;background:var(--chartreuse);border:2px solid var(--ink);padding:2px;
+     box-shadow:0 0 0 3px rgba(212,242,90,.35),0 0 12px 2px rgba(212,242,90,.75)}
+  .monie-av svg{transform:translateY(1px)}
+  .msg .monie-av{border-width:1.5px;padding:1px;box-shadow:0 0 0 2px rgba(212,242,90,.3),0 0 8px 1px rgba(212,242,90,.7)}
+  .msg.m .monie-av.ghost{box-shadow:none}
+  .monie-chip{display:inline-block;width:1.45em;height:1.45em;vertical-align:-.38em;margin:0 .28em 0 .05em;border-radius:50%;background:var(--chartreuse);border:1.5px solid var(--ink);padding:1px;
+     box-shadow:0 0 0 2px rgba(212,242,90,.3),0 0 8px 1px rgba(212,242,90,.75)}
+  .monie-chip svg{width:100%;height:100%;display:block;transform:translateY(1px)}
 </style>
 </head>
 <body>
@@ -880,7 +889,7 @@
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
-      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta"><span id="ctaNew">Or start with <a class="quiz" href="#quiz" id="quizLink">a quick quiz</a>,<span class="convo-br">or, have a <a class="quiz" href="#chat" id="chatLink">quick convo</a> with Monie.</span></span><span id="ctaDone" hidden>Or <a class="quiz" href="#quiz" id="retakeLink">retake the quiz</a>,<span class="convo-br">or, <a class="quiz" href="#chat" id="convoLink">continue the convo</a> with Monie.</span></span></span></p>
+      <p class="lede two" id="lede"><span id="ledeText">Your person, your wedding, your dream job might be 1,000 miles away.<br>Explore the map for your love &amp; career snapshot.</span> <span id="quizCta"><span id="ctaNew">Or start with <a class="quiz" href="#quiz" id="quizLink">a quick quiz</a>,<span class="convo-br">or, have a <a class="quiz" href="#chat" id="chatLink">quick convo</a> with <span class="monie-chip" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="#1B1B2F" stroke-linejoin="round" stroke-linecap="round"><path d="M14 25C8.3 27.4 4.6 33.4 5 40.4c.3 4.2 2 7.8 4.6 10.4.3-4.2 1.4-7.7 3.2-10.7 1.7-2.9 2.6-7.3 1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M50 25c5.7 2.4 9.4 8.4 9 15.4-.3 4.2-2 7.8-4.6 10.4-.3-4.2-1.4-7.7-3.2-10.7-1.7-2.9-2.6-7.3-1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M15 25 12.5 6.5 28 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M49 25 51.5 6.5 36 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M16.6 20.5 15.4 11.5l7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M47.4 20.5l1.2-9-7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M12.5 32c0-10.5 8.7-17 19.5-17s19.5 6.5 19.5 17S43.3 49.5 32 49.5 12.5 42.5 12.5 32Z" fill="#FF8A65" stroke-width="2.4"/><path d="M19 38.5c3.2-4.6 8.6-5.4 13-2.4 4.4-3 9.8-2.2 13 2.4-2 6.4-7.2 9.6-13 9.6s-11-3.2-13-9.6Z" fill="#F5F1E8" stroke="none"/><circle cx="13.6" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><circle cx="50.4" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><ellipse cx="25" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><ellipse cx="39" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><circle cx="25.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><circle cx="39.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><path d="M30 36.4h4l-2 2.4Z" fill="#1B1B2F" stroke-width="1.2"/><path d="M32 38.8q-1.5 2.4-3.8 1.2M32 38.8q1.5 2.4 3.8 1.2" fill="none" stroke-width="1.6"/><path d="M18.5 36.5h-7M18.8 39.2l-6.2 2.2M45.5 36.5h7M45.2 39.2l6.2 2.2" fill="none" stroke-width="1.3"/><circle cx="21.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><circle cx="42.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><path d="M21 49.5q11 4.6 22 0" fill="none" stroke="#2F4BFF" stroke-width="2.4"/><path d="M32 60c-4.2-2.8-6.5-5.3-6.5-7.8a3.25 3.25 0 0 1 6.5-1.3 3.25 3.25 0 0 1 6.5 1.3c0 2.5-2.3 5-6.5 7.8Z" fill="#2F4BFF" stroke-width="2"/></g></svg></span>Monie.</span></span><span id="ctaDone" hidden>Or <a class="quiz" href="#quiz" id="retakeLink">retake the quiz</a>,<span class="convo-br">or, <a class="quiz" href="#chat" id="convoLink">continue the convo</a> with <span class="monie-chip" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="#1B1B2F" stroke-linejoin="round" stroke-linecap="round"><path d="M14 25C8.3 27.4 4.6 33.4 5 40.4c.3 4.2 2 7.8 4.6 10.4.3-4.2 1.4-7.7 3.2-10.7 1.7-2.9 2.6-7.3 1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M50 25c5.7 2.4 9.4 8.4 9 15.4-.3 4.2-2 7.8-4.6 10.4-.3-4.2-1.4-7.7-3.2-10.7-1.7-2.9-2.6-7.3-1.2-15.1Z" fill="#E8673F" stroke-width="2.2"/><path d="M15 25 12.5 6.5 28 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M49 25 51.5 6.5 36 15.5Z" fill="#FF8A65" stroke-width="2.4"/><path d="M16.6 20.5 15.4 11.5l7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M47.4 20.5l1.2-9-7.4 4.6Z" fill="#FFE3DA" stroke="none"/><path d="M12.5 32c0-10.5 8.7-17 19.5-17s19.5 6.5 19.5 17S43.3 49.5 32 49.5 12.5 42.5 12.5 32Z" fill="#FF8A65" stroke-width="2.4"/><path d="M19 38.5c3.2-4.6 8.6-5.4 13-2.4 4.4-3 9.8-2.2 13 2.4-2 6.4-7.2 9.6-13 9.6s-11-3.2-13-9.6Z" fill="#F5F1E8" stroke="none"/><circle cx="13.6" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><circle cx="50.4" cy="26.5" r="3.2" fill="#D4F25A" stroke-width="2"/><ellipse cx="25" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><ellipse cx="39" cy="30.5" rx="2.5" ry="3.1" fill="#1B1B2F" stroke="none"/><circle cx="25.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><circle cx="39.9" cy="29.4" r=".95" fill="#fff" stroke="none"/><path d="M30 36.4h4l-2 2.4Z" fill="#1B1B2F" stroke-width="1.2"/><path d="M32 38.8q-1.5 2.4-3.8 1.2M32 38.8q1.5 2.4 3.8 1.2" fill="none" stroke-width="1.6"/><path d="M18.5 36.5h-7M18.8 39.2l-6.2 2.2M45.5 36.5h7M45.2 39.2l6.2 2.2" fill="none" stroke-width="1.3"/><circle cx="21.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><circle cx="42.5" cy="40.5" r="1.9" fill="#FF8A65" stroke="none" opacity=".7"/><path d="M21 49.5q11 4.6 22 0" fill="none" stroke="#2F4BFF" stroke-width="2.4"/><path d="M32 60c-4.2-2.8-6.5-5.3-6.5-7.8a3.25 3.25 0 0 1 6.5-1.3 3.25 3.25 0 0 1 6.5 1.3c0 2.5-2.3 5-6.5 7.8Z" fill="#2F4BFF" stroke-width="2"/></g></svg></span>Monie.</span></span></span></p>
       <div class="quiz-result" id="quizResult" hidden>
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button><button class="retake convo" id="convoBtn" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 12h36a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8H32L18 56V46h-4a8 8 0 0 1-8-8V20a8 8 0 0 1 8-8Z"/><circle cx="22" cy="29" r="3.5"/><circle cx="32" cy="29" r="3.5"/><circle cx="42" cy="29" r="3.5"/></svg>Continue the Convo</button>
       </div>
@@ -949,7 +958,6 @@
     </div>
     </div>
     <aside class="chat-aside" id="chatAside" aria-label="Questions for Monie">
-      <p class="aside-title">Questions for Monie / convo starters</p>
       <p class="aside-h">For Love:</p>
       <ul>
         <li><a href="#" data-ask="dates">Which cities are best for dates?</a></li>
@@ -2729,6 +2737,9 @@ const showResultBase = showResult;
 showResult = r => {
   const has = !!r && (r.reason === "jobs" || !!r.sign);
   showResultBase(null);
+  // the same intro on both maps
+  document.getElementById("ledeText").innerHTML = "Your person, your wedding, your dream job might be 1,000 miles away.<br>Explore the map for your love &amp; career snapshot.";
+  document.getElementById("lede").classList.add("two");
   document.getElementById("ctaNew").hidden = has; document.getElementById("ctaDone").hidden = !has;
   renderCard();
 };
