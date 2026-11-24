@@ -341,14 +341,14 @@
       "divorceRate": 2.9
      },
      {
-      "state": "Florida",
-      "marriageRate": 7.0,
-      "divorceRate": 2.8
-     },
-     {
       "state": "Alabama",
       "marriageRate": 7.0,
       "divorceRate": 2.9
+     },
+     {
+      "state": "Florida",
+      "marriageRate": 7.0,
+      "divorceRate": 2.8
      },
      {
       "state": "Connecticut",
@@ -431,14 +431,14 @@
       "divorceRate": 2.4
      },
      {
-      "state": "Georgia",
-      "marriageRate": 5.8,
-      "divorceRate": 2.2
-     },
-     {
       "state": "Arizona",
       "marriageRate": 5.8,
       "divorceRate": 2.1
+     },
+     {
+      "state": "Georgia",
+      "marriageRate": 5.8,
+      "divorceRate": 2.2
      },
      {
       "state": "Texas",
@@ -1616,5 +1616,5 @@
    "status": "ok"
   }
  ],
- "generatedAt": "2026-11-24T02:34:27Z"
+ "generatedAt": "2026-11-24T15:15:06Z"
 }
