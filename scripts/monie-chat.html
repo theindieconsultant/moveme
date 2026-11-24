@@ -32,6 +32,22 @@
   .mc-form button{border:2px solid var(--border);border-radius:12px;background:var(--ink);color:var(--paper);font:700 14px var(--display);padding:0 14px;cursor:pointer}
   [data-theme="dark"] .mc-form button{background:var(--chartreuse);color:var(--ink)}
   .mc-typing{opacity:.6;font-style:italic}
+  .mc-dots{display:inline-flex;gap:5px;padding:12px 14px}
+  .mc-dots i{width:7px;height:7px;border-radius:50%;background:var(--text-subtle);animation:mcDot 1.1s infinite ease-in-out}
+  .mc-dots i:nth-child(2){animation-delay:.15s} .mc-dots i:nth-child(3){animation-delay:.3s}
+  @keyframes mcDot{0%,60%,100%{transform:none;opacity:.45}30%{transform:translateY(-4px);opacity:1}}
+  .mc-chip{display:inline-flex;align-items:center;gap:6px}
+  .mc-chip .ico,.mc-chip .zi{width:16px;height:16px;flex:none}
+  .mc-chip .zi svg{width:100%;height:100%;display:block}
+  .mc-chip[aria-pressed="true"]{background:var(--accent-soft)}
+  .mc-chip[aria-pressed="true"]::before{content:"✓";font-weight:800}
+  .mc-chip.go{background:var(--cobalt);color:#fff}
+  .mc-chip.quiet{border-style:dashed}
+  .mc-topics{padding:8px 14px 10px;border-top:1px solid var(--hair);background:var(--bg);font-size:12.5px;line-height:1.7;color:var(--text-subtle)}
+  .mc-topics .mc-tl{font-weight:700}
+  .mc-topics a{color:var(--text-muted);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb, var(--text-subtle) 45%, transparent)}
+  .mc-topics a:hover{color:var(--text);text-decoration-color:var(--coral)}
+  .mc-chips:empty{display:none}
   @media (max-width:520px){.mc-panel{right:12px;bottom:96px;height:min(560px,calc(100vh - 120px))}.mc-fab{right:12px;bottom:12px;font-size:20px;padding:9px 22px 9px 9px;gap:10px}.mc-av{width:48px;height:48px}}
   @media (prefers-reduced-motion:reduce){.mc-fab,.mc-fab:hover{animation:none;transform:none}}
 </style>
@@ -42,135 +58,423 @@
     <button class="mc-x" id="mcClose" type="button" aria-label="Close chat">×</button></div>
   <div class="mc-log" id="mcLog" aria-live="polite"></div>
   <div class="mc-chips" id="mcChips"></div>
+  <div class="mc-topics" id="mcTopics" aria-label="Quick answers"></div>
   <form class="mc-form" id="mcForm" autocomplete="off">
     <label class="sr-only" for="mcIn">Ask Monie a question</label>
     <input id="mcIn" maxlength="300" placeholder="Ask about dates, singles, pay, jobs…">
     <button type="submit">send</button>
   </form>
-  <p class="mc-fine">Monie passes questions she can’t answer yet to the Move ♥ Me team. Your identity remains anonymous.</p>
+  <p class="mc-fine">Monie saves this conversation to help improve Move ♥ Me. Your identity remains anonymous.</p>
 </section>
 <script>
+// Monie: guided conversation (same questions as the quick quiz) + quick answers from data/monie-feed.json.
+// Every conversation is logged to the "Chats" tab of the Move ♥ Me Sheet, once the Sheet's script supports it.
 (() => {
-  const FEED_URL = "data/monie-feed.json";
-  const $ = id => document.getElementById(id);
-  const fab = $("mcFab"), panel = $("mcPanel"), log = $("mcLog"), chips = $("mcChips"), form = $("mcForm"), inp = $("mcIn");
-  let feed = null, loading = null, greeted = false;
-  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const money = n => "$" + Number(n).toLocaleString("en-US");
-  const SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
-  const ROUTES = [
-    ["horoscope", /horoscope|zodiac|astrolog|stars|sign\b|aries|taurus|gemini|cancer|leo\b|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces/],
-    ["fortune500", /fortune|500|headquarter|hq|big compan|corporat/],
-    ["business", /business|startup|start-up|entrepreneur|own company|launch/],
-    ["pay", /pay|salary|salaries|wage|earn|income|money|highest.?paying/],
-    ["hiring", /hiring|jobs?\b|job market|openings|work\b|employ|career/],
-    ["married", /marr(y|ied|iage)|wedding|elope|divorce|engag/],
-    ["family", /family|kids|children|raise|school|parent/],
-    ["singles", /single|dating pool|meet (people|someone)|odds/],
-    ["dates", /date|dating|romant|valentine|restaurant|love/],
-  ];
-  const LABELS = {dates:"Best cities for dates", singles:"Most singles", family:"Best for families", married:"Best to get married",
-    pay:"Highest pay in my industry", hiring:"Who's hiring now", fortune500:"Fortune 500 cities", business:"Start a business", horoscope:"What do the stars say?"};
-  const mode = () => (typeof MODE !== "undefined" && MODE === "career") ? "career" : "love";
-  const starter = () => mode() === "career" ? ["hiring","pay","business","fortune500","dates"] : ["dates","singles","married","family","horoscope"];
-
-  function load(){
-    if (!loading) loading = fetch(FEED_URL, {cache:"no-cache"}).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => feed = j).catch(() => null);
-    return loading;
+const FEED_URL = "data/monie-feed.json";
+const $ = id => document.getElementById(id);
+const fab = $("mcFab"), panel = $("mcPanel"), log = $("mcLog"), chipsEl = $("mcChips"), topicsEl = $("mcTopics"), form = $("mcForm"), inp = $("mcIn");
+let feed = null, loading = null, CH = null, queue = Promise.resolve(), gen = 0, chatLogOn = false;
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduceMotion() ? Math.min(ms, 120) : ms));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = n => "$" + Number(n).toLocaleString("en-US");
+const MONIE_SAYS = {
+  hello: ["hey, i’m <b>Monie</b> 👋🏽", "i help people find the places in America most likely to move them. so, what are you moving for?"],
+  reasonChips: [["for love ♥", "love"], ["for work 💼", "jobs"], ["honestly, both", "both"]],
+  both: "love that. let’s do one now and the other right after. which first?",
+  reasonRetry: "ha, fair. if you had to start with one: love, or work?",
+  welcomeBack: (prev, now) => [`welcome back 💛 last time we talked ${prev === "jobs" ? "work" : "love"}.`,
+    `this time is about ${now === "jobs" ? "work" : "love"}, and i remember the rest, so it’s just two quick questions.`],
+  scene: r => r === "jobs" ? "a dream job hits different with the right view. which of these moves you most?"
+    : "picture your perfect first date. what’s the backdrop?",
+  sceneEcho: { "Mountains": "mountain person, noted 🏔️", "Beach fronts": "beach person, noted 🌊", "City skylines": "city lights it is 🌆", "Trees & Trails": "trees & trails, noted 🌲" },
+  sceneRetry: "i didn’t quite catch that. mountains, beach fronts, city skylines, or trees & trails?",
+  places: "any states or cities already on your radar? name as many as you like.",
+  placesEcho: list => `ooh, ${list}. noted ✍🏽`,
+  placesNone: "totally fine, that’s what the map is for.",
+  placesRetry: "i couldn’t match that to a state or city. try something like <b>Colorado</b> or <b>Austin, TX</b>, or tap <b>not sure yet</b>.",
+  home: "where are you living right now?",
+  homeState: st => `which city in ${st}?`,
+  homeRetry: "i just need a city here, so i can compare it with where you might go.",
+  age: "and how old are you? just the number. it stays between us (and a spreadsheet).",
+  ageRetry: "just the number works, like <b>29</b>.",
+  sign: "ok, the fun one ✨ what’s your sign? if you’re not sure, tell me your birthday.",
+  signFromBday: s => `that makes you a <b>${s}</b>.`,
+  signRetry: "hmm, i couldn’t find a sign in that. try one like <b>Leo</b>, or a birthday like <b>Aug 3</b>.",
+  industry: "what field do you work in, or want to? tap all that fit, then <b>done</b>. or just tell me.",
+  industryEcho: list => `${list}, got it.`,
+  comment: r => r === "jobs" ? "last one, and totally optional: what’s the job hunt like where you live?"
+    : "last one, and totally optional: what’s dating like where you live?",
+  commentThanks: "thank you for sharing that 💛",
+  doneLove: (sign, pairs, scene) => [`you’re a ${sign}, and you pair nicely with <b>${pairs}</b>.`,
+    `i lit up the love map with hot spots${scene ? ` for ${MONIE_SAYS.people[scene]}` : ""}. hover any state for its love snapshot, or tap a hot spot for local facts.`],
+  doneJobs: (inds, scene) => [`you work in <b>${inds}</b>.`,
+    `the career map is all yours now${scene ? `, with hot spots for ${MONIE_SAYS.people[scene]}` : ""}. hover any state for its career snapshot.`],
+  afterChips: other => [["show me the map", "map"], [other === "jobs" ? "now do work 💼" : "now do love ♥", "other"], ["start over", "restart"]],
+  afterBoth: [["show me the map", "map"], ["start over", "restart"]],
+  people: { "Mountains": "mountain people", "Beach fronts": "beach people", "City skylines": "city people", "Trees & Trails": "trees-and-trails people" },
+  hiAgain: (reason, both) => [`hey again 👋🏽 your ${reason === "jobs" ? "career" : "love"} map is all set.`, both ? "want to see it, or start fresh?" : `want to see it, do the ${reason === "jobs" ? "love" : "work"} side too, or start fresh?`],
+  idle: "i’m still here whenever you’re ready."
+};
+// ---------- understanding free text ----------
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 ,&'.-]/g, " ").replace(/\s+/g, " ").trim();
+const reEsc = w => w.replace(/[.*+?^$|()[\]{}\\]/g, "\\$&");
+const wordIn = (text, w) => new RegExp("(^|[^a-z])" + reEsc(w) + "([^a-z]|$)").test(text);
+const listText = arr => arr.length > 1 ? arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1] : arr.join("");
+const NO = /^(no|nope|nah|none|not (really|sure|yet)|not sure yet|idk|i don'?t know|skip|pass|nothing|anywhere|n\/a|na)\b/;
+const CITY_ALIAS = { "boise city": "boise" };   // official names people rarely type in full
+function findCities(raw){
+  // longest names first, so "Kansas City" wins over "Kansas" and "New York" over "York"
+  const t = norm(raw), found = [];
+  let rest = " " + t + " ";
+  const byLen = CITIES.slice().sort((a, b) => b.c.length - a.c.length);
+  for (const c of byLen) {
+    const on = norm(c.c); let n = on; if (CITY_ALIAS[n] && !wordIn(rest, n) && wordIn(rest, CITY_ALIAS[n])) n = CITY_ALIAS[n];
+    if (n.length < 3 || !wordIn(rest, n)) continue;
+    // prefer "Portland, ME" when the state is named right after the city
+    const after = rest.slice(rest.indexOf(n) + n.length, rest.indexOf(n) + n.length + 24);
+    const twin = CITIES.filter(x => norm(x.c) === on);
+    let pick = twin[0];
+    for (const x of twin) { const sName = norm((STATE_LIST.find(s => s.abbr === x.st) || {}).name || ""); if (new RegExp("^[ ,]*(" + x.st.toLowerCase() + "|" + sName + ")\\b").test(after)) pick = x; }
+    if (!found.includes(pick)) found.push(pick);
+    rest = rest.replace(n, " ");
   }
-  function say(html, who = "m"){
-    const d = document.createElement("div"); d.className = "mc-msg " + who; d.innerHTML = html;
-    log.appendChild(d); log.scrollTop = log.scrollHeight; return d;
-  }
-  function setChips(list){
-    chips.innerHTML = "";
-    list.forEach(([label, fn]) => { const b = document.createElement("button"); b.type = "button"; b.className = "mc-chip"; b.textContent = label;
-      b.onclick = () => { say(esc(label), "u"); fn(); }; chips.appendChild(b); });
-  }
-  const topicChips = (skip) => setChips([...starter(), ...Object.keys(LABELS)].filter((k, i, a) => a.indexOf(k) === i && k !== skip).slice(0, 5).map(k => [LABELS[k], () => answer(k)]));
-  const srcLine = (sources, extra) => {
-    const links = (sources || []).slice(0, 3).map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`);
-    return `<span class="mc-src">${extra ? esc(extra) + " · " : ""}Sources: ${links.join(" · ")}</span>`;
-  };
-  const topList = (top, fmt) => !top ? "" : "<ol>" + top.slice(0, 10).map(([c, v]) => `<li>${esc(c)}${v != null && v !== "" ? ` <span style="color:var(--text-subtle)">· ${esc(fmt ? fmt(v) : v)}</span>` : ""}</li>`).join("") + "</ol>";
-  const reviewNote = k => (feed.sourceWatch || []).some(w => w.topic === k && w.needsReview) ? " A newer edition of one ranking just came out; Monie's list may be a step behind." : "";
-
-  async function answer(k){
-    const t = say('<span class="mc-typing">Monie is checking…</span>');
-    await load();
-    if (!feed) { t.innerHTML = "I can't reach my notes right now. Try again in a minute?"; return; }
-    const T = feed.topics[k];
-    if (k === "pay") { t.remove(); return askIndustry(); }
-    if (k === "horoscope") { t.remove(); return askSign(); }
-    let extra = "";
-    if (k === "hiring" && T.live) extra = topList(T.live.states.slice(0, 5).map(s => [s.state, `${s.index} (${s.vsYearAgo >= 0 ? "+" : ""}${s.vsYearAgo} in a year)`]));
-    else if (k === "business" && T.live) extra = "<b>Fastest-growing states for new businesses:</b>" + topList(T.live.statesByGrowth.slice(0, 5).map(s => [s.state, `+${s.vsYearAgoPct}% vs. a year ago`]));
-    else extra = topList(T.top, k === "fortune500" ? v => v + " HQs" : null);
-    const fact = (T.facts || [])[0] && k !== "married" && k !== "family" && k !== "business" ? `<br><br>${esc(T.facts[0])}` : "";
-    const fresh = T.live && T.live.asOf ? (k === "married" ? `CDC data year ${T.live.asOf}` : `Updated ${T.live.asOf}`) : "";
-    t.innerHTML = `${esc(T.saysNow || T.says)}${fact}${extra}${reviewNote(k) ? "<br>" + esc(reviewNote(k)) : ""}${srcLine(T.sources, fresh)}`;
-    topicChips(k);
-  }
-  function askIndustry(){
-    const by = feed.topics.pay.byIndustry;
-    say("Which industry are you in? I'll show the states with the highest median pay for the closest common job.");
-    setChips([...Object.keys(by), "Something else"].map(ind => [ind, () => payFor(ind)]));
-  }
-  function payFor(ind){
-    const P = feed.topics.pay, rows = P.byIndustry[ind];
-    if (!rows) say(`For other industries, the highest-paying metros overall are Bremerton WA, San Francisco, Seattle, San Jose and Boulder.${srcLine(P.sources)}`);
-    else say(`Top states for <b>${esc(ind)}</b> by median yearly pay:${topList(rows, money)}${srcLine(P.sources, "BLS, May 2025")}`);
-    topicChips("pay");
-  }
-  function askSign(){
-    say("Just for fun: what's your sign?");
-    setChips(SIGNS.map(s => [s, () => starsFor(s)]).slice(0, 12));
-  }
-  function starsFor(sign){
-    const H = feed.topics.horoscope, d = feed.topics.dates.top.slice(0, 3).map(x => x[0]);
-    say(`${esc(sign)}, the stars say it's a good week to be curious. If you're dreaming of a move, start with this year's top date-night cities: ${esc(d.join(", "))}. ` +
-      `Horoscopes are entertainment, not data. For real location astrology, try a free relocation chart at <a href="${esc(H.liveOptions[2][1])}" target="_blank" rel="noopener">Astro.com</a>.`);
-    topicChips("horoscope");
-  }
-  function route(text){
-    const s = text.toLowerCase();
-    if (feed) for (const ind of Object.keys(feed.topics.pay.byIndustry)) {
-      const words = ind.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3);
-      if (/pay|salar|wage|earn/.test(s) && words.some(w => s.includes(w))) return () => payFor(ind);
-    }
-    const hit = ROUTES.find(([, re]) => re.test(s));
-    return hit ? () => answer(hit[0]) : null;
-  }
-  function logQuestion(text){
-    try {
-      if (typeof RESPONSES_URL === "undefined") return;
-      fetch(RESPONSES_URL, {method:"POST", mode:"no-cors", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body: JSON.stringify({type:"question", map: mode(), topic:"Monie chat", place:"Monie chat", placeType:"chat", state:"", text: text.slice(0, 1000),
-          source: typeof SITE_SOURCE !== "undefined" ? SITE_SOURCE : "GitHub"})}).catch(() => {});
-    } catch (e) {}
-  }
-  form.addEventListener("submit", async e => {
-    e.preventDefault(); const q = inp.value.trim(); if (!q) return;
-    say(esc(q), "u"); inp.value = ""; await load();
-    const go = route(q);
-    if (go) return go();
-    logQuestion(q);
-    say("Good question! I don't have numbers for that yet, so I've passed it to the Move ♥ Me team. Here's what I can answer today:");
-    topicChips();
+  return { cities: found, rest };
+}
+function findStates(text, rawText){
+  const out = [];
+  STATE_LIST.slice().sort((a, b) => b.name.length - a.name.length).forEach(s => { const n = norm(s.name); if (wordIn(text, n)) { out.push(s); text = text.replace(n, " "); } });
+  // two-letter codes only when typed in capitals, skipping ones that are also everyday words
+  (rawText.match(/\b[A-Z]{2}\b/g) || []).forEach(code => {
+    if (["OK", "HI", "ME", "OR", "IN", "OH", "AS"].includes(code)) return;
+    const s = STATE_LIST.find(x => x.abbr === code); if (s && !out.includes(s)) out.push(s);
   });
-  function open(){
-    panel.hidden = false; fab.setAttribute("aria-expanded", "true"); fab.classList.add("seen"); load();
-    if (!greeted) { greeted = true;
-      say(mode() === "career" ? "Hi, I'm Monie! Ask me where the jobs and the money are, or pick a question below."
-                              : "Hi, I'm Monie! Ask me where to find love, dates and the most singles, or pick a question below.");
-      topicChips(); }
-    setTimeout(() => inp.focus(), 50);
+  return out;
+}
+function parsePlaces(raw){
+  const { cities, rest } = findCities(raw);
+  // drop states that only appear as the ", TX" after a city
+  let rawRest = raw; cities.forEach(c => { rawRest = rawRest.replace(new RegExp(reEsc(c.c) + "\\s*,?\\s*(" + c.st + "|" + ((STATE_LIST.find(s => s.abbr === c.st) || {}).name || c.st) + ")?", "i"), " "); });
+  const states = findStates(norm(rawRest), rawRest);
+  return states.map(s => ({ type: "state", value: s.abbr, label: s.name })).concat(cities.map(c => ({ type: "city", value: c.label, label: c.label })));
+}
+function parseReason(t){
+  if (/\bboth\b|\b(and|&) (work|love|job)/.test(t)) return "both";
+  const love = /lov|dat(e|ing)|partner|relationship|romance|my person|single|boyfriend|girlfriend|wife|husband|spouse|match|crush/.test(t);
+  const job = /\bjob|work|career|employ|hire|hiring|salary|paycheck|gig|profession|industry|money/.test(t);
+  return love && job ? "both" : love ? "love" : job ? "jobs" : null;
+}
+const SCENE_WORDS = [["Mountains", /mountain|peak|ski|snow|hik|alpine|rock|summit|elevation/], ["Beach fronts", /beach|ocean|coast|sea\b|seaside|surf|sand|shore|water|lake|island|wave/],
+  ["City skylines", /city|skyline|urban|downtown|lights|tall building|metro|nightlife|rooftop/], ["Trees & Trails", /tree|trail|forest|wood|nature|green|park|outdoor|camp|leaf|leaves/]];
+function parseScene(t){ const hit = SCENE_WORDS.filter(([, re]) => re.test(t)); return hit.length === 1 ? hit[0][0] : hit.length ? hit[0][0] : null; }
+const MON3 = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+function signFromDate(m, d){
+  // [month, last day of the earlier sign, earlier sign, later sign]
+  const cut = [[1, 19, "Capricorn", "Aquarius"], [2, 18, "Aquarius", "Pisces"], [3, 20, "Pisces", "Aries"], [4, 19, "Aries", "Taurus"], [5, 20, "Taurus", "Gemini"], [6, 20, "Gemini", "Cancer"],
+    [7, 22, "Cancer", "Leo"], [8, 22, "Leo", "Virgo"], [9, 22, "Virgo", "Libra"], [10, 22, "Libra", "Scorpio"], [11, 21, "Scorpio", "Sagittarius"], [12, 21, "Sagittarius", "Capricorn"]][m - 1];
+  return d <= cut[1] ? cut[2] : cut[3];
+}
+function parseSign(t){
+  const named = SIGN_INFO.map(([n]) => n).find(n => wordIn(t, n.toLowerCase()) || (n === "Sagittarius" && /\bsag\b/.test(t)) || (n === "Capricorn" && /\bcap\b/.test(t)));
+  if (named) return { sign: named };
+  let m = t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.? (\d{1,2})/), mo, dd;
+  if (m) { mo = MON3.indexOf(m[1]) + 1; dd = +m[2]; }
+  else if ((m = t.match(/\b(\d{1,2}) (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/))) { mo = MON3.indexOf(m[2]) + 1; dd = +m[1]; }
+  else if ((m = t.match(/\b(\d{1,2})[\/.-](\d{1,2})\b/))) { mo = +m[1]; dd = +m[2]; }
+  if (mo >= 1 && mo <= 12 && dd >= 1 && dd <= 31) return { sign: signFromDate(mo, dd), fromBday: true };
+  return null;
+}
+const IND_WORDS = [["Tech & software", /tech|software|engineer|developer|\bdev\b|coding|program|\bit\b|data|product manag|\bai\b/], ["Healthcare", /health|nurs|doctor|hospital|medic|clinic|pharma|therap|dental|dentist/],
+  ["Education", /educat|teach|school|professor|tutor|universit|college/], ["Finance & business", /financ|bank|account|business|consult|sales|insurance|real estate|\bhr\b|operations/],
+  ["Creative & design", /design|creative|\bart|writer|writing|\bux\b|photograph|film|music|illustrat/], ["Retail & hospitality", /retail|restaurant|hospitality|hotel|server|bartend|barista|chef|cook|store|shop/],
+  ["Trades & construction", /trade|construct|electric|plumb|carpent|mechanic|welder|weld|hvac|contractor/], ["Government & nonprofit", /govern|nonprofit|non-profit|public sector|civil|military|ngo|social work/],
+  ["Marketing & media", /market|media|journalis|\bpr\b|social media|advertis|content|comms|communication/], ["Science & research", /scien|research|\blab\b|biolog|chemist|physic|academ/],
+  ["Transportation & logistics", /transport|logistic|driver|driving|truck|shipping|warehouse|delivery|supply chain|airline|pilot/]];
+function parseIndustries(t){ return IND_WORDS.filter(([, re]) => re.test(t)).map(([n]) => n); }
+const INDICON = n => `<svg class="ico" aria-hidden="true"><use href="#i-${(INDUSTRIES.find(([x]) => x === n) || ["", "other"])[1]}"/></svg>`;
+const ZI = (s, cls = "zi") => `<span class="${cls}" aria-hidden="true">${zIcon(s, "twotone", "coral")}</span>`;
+const titleCase = s => s.replace(/\b([a-z])/g, c => c.toUpperCase());
+
+// ---------- the conversation ----------
+// Each step: ask() says the question and shows suggestions; take(text, val) handles a typed or tapped answer
+// and returns true when the step is answered.
+const STEPS = {
+  reason: {
+    ask(){ say(MONIE_SAYS.hello); chips(MONIE_SAYS.reasonChips); },
+    take(text, val){
+      const r = val || parseReason(norm(text));
+      if (r === "both") { say(MONIE_SAYS.both); chips(MONIE_SAYS.reasonChips.slice(0, 2)); CH.both = true; return false; }
+      if (!r) { say(MONIE_SAYS.reasonRetry); chips(MONIE_SAYS.reasonChips.slice(0, 2)); return false; }
+      CH.A.reason = r; return true;
+    }
+  },
+  scene: {
+    ask(){ say(MONIE_SAYS.scene(CH.A.reason)); chips([["⛰️ Mountains", "Mountains"], ["🏖️ Beach fronts", "Beach fronts"], ["🏙️ City skylines", "City skylines"], ["🌲 Trees & Trails", "Trees & Trails"]]); },
+    take(text, val){
+      const s = val || parseScene(norm(text));
+      if (!s) { say(MONIE_SAYS.sceneRetry); return false; }
+      CH.A.scene = s; say(MONIE_SAYS.sceneEcho[s]); return true;
+    }
+  },
+  places: {
+    ask(){ say(MONIE_SAYS.places); chips([["not sure yet", "__none"]], { quiet: ["__none"] }); },
+    take(text, val){
+      if (val === "__none" || NO.test(norm(text))) { CH.A.places = []; say(MONIE_SAYS.placesNone); return true; }
+      const p = parsePlaces(text);
+      if (!p.length) { say(MONIE_SAYS.placesRetry); return false; }
+      CH.A.places = p; say(MONIE_SAYS.placesEcho(listText(p.map(x => `<b>${esc(x.label)}</b>`)))); return true;
+    }
+  },
+  home: {
+    ask(){ say(MONIE_SAYS.home); clearChips(); },
+    take(text){
+      const raw = text.trim(); if (raw.length < 2) { say(MONIE_SAYS.homeRetry); return false; }
+      const { cities } = findCities(raw);
+      if (cities.length) { CH.A.home = cities[0].label; return true; }
+      const st = STATE_LIST.find(s => norm(s.name) === norm(raw) || s.abbr === raw.toUpperCase());
+      if (st) { say(MONIE_SAYS.homeState(st.name)); return false; }
+      CH.A.home = (raw === raw.toLowerCase() ? titleCase(raw) : raw).slice(0, 60); return true;
+    }
+  },
+  age: {
+    ask(){ say(MONIE_SAYS.age); clearChips(); },
+    take(text){
+      const m = text.match(/\b(\d{2})\b/); const n = m ? +m[1] : NaN;
+      if (!(n >= 16 && n <= 99)) { say(MONIE_SAYS.ageRetry); return false; }
+      const lo = Math.max(20, n - (n % 5)); CH.A.age = `${lo}–${lo + 4}`; return true;
+    }
+  },
+  sign: {
+    ask(){ say(MONIE_SAYS.sign); chips(SIGN_INFO.map(([n]) => [n, n, ZI(n)])); },
+    take(text, val){
+      const r = val ? { sign: val } : parseSign(norm(text));
+      if (!r) { say(MONIE_SAYS.signRetry); return false; }
+      CH.A.sign = r.sign; if (r.fromBday) say(MONIE_SAYS.signFromBday(`${ZI(r.sign, "zinline")}${r.sign}`)); return true;
+    }
+  },
+  industry: {
+    ask(){ say(MONIE_SAYS.industry); CH.pick = []; chips(INDUSTRIES.filter(([n]) => n !== "Other").map(([n]) => [n, n, INDICON(n)]), { multi: true }); },
+    take(text, val){
+      if (val === "__done") { if (!CH.pick.length) return false; CH.A.industries = CH.pick.slice(); }
+      else {
+        const found = parseIndustries(norm(text));
+        CH.A.industries = found.length ? found : ["Other"];
+        CH.A.industryOther = found.length ? "" : text.trim().slice(0, 80);
+      }
+      say(MONIE_SAYS.industryEcho(listText(industryLabels(CH.A).map(x => `<b>${esc(x)}</b>`)))); return true;
+    }
+  },
+  comment: {
+    ask(){ say(MONIE_SAYS.comment(CH.A.reason)); chips([["skip", "__skip"]], { quiet: ["__skip"] }); },
+    take(text, val){
+      if (val === "__skip" || NO.test(norm(text))) { CH.A.comment = ""; return true; }
+      CH.A.comment = text.trim().slice(0, 1000); say(MONIE_SAYS.commentThanks); return true;
+    }
   }
-  function close(){ panel.hidden = true; fab.setAttribute("aria-expanded", "false"); fab.focus(); }
-  fab.addEventListener("click", () => panel.hidden ? open() : close());
-  $("mcClose").addEventListener("click", close);
-  panel.addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); close(); } });
-  load();
+};
+const FULL_CHAT = ["reason", "scene", "places", "home", "age", "fifth", "comment"], SHORT_CHAT = ["fifth", "comment"];
+const stepName = () => { const s = CH.flow[CH.i]; return s === "fifth" ? (CH.A.reason === "jobs" ? "industry" : "sign") : s; };
+// ---------- rendering ----------
+function addMsg(who, html){
+  const d = document.createElement("div"); d.className = "mc-msg " + who; d.innerHTML = html;
+  log.appendChild(d); log.scrollTop = log.scrollHeight;
+  if (CH && CH.log) { CH.log.push((who === "m" ? "Monie: " : "You: ") + d.textContent.trim()); if (who === "u") CH.said++; }
+  return d;
+}
+function say(lines){
+  lines = [].concat(lines); const g = gen;
+  queue = queue.then(async () => {
+    for (const html of lines) {
+      if (g !== gen) return;
+      const t = document.createElement("div"); t.className = "mc-msg m mc-dots"; t.setAttribute("aria-label", "Monie is typing"); t.innerHTML = "<i></i><i></i><i></i>";
+      log.appendChild(t); log.scrollTop = log.scrollHeight;
+      await wait(350 + Math.min(850, html.replace(/<[^>]+>/g, "").length * 10));
+      t.remove(); if (g !== gen) return; addMsg("m", html); await wait(120);
+    }
+  });
+  return queue;
+}
+let lastFlowChips = null;
+function chips(list, opts = {}, isTopic = false){
+  if (!isTopic) lastFlowChips = [list, opts];
+  chipsEl.innerHTML = list.map(([label, val, icon]) =>
+    `<button type="button" class="mc-chip${val === "__done" ? " go" : ""}${opts.quiet && opts.quiet.includes(val) ? " quiet" : ""}" data-val="${esc(String(val))}"${opts.multi && val !== "__done" ? ' aria-pressed="false"' : ""}>${icon || ""}<span>${label}</span></button>`).join("");
+}
+function clearChips(){ chipsEl.innerHTML = ""; }
+const restoreFlowChips = () => { if (lastFlowChips) chips(lastFlowChips[0], lastFlowChips[1]); };
+const logAfterNow = () => { const c = CH; queue = queue.then(() => { if (CH === c) logChat(); }); };
+
+// ---------- quick answers from the data feed (shown as text links under a thin line) ----------
+const LABELS = { dates: "Best cities for dates", singles: "Most singles", family: "Best for families", married: "Best to get married",
+  pay: "Highest pay in my industry", hiring: "Who's hiring now", fortune500: "Fortune 500 cities", business: "Start a business", horoscope: "What do the stars say?" };
+const ROUTES = [
+  ["horoscope", /horoscope|astrolog|stars\b/], ["fortune500", /fortune|500|headquarter|\bhq|big compan|corporat/],
+  ["business", /business|startup|start-up|entrepreneur|own company|launch/], ["pay", /\bpay\b|salary|salaries|wage|earn|income|highest.?paying/],
+  ["hiring", /hiring|job market|openings|employ/], ["married", /marr(y|ied|iage)|wedding|elope|engag/],
+  ["family", /family|kids|children|raise|school|parent/], ["singles", /single|dating pool|meet (people|someone)|odds/],
+  ["dates", /\bdates?\b|date night|romant|valentine|restaurant/]];
+function renderTopics(){
+  const keys = MODE === "career" ? ["hiring", "pay", "business", "fortune500", "dates", "singles", "married", "family", "horoscope"]
+    : ["dates", "singles", "married", "family", "horoscope", "hiring", "pay", "business", "fortune500"];
+  topicsEl.innerHTML = `<span class="mc-tl">Quick answers:</span> ` + keys.map(k => `<a href="#" data-topic="${k}">${LABELS[k]}</a>`).join('<span aria-hidden="true"> · </span>');
+}
+function load(){
+  if (!loading) loading = fetch(FEED_URL, { cache: "no-cache" }).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => feed = j).catch(() => null);
+  return loading;
+}
+const srcLine = (sources, extra) => `<span class="mc-src">${extra ? esc(extra) + " · " : ""}Sources: ${(sources || []).slice(0, 3).map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join(" · ")}</span>`;
+const topList = (top, fmt) => !top ? "" : "<ol>" + top.slice(0, 10).map(([c, v]) => `<li>${esc(c)}${v != null && v !== "" ? ` <span style="color:var(--text-subtle)">· ${esc(fmt ? fmt(v) : v)}</span>` : ""}</li>`).join("") + "</ol>";
+const reviewNote = k => (feed.sourceWatch || []).some(w => w.topic === k && w.needsReview) ? " A newer edition of one ranking just came out; Monie's list may be a step behind." : "";
+async function topicAnswer(k){
+  await load();
+  if (!feed) { await say("I can't reach my notes right now. Try again in a minute?"); return restoreFlowChips(); }
+  const T = feed.topics[k];
+  if (k === "pay") { say("Which industry are you in? I'll show the states with the highest median pay for the closest common job."); return chips([...Object.keys(T.byIndustry), "Something else"].map(i => [i, "__tind:" + i]), {}, true); }
+  if (k === "horoscope") { say("Just for fun: what's your sign?"); return chips(SIGN_INFO.map(([n]) => [n, "__tsign:" + n, ZI(n)]), {}, true); }
+  let extra = "";
+  if (k === "hiring" && T.live) extra = topList(T.live.states.slice(0, 5).map(s => [s.state, `${s.index} (${s.vsYearAgo >= 0 ? "+" : ""}${s.vsYearAgo} in a year)`]));
+  else if (k === "business" && T.live) extra = "<b>Fastest-growing states for new businesses:</b>" + topList(T.live.statesByGrowth.slice(0, 5).map(s => [s.state, `+${s.vsYearAgoPct}% vs. a year ago`]));
+  else extra = topList(T.top, k === "fortune500" ? v => v + " HQs" : null);
+  const fact = (T.facts || [])[0] && !["married", "family", "business"].includes(k) ? `<br><br>${esc(T.facts[0])}` : "";
+  const fresh = T.live && T.live.asOf ? (k === "married" ? `CDC data year ${T.live.asOf}` : `Updated ${T.live.asOf}`) : "";
+  await say(`${esc(T.saysNow || T.says)}${fact}${extra}${reviewNote(k) ? "<br>" + esc(reviewNote(k)) : ""}${srcLine(T.sources, fresh)}`);
+  restoreFlowChips();
+}
+async function payFor(ind){
+  const P = feed.topics.pay, rows = P.byIndustry[ind];
+  await say(!rows ? `For other industries, the highest-paying metros overall are Bremerton WA, San Francisco, Seattle, San Jose and Boulder.${srcLine(P.sources)}`
+    : `Top states for <b>${esc(ind)}</b> by median yearly pay:${topList(rows, money)}${srcLine(P.sources, "BLS, May 2025")}`);
+  restoreFlowChips();
+}
+async function starsFor(sign){
+  const H = feed.topics.horoscope, d = feed.topics.dates.top.slice(0, 3).map(x => x[0]);
+  await say(`${esc(sign)}, the stars say it's a good week to be curious. If you're dreaming of a move, start with this year's top date-night cities: ${esc(d.join(", "))}. ` +
+    `Horoscopes are entertainment, not data. For real location astrology, try a free relocation chart at <a href="${esc(H.liveOptions[2][1])}" target="_blank" rel="noopener">Astro.com</a>.`);
+  restoreFlowChips();
+}
+function topicFor(text){
+  const s = text.toLowerCase();
+  if (feed && /pay|salar|wage|earn/.test(s)) for (const ind of Object.keys(feed.topics.pay.byIndustry)) {
+    const words = ind.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3);
+    if (words.some(w => s.includes(w))) return () => payFor(ind);
+  }
+  const hit = ROUTES.find(([, re]) => re.test(s));
+  return hit ? () => topicAnswer(hit[0]) : null;
+}
+const looksLikeQuestion = t => /\?\s*$|^(which|where|what|who|how|best|top|most|any|is|are|can|do)\b/i.test(t.trim());
+function logQuestion(text){
+  try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ type: "question", map: MODE, topic: "Monie chat", place: "Monie chat", placeType: "chat", state: "", text: text.slice(0, 1000), source: SITE_SOURCE }) }).catch(() => {}); } catch (e) {}
+}
+
+// ---------- the guided conversation ----------
+function startChat(opts = {}){
+  gen++; log.innerHTML = ""; clearChips(); queue = Promise.resolve(); lastFlowChips = null;
+  const reason = opts.reason || modeReason(), prev = getRes(otherReason(reason));
+  CH = { A: blank(), flow: FULL_CHAT, i: 0, pick: [], both: false, ...newLog() };
+  if (opts.reason || (prev && !getRes(reason))) {
+    const p = prev || {};
+    CH.flow = p.reason ? SHORT_CHAT : FULL_CHAT.slice(1);
+    Object.assign(CH.A, { reason, scene: p.scene || null, places: (p.places || []).slice(), age: p.age || "", home: p.home || "" });
+    if (p.reason) say(MONIE_SAYS.welcomeBack(p.reason, reason));
+  }
+  STEPS[stepName()].ask();
+}
+function greetBack(){
+  gen++; log.innerHTML = ""; clearChips(); queue = Promise.resolve();
+  const r = getRes(modeReason()), other = otherReason(r.reason), both = !!getRes(other);
+  CH = { A: Object.assign(blank(), r), flow: [], i: 0, pick: [], done: true, ...newLog() };
+  say(MONIE_SAYS.hiAgain(r.reason, both)).then(() => chips(both ? MONIE_SAYS.afterBoth : MONIE_SAYS.afterChips(other)));
+}
+function answer(text, val, shown){ if (!CH) return; const c = CH; queue = queue.then(() => { if (CH === c) answerNow(text, val, shown); }); }
+function answerNow(text, val, shown){
+  // quick-answer buttons (industry or sign for a quick answer)
+  if (val && val.startsWith("__tind:")) { addMsg("u", esc(shown)); clearChips(); payFor(val.slice(7)); return logAfterNow(); }
+  if (val && val.startsWith("__tsign:")) { addMsg("u", esc(shown)); clearChips(); starsFor(val.slice(8)); return logAfterNow(); }
+  // a typed question about a topic gets a quick answer, then the conversation carries on
+  if (!val && text && looksLikeQuestion(text)) { const go = topicFor(text); if (go) { addMsg("u", esc(text)); clearChips(); go(); return logAfterNow(); } }
+  if (CH.done) return afterAnswer(val, text);
+  const st = STEPS[stepName()];
+  addMsg("u", esc(shown || text)); clearChips();
+  if (!st.take(text, val)) {
+    if (!CH.both || st !== STEPS.reason || CH.A.reason) CH.misses++;
+    if (!chipsEl.innerHTML) restoreFlowChips();
+    return logAfterNow();
+  }
+  CH.i++;
+  if (CH.i < CH.flow.length) STEPS[stepName()].ask(); else finishChat();
+  logAfterNow();
+}
+function finishChat(){
+  const a = CH.A, jobs = a.reason === "jobs";
+  const result = { reason: a.reason, scene: a.scene, sign: jobs ? null : a.sign, industries: jobs ? a.industries : [], industryOther: jobs ? a.industryOther : "",
+    places: a.places, age: a.age, home: a.home, comment: a.comment, at: new Date().toISOString() };
+  setRes(a.reason, result);
+  sendAnswers({ ...result, via: "Chat" });
+  LS.set("mm-quiz-seen", true);
+  showResult(result);
+  setMode(jobs ? "career" : "love", { quiet: true });
+  replayMapIntro(); renderTopics();
+  const pairs = PAIRS[result.sign] || [];
+  say(jobs ? MONIE_SAYS.doneJobs(listText(industryLabels(result)), result.scene)
+    : MONIE_SAYS.doneLove(`<b>${result.sign}</b>`, pairs.length > 1 ? pairs.slice(0, -1).join(", ") + " & " + pairs[pairs.length - 1] : pairs.join(""), result.scene))
+    .then(() => { const other = otherReason(a.reason); chips(getRes(other) ? MONIE_SAYS.afterBoth : MONIE_SAYS.afterChips(other)); });
+  CH.done = true;
+}
+function afterAnswer(val, text){
+  const t = norm(text || "");
+  const v = val || (/map|show|done|thanks|thank/.test(t) ? "map" : /again|over|restart|reset/.test(t) ? "restart" : /work|job|career|love|dat/.test(t) ? "other" : null);
+  if (text) addMsg("u", esc(text));
+  if (v === "map") { logChat(); close(); holdHovers(); setTimeout(() => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }), reduceMotion() ? 0 : 200); return; }
+  if (v === "restart") return startChat();
+  if (v === "other") { const other = otherReason(CH.A.reason); setMode(other === "jobs" ? "career" : "love", { quiet: true }); renderTopics(); return startChat({ reason: other }); }
+  if (text) logQuestion(text);
+  say("good question! i don’t have numbers for that yet, so i’ve passed it to the Move ♥ Me team. try one of the quick answers below in the meantime.");
+  logAfterNow();
+}
+
+// ---------- full transcripts → "Chats" tab (one row per conversation, updated after each reply) ----------
+function newLog(){ return { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), log: [], said: 0, misses: 0 }; }
+function logChat(status){
+  if (!chatLogOn || !CH || !CH.said) return;
+  const payload = { type: "chat", chatId: CH.id, status: status || (CH.done ? "finished" : "in progress"), map: MODE, reason: CH.A.reason || "",
+    messages: CH.said, misses: CH.misses, transcript: CH.log.join("\n"), source: SITE_SOURCE };
+  try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).catch(() => {}); } catch (e) {}
+}
+// only log chats once the Sheet's script knows about them (older versions would put them in Responses)
+try { fetch(RESPONSES_URL).then(r => r.text()).then(t => { chatLogOn = /chats version/i.test(t); }).catch(() => {}); } catch (e) {}
+window.addEventListener("pagehide", () => { if (CH && CH.said && !CH.done) logChat("left"); });
+
+// ---------- open / close / input ----------
+function open(){
+  panel.hidden = false; fab.setAttribute("aria-expanded", "true"); fab.classList.add("seen"); load(); renderTopics();
+  if (!CH || !log.children.length) { if (getRes(modeReason())) greetBack(); else startChat(); }
+  setTimeout(() => inp.focus(), 50);
+}
+function close(){ panel.hidden = true; fab.setAttribute("aria-expanded", "false"); }
+fab.addEventListener("click", () => panel.hidden ? open() : (close(), fab.focus()));
+$("mcClose").addEventListener("click", () => { close(); fab.focus(); });
+panel.addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); close(); fab.focus(); } });
+chipsEl.addEventListener("click", e => {
+  const b = e.target.closest(".mc-chip"); if (!b) return;
+  const val = b.dataset.val, label = b.querySelector(":scope > span:last-child").textContent;
+  if (b.hasAttribute("aria-pressed")) {   // industries: tap to toggle, then "done"
+    const on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on);
+    CH.pick = on ? CH.pick.concat(val) : CH.pick.filter(x => x !== val);
+    const go = chipsEl.querySelector(".mc-chip.go");
+    if (CH.pick.length && !go) chipsEl.insertAdjacentHTML("beforeend", `<button type="button" class="mc-chip go" data-val="__done"><span>done →</span></button>`);
+    else if (!CH.pick.length && go) go.remove();
+    return;
+  }
+  if (val === "__done") return answer("", "__done", listText(CH.pick));
+  answer(label, val, label);
+});
+topicsEl.addEventListener("click", e => {
+  const a = e.target.closest("[data-topic]"); if (!a) return; e.preventDefault();
+  const c = CH; queue = queue.then(() => { if (CH !== c) return; addMsg("u", esc(a.textContent)); clearChips(); topicAnswer(a.dataset.topic); logAfterNow(); });
+});
+form.addEventListener("submit", e => { e.preventDefault(); const q = inp.value.trim(); if (!q) return; inp.value = ""; answer(q, null); });
+load();
 })();
 </script>
 <!-- ============ /Monie chat ============ -->

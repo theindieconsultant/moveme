@@ -3,6 +3,8 @@
 // Questions      → "Questions" tab
 // Comments       → "Comments" tab
 // Feedback       → emailed to Heatherlee + logged in the "Feedback" tab
+// Monie chats    → "Chats" tab, one row per conversation, updated after every reply
+//                  (finished chats also save their answers to "Responses", with Via = Chat)
 // Columns are matched by their heading text, so you can reorder or add columns safely.
 // Every tab gets a "Source" column (added automatically if missing) saying which copy of the site
 // sent the row: "GitHub", "Lovable", "Claude preview", or the site's web address.
@@ -12,6 +14,11 @@ const NOTE_TABS = { question: 'Questions', comment: 'Comments' };
 const FEEDBACK_TO = 'heatherlee.ux@gmail.com';
 const FEEDBACK_SUBJECT = 'Feedback from Move <3 Me Site';
 
+// Visiting the web app address shows which version is live (handy after a new deployment).
+function doGet() {
+  return ContentService.createTextOutput('Move ♥ Me script: chats version (Nov 2026)');
+}
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);   // two visitors posting at the same moment never overwrite each other
@@ -20,6 +27,7 @@ function doPost(e) {
     const ss = SpreadsheetApp.openById(SHEET_ID);   // always this exact Sheet
     if (d.type === 'feedback' || d.placeType === 'feedback') return saveFeedback(ss, d);
     if (d.type === 'question' || d.type === 'comment') return saveNote(ss, d);
+    if (d.type === 'chat') return saveChat(ss, d);
     return saveQuiz(ss, d);
   } finally {
     lock.releaseLock();
@@ -31,6 +39,12 @@ function ensureSource(sheet) {
   const last = Math.max(sheet.getLastColumn(), 1);
   const heads = sheet.getRange(1, 1, 1, last).getValues()[0].map(h => String(h).toLowerCase());
   if (!heads.some(h => h.includes('source'))) sheet.getRange(1, last + 1).setValue('Source').setFontWeight('bold');
+}
+// Adds a heading at the end of row 1 if no heading contains `match` yet.
+function ensureHeading(sheet, match, label) {
+  const last = Math.max(sheet.getLastColumn(), 1);
+  const heads = sheet.getRange(1, 1, 1, last).getValues()[0].map(h => String(h).toLowerCase());
+  if (!heads.some(h => h.includes(match))) sheet.getRange(1, last + 1).setValue(label).setFontWeight('bold');
 }
 const sourceOf = d => clean(d.source || 'GitHub');   // rows from before tagging existed came from the GitHub site
 
@@ -104,11 +118,13 @@ function saveFeedback(ss, d) {
 function saveQuiz(ss, d) {
   const sheet = ss.getSheetByName('Responses');
   ensureSource(sheet);
+  ensureHeading(sheet, 'via', 'Via');
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const valueFor = (heading) => {
     const h = String(heading).toLowerCase();
     if (h.startsWith('time')) return new Date();
     if (h.includes('source')) return sourceOf(d);
+    if (h === 'via' || h.startsWith('via ')) return d.via === 'Chat' ? 'Chat' : 'Quiz';
     if (h.includes('love')) return d.reason || '';
     if (h.includes('mountain') || h.includes('beach') || h.includes('skyline')) return d.scene || '';
     if (h.startsWith('age')) return d.age || '';
@@ -127,4 +143,40 @@ function saveQuiz(ss, d) {
 // Google will ask permission to send email as you; after you allow it, a test email arrives.
 function authorizeEmail() {
   MailApp.sendEmail(FEEDBACK_TO, FEEDBACK_SUBJECT, 'Test: Move ♥ Me site feedback emails are working. You can delete this email.');
+}
+
+// ---------- Monie chats: one row per conversation, found again by its Chat ID ----------
+const CHAT_HEADS = ['Started', 'Last updated', 'Chat ID', 'Source', 'Map', 'Journey', 'Status', 'Messages', 'Misses', 'Transcript'];
+function saveChat(ss, d) {
+  const id = String(d.chatId || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 40);
+  const transcript = String(d.transcript == null ? '' : d.transcript).slice(0, 45000).trim();
+  if (!id || !transcript) return ContentService.createTextOutput('empty');
+  const sheet = ss.getSheetByName('Chats') || ss.insertSheet('Chats');
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(CHAT_HEADS);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, CHAT_HEADS.length).setFontWeight('bold');
+    sheet.setColumnWidth(10, 520);
+  }
+  const heads = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).toLowerCase().trim());
+  const col = name => heads.indexOf(name.toLowerCase()) + 1;
+  const status = ({ finished: 'finished', left: 'left before finishing' })[d.status] || 'in progress';
+  const values = {
+    'last updated': new Date(), 'chat id': id, 'source': sourceOf(d), 'map': d.map === 'career' ? 'Career' : 'Love',
+    'journey': d.reason === 'jobs' ? 'Work' : d.reason === 'love' ? 'Love' : '', 'status': status,
+    'messages': Math.max(0, parseInt(d.messages, 10) || 0), 'misses': Math.max(0, parseInt(d.misses, 10) || 0),
+    'transcript': /^[=+\-@]/.test(transcript) ? "'" + transcript : transcript
+  };
+  // same chat again? overwrite its row (keeping "Started"); otherwise add a new row
+  const idCol = col('Chat ID');
+  const hit = idCol && sheet.getLastRow() > 1
+    ? sheet.getRange(2, idCol, sheet.getLastRow() - 1, 1).createTextFinder(id).matchEntireCell(true).findNext() : null;
+  if (hit) {
+    const row = hit.getRow();
+    Object.keys(values).forEach(k => { const c = col(k); if (c) sheet.getRange(row, c).setValue(values[k]); });
+  } else {
+    values['started'] = new Date();
+    sheet.appendRow(heads.map(h => values[h] === undefined ? '' : values[h]));
+  }
+  return ContentService.createTextOutput('ok');
 }
