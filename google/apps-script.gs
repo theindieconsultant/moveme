@@ -5,7 +5,7 @@
 // Feedback       → emailed to Heatherlee + logged in the "Feedback" tab
 // Monie chats    → "Chats" tab, one row per conversation, updated after every reply
 //                  (finished chats also save their answers to "Responses", with Via = Chat)
-// LinkedIn links → "Contacts" tab, kept apart from the anonymous answers and chats
+// LinkedIn links → "Contacts" tab, kept apart from the anonymous answers and chats, + an email to Heatherlee
 // Columns are matched by their heading text, so you can reorder or add columns safely.
 // Every tab gets a "Source" column (added automatically if missing) saying which copy of the site
 // sent the row: "GitHub", "Lovable", "Claude preview", or the site's web address.
@@ -14,10 +14,19 @@ const SHEET_ID = '1x_eM6R9c-K9YXT7WC27A8SLqiw34gbNMQqDP4ulLTGw';   // your Move 
 const NOTE_TABS = { question: 'Questions', comment: 'Comments' };
 const FEEDBACK_TO = 'heatherlee.ux@gmail.com';
 const FEEDBACK_SUBJECT = 'Feedback from Move <3 Me Site';
+const LINKEDIN_SUBJECT = 'Someone added their Linkedin to Move <3 Me';
 
 // Visiting the web app address shows which version is live (handy after a new deployment).
-function doGet() {
-  return ContentService.createTextOutput('Move ♥ Me script: chats version + contacts (Nov 2026)');
+// Add ?test=linkedin-email to the address to send yourself a sample LinkedIn email (at most once every 2 minutes).
+function doGet(e) {
+  if (e && e.parameter && e.parameter.test === 'linkedin-email') {
+    const cache = CacheService.getScriptCache();
+    if (cache.get('li-test')) return ContentService.createTextOutput('test email already sent, try again in 2 minutes');
+    cache.put('li-test', '1', 120);
+    emailContact('https://www.linkedin.com/in/heatherleenguyen/', { from: 'Card', map: 'love', reason: 'love', home: 'Chicago, IL', source: 'GitHub' }, true);
+    return ContentService.createTextOutput('test email sent to ' + FEEDBACK_TO);
+  }
+  return ContentService.createTextOutput('Move ♥ Me script: chats version + contacts + email (Nov 2026)');
 }
 
 function doPost(e) {
@@ -199,5 +208,25 @@ function saveContact(ss, d) {
   sheet.appendRow(heads.map(h => h.startsWith('time') ? new Date() : h.includes('linkedin') ? url : h === 'from' ? clean(d.from)
     : h.includes('map') ? (d.map === 'career' ? 'Career' : 'Love') : h.includes('journey') ? (d.reason === 'jobs' ? 'Jobs' : d.reason === 'love' ? 'Love' : '')
     : h.includes('industr') ? clean(d.industries) : h.includes('live') ? clean(d.home) : h.includes('source') ? sourceOf(d) : ''));
+  emailContact(url, d, false);   // the row is saved first, so a failed email never loses the link
   return ContentService.createTextOutput('ok');
+}
+
+const WHERE = { Card: 'the "your move ♥ me" card on the map', Quiz: 'the end of the quick quiz', Chat: 'the end of the Monie chat' };
+function emailContact(url, d, isTest) {
+  const when = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "EEE, MMM d, yyyy 'at' h:mm:ss a z");
+  const lines = [
+    (isTest ? '(This is a test email.)\n\n' : '') + 'Someone added their LinkedIn to Move ♥ Me.',
+    '',
+    'LinkedIn: ' + url,
+    'Added from: ' + (WHERE[d.from] || clean(d.from) || 'the site') + ' (' + (d.map === 'career' ? 'Career' : 'Love') + ' map)',
+    'Site: ' + sourceOf(d),
+    'When: ' + when
+  ];
+  if (d.reason) lines.push('Journey: ' + (d.reason === 'jobs' ? 'Jobs' : 'Love'));
+  if (d.industries) lines.push('Industry: ' + clean(d.industries));
+  if (d.home) lines.push('Lives in: ' + clean(d.home));
+  lines.push('', 'It\'s also saved in the Contacts tab of your Move ♥ Me Sheet.');
+  try { MailApp.sendEmail({ to: FEEDBACK_TO, subject: (isTest ? '[Test] ' : '') + LINKEDIN_SUBJECT, body: lines.join('\n') }); }
+  catch (err) { console.error('LinkedIn email failed: ' + err); }
 }
