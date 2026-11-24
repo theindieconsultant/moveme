@@ -812,6 +812,11 @@
   .quiz-result .retake{margin-right:0}
   /* smaller header logo, more room around it */
   .site .logo{font-size:clamp(20px,2.2vw,24px)}
+  /* "work in progress" note, centered in the site header */
+  .site{position:relative}
+  .wip{margin:0;font:700 12px/1 var(--sans);letter-spacing:.14em;color:var(--text-subtle);white-space:nowrap;pointer-events:none}
+  @media (min-width:761px){ .wip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)} }
+  @media (max-width:760px){ .wip{order:-1;width:100%;text-align:center;font-size:11px} }
 </style>
 </head>
 <body>
@@ -820,6 +825,7 @@
 </script>
 <header class="site">
   <a class="logo" href="#" id="logoLink" aria-label="move ♥ me, home"><span>move</span><svg class="logo-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.2c-.4 0-.8-.1-1.1-.4C5.6 16.4 2 13.2 2 8.9 2 5.9 4.3 3.6 7.2 3.6c1.9 0 3.6 1 4.8 2.5 1.2-1.5 2.9-2.5 4.8-2.5 2.9 0 5.2 2.3 5.2 5.3 0 4.3-3.6 7.5-8.9 11.9-.3.3-.7.4-1.1.4z"/></svg><span>me</span></a>
+  <p class="wip" aria-label="Work in progress">- - - - WORK IN PROGRESS - - - -</p>
   <nav class="site-nav" aria-label="Main">
     <a href="#" id="navMap" class="navlink">Map</a>
     <a href="#about" id="navAbout" class="navlink">About</a>
@@ -850,7 +856,7 @@
     <div>
       <p class="eyebrow">Move ♥ Me · <a class="maplink" href="#love-map" id="loveMap" aria-current="page">Love Map</a> <span aria-hidden="true">|</span> <a class="maplink" href="#career-map" id="careerMap">Career Map</a></p>
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
-      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta">Or start with <a class="quiz" href="#quiz" id="quizLink">a quick quiz</a>,<span class="convo-br">or, have a <a class="quiz" href="#chat" id="chatLink">quick convo</a> with Monie.</span></span></p>
+      <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta"><span id="ctaNew">Or start with <a class="quiz" href="#quiz" id="quizLink">a quick quiz</a>,<span class="convo-br">or, have a <a class="quiz" href="#chat" id="chatLink">quick convo</a> with Monie.</span></span><span id="ctaDone" hidden>Or <a class="quiz" href="#quiz" id="retakeLink">retake the quiz</a>,<span class="convo-br">or, <a class="quiz" href="#chat" id="convoLink">continue the convo</a> with Monie.</span></span></span></p>
       <div class="quiz-result" id="quizResult" hidden>
         <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button><button class="retake convo" id="convoBtn" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 12h36a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8H32L18 56V46h-4a8 8 0 0 1-8-8V20a8 8 0 0 1 8-8Z"/><circle cx="22" cy="29" r="3.5"/><circle cx="32" cy="29" r="3.5"/><circle cx="42" cy="29" r="3.5"/></svg>Continue the Convo</button>
       </div>
@@ -2220,7 +2226,7 @@ nextBtn.addEventListener("click", () => {
   sendAnswers(result);
   showResult(result);
   setMode(jobs ? "career" : "love", { quiet: true });   // jobs flow lands on the Career map
-  closeQuiz({ spiral: true, replayMap: true, reset: false, focus: document.getElementById("retake") });
+  closeQuiz({ spiral: true, replayMap: true, reset: false, focus: document.getElementById("retakeLink") });
   scrollToMap();
 });
 qz.addEventListener("keydown", e => {
@@ -2596,7 +2602,7 @@ function hideChat(){
   if (chatEl.hidden) return;
   const done = () => { chatEl.hidden = true; chatEl.classList.remove("closing"); document.body.classList.remove("chatting"); };
   if (reduceMotion()) done(); else { chatEl.classList.add("closing"); setTimeout(done, 280); }
-  const f = CH && CH.done ? document.getElementById("retake") : lastFocusChat;
+  const f = CH && CH.done ? document.getElementById("convoLink") : lastFocusChat;
   if (f && f.focus && !f.closest("[hidden]")) f.focus({ preventScroll: true });
 }
 
@@ -2654,9 +2660,17 @@ function renderCard(){
   // future: a chosen or uploaded avatar, saved as a data URL
   const av = LS.get("mm-avatar"); if (av && /^data:image\//.test(av)) document.getElementById("youAv").innerHTML = `<img src="${av}" alt="">`;
 }
+// after a result the on-load intro stays, and its links become "retake the quiz" / "continue the convo"
 const showResultBase = showResult;
-showResult = r => { showResultBase(r); renderCard(); };
-renderCard();
+showResult = r => {
+  const has = !!r && (r.reason === "jobs" || !!r.sign);
+  showResultBase(null);
+  document.getElementById("ctaNew").hidden = has; document.getElementById("ctaDone").hidden = !has;
+  renderCard();
+};
+document.getElementById("retakeLink").addEventListener("click", e => { e.preventDefault(); delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
+document.getElementById("convoLink").addEventListener("click", e => { e.preventDefault(); openChat(); });
+refreshResult();
 
 document.getElementById("retake").addEventListener("click", () => { delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
 // state badges: most common zodiac sign (Love) and pay rank of 50 (Career), right under each abbreviation
