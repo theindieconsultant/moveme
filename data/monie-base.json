@@ -1,0 +1,80 @@
+{
+  "about": "Move ♥ Me · Monie knowledge feed. Static facts come from the Move Me research Sheet (Monie tabs); 'live' blocks are refreshed by scripts/refresh_feed.py. Horoscopes are entertainment, not data.",
+  "topics": {
+    "dates": {
+      "question": "Which cities are best for dates?",
+      "says": "San Francisco tops the 2026 date-night ranking: lots of affordable restaurants, florists and things to do, and it's the most walkable big city. Top 5: San Francisco, San Diego, Las Vegas, Atlanta, Seattle.",
+      "top": [["San Francisco, CA", 78.3], ["San Diego, CA", 74.8], ["Las Vegas, NV", 74.3], ["Atlanta, GA", 73.7], ["Seattle, WA", 72.5], ["Denver, CO", 72.4], ["Pittsburgh, PA", 71.0], ["Scottsdale, AZ", 70.6], ["Portland, OR", 70.1], ["Washington, DC", null]],
+      "facts": ["OpenTable's Top 100 Romantic Restaurants 2026 has winners in 38 states, ranked from 9M+ verified diner reviews.", "52% of Americans planned to dine out on Valentine's Day 2026 (OpenTable).", "Rochester, NY is #1 on ConsumerAffairs' 2026 best cities for dating."],
+      "sources": [["WalletHub: Best Places for Valentine's Day 2026", "https://www.longisland.com/news/02-04-26/2-in-5-people-say-valentines-day-activities-are-not-affordable-this-year-best-places-for-valentines-day-2026.html"], ["ConsumerAffairs: Best cities for dating 2026", "https://consumeraffairs.com/movers/best-cities-for-dating.html"], ["OpenTable: Top 100 Romantic Restaurants 2026 (NJBIZ)", "https://njbiz.com/nj-restaurants-opentable-most-romantic-2026/"]],
+      "refresh": "Yearly: WalletHub (early Feb), OpenTable Top 100 (late Jan)"
+    },
+    "singles": {
+      "question": "Which cities have the most singles?",
+      "says": "These cities have the biggest share of adults who've never married: Detroit (57.4%), Boston (56.6%), Rochester (56.4%), Washington DC (55.1%), Milwaukee (55.1%). For the best odds overall, WalletHub ranks Atlanta #1 for singles and Las Vegas #2.",
+      "top": [["Detroit, MI", "57.4%"], ["Boston, MA", "56.6%"], ["Rochester, NY", "56.4%"], ["Washington, DC", "55.1%"], ["Milwaukee, WI", "55.1%"], ["Cincinnati, OH", "55.0%"], ["Cleveland, OH", "54.0%"], ["Minneapolis, MN", "53.7%"], ["Atlanta, GA", "53.2%"], ["Pittsburgh, PA", "52.9%"]],
+      "facts": ["76% of U.S. singles believe romantic love can last forever, up from 73% (Singles in America 2026).", "72% of Gen Z singles want to marry, the most of any generation.", "Washington DC has 84.5 single men per 100 single women; Fremont, CA has 136.7."],
+      "sources": [["SmartAsset: Where Most People Are Single or Married, 2026", "https://smartasset.com/data-studies/single-married-2026"], ["Match: Singles in America 2026 (DatingNews)", "https://www.datingnews.com/industry-trends/match-study-finds-76-percent-of-u-s-singles-believe-love-can-last-forever/"]],
+      "refresh": "Yearly: Census ACS (Sept), Singles in America (Sept), WalletHub singles (Dec)"
+    },
+    "family": {
+      "question": "Which cities are best for starting a family?",
+      "says": "For raising a family, these cities score highest on schools, safety, affordability and family fun: Fremont, Overland Park, Plano, Irvine, South Burlington. Fremont has been #1 four years running.",
+      "top": [["Fremont, CA", null], ["Overland Park, KS", null], ["Plano, TX", null], ["Irvine, CA", null], ["South Burlington, VT", null], ["Seattle, WA", null], ["Boise, ID", null], ["Gilbert, AZ", null], ["Bismarck, ND", null], ["San Diego, CA", null]],
+      "facts": ["Lowest 2024 divorce rates per 1,000 residents: Louisiana 0.8, Illinois 1.3, Massachusetts 1.5, Kansas 1.7, Iowa 1.8 (CDC/NCHS)."],
+      "sources": [["WalletHub: Best Places to Raise a Family 2025", "https://wallethub.com/edu/best-cities-for-families/4435"], ["CDC/NCHS: divorce rates by state, 2024", "https://www.cdc.gov/nchs/data/dvs/marriage-divorce/state-divorce-rates-90-95-00-24.pdf"]],
+      "refresh": "Yearly: WalletHub (spring), CDC/NCHS state rates (spring)"
+    },
+    "married": {
+      "question": "Best cities to get married in?",
+      "says": "The best-value cities to say \"I do\": Las Vegas, Orlando, Miami, Atlanta, Tampa (then Austin and Houston). The average U.S. wedding cost $34,200 in 2025; New Jersey is priciest (about $57k), Wyoming cheapest (about $17k).",
+      "top": [["Las Vegas, NV", null], ["Orlando, FL", null], ["Miami, FL", null], ["Atlanta, GA", null], ["Tampa, FL", null], ["Austin, TX", null], ["Houston, TX", null], ["Fort Lauderdale, FL", null], ["San Diego, CA", null], ["Los Angeles, CA", null]],
+      "facts": ["Highest 2024 marriage rates per 1,000 residents: Nevada 24.8, Utah 13.4, Hawaii 12.4, DC 10.1, Montana 9.2 (CDC/NCHS, counted where the wedding happens).", "Lowest marriage rate: Louisiana 3.7."],
+      "sources": [["WalletHub: Best Places to Get Married 2026", "https://wallethub.com/edu/best-places-to-get-married/18721"], ["The Knot: average wedding cost", "https://www.theknot.com/content/average-wedding-cost"], ["CDC/NCHS: marriage rates by state, 2024", "https://www.cdc.gov/nchs/data/dvs/marriage-divorce/state-marriage-rates-90-95-00-24.pdf"]],
+      "refresh": "Yearly: The Knot (Feb), WalletHub (Jan), CDC/NCHS (spring)"
+    },
+    "pay": {
+      "question": "Which cities pay the highest in my industry?",
+      "says": "Match the person's industry to the closest common job and list the five states with the highest median pay for it (BLS OEWS, May 2025). Unmatched industries get the highest-paying metros: Bremerton, San Francisco, Seattle, San Jose, Boulder.",
+      "byIndustry": {
+        "Tech & software": [["California", 174410], ["Washington", 166540], ["New York", 166180], ["Massachusetts", 165210], ["Oregon", 142720]],
+        "Healthcare": [["California", 140270], ["Hawaii", 136320], ["Oregon", 129010], ["Washington", 124200], ["Alaska", 109480]],
+        "Education": [["Washington", 49120], ["District of Columbia", 46920], ["Maine", 46750], ["California", 46490], ["Vermont", 43800]],
+        "Finance & business": [["District of Columbia", 111530], ["New York", 102640], ["New Jersey", 100830], ["Massachusetts", 99460], ["Connecticut", 97550]],
+        "Retail & hospitality": [["Washington", 39560], ["District of Columbia", 38500], ["California", 38440], ["Colorado", 37950], ["Hawaii", 37790]],
+        "Trades & construction": [["District of Columbia", 60310], ["Alaska", 60270], ["Minnesota", 59200], ["Washington", 59160], ["Massachusetts", 58320]],
+        "Transportation & logistics": [["Alaska", 70100], ["Washington", 64760], ["District of Columbia", 64170], ["New Jersey", 63570], ["Massachusetts", 63030]]
+      },
+      "sources": [["BLS Occupational Employment and Wage Statistics, May 2025", "https://www.bls.gov/oes/"]],
+      "refresh": "Yearly: BLS OEWS (spring)"
+    },
+    "hiring": {
+      "question": "Which regions are hiring the most right now?",
+      "says": "The South is hiring hardest. In 2025 the job openings rate was highest in Georgia (5.5%), Alaska (5.4%), West Virginia (5.3%), Oklahoma (5.2%) and Mississippi (5.0%); the U.S. average was 4.3%.",
+      "facts": ["WalletHub's best cities to find a job (2026): Scottsdale, Columbia MD, Portland ME, South Burlington, Pittsburgh."],
+      "sources": [["BLS: job openings rates by state, 2025", "https://www.bls.gov/opub/ted/2026/job-openings-rate-5-5-percent-in-georgia-5-4-percent-in-alaska-during-2025.htm"], ["Indeed Hiring Lab: Job Postings Index by state (weekly, CC BY 4.0)", "https://github.com/hiring-lab/job_postings_tracker"]],
+      "refresh": "Weekly (automatic): Indeed postings by state. Yearly: BLS JOLTS state annual (spring)"
+    },
+    "fortune500": {
+      "question": "Which cities have the most Fortune 500 companies?",
+      "says": "These metros are home to the most Fortune 500 headquarters: New York (49), Chicago (30), Houston (26), San Jose (21), Washington DC (20). By state, Texas leads with 57, just ahead of California (56) and New York (53).",
+      "top": [["New York, NY", 49], ["Chicago, IL", 30], ["Houston, TX", 26], ["San Jose, CA", 21], ["Washington, DC", 20], ["Dallas, TX", 19], ["Minneapolis, MN", 15], ["Atlanta, GA", 15], ["San Francisco, CA", 14], ["Boston, MA", 14]],
+      "sources": [["RealPage: Markets with the most Fortune 500 HQs, 2026", "https://www.realpage.com/analytics/fortune-500-companies-2026/"], ["Fortune: Texas leads in 2026", "https://fortune.com/2026/06/03/which-state-has-the-most-fortune-500-companies-texas-2026/"]],
+      "refresh": "Yearly: Fortune 500 list (early June)"
+    },
+    "business": {
+      "question": "Which cities are best for starting a business?",
+      "says": "Florida sweeps the top 5 for starting a business (Tampa, Orlando, Jacksonville, Hialeah, St. Petersburg). Americans filed a record 5.7 million business applications in 2025, and Wyoming files the most per person.",
+      "top": [["Tampa, FL", null], ["Orlando, FL", 63.74], ["Jacksonville, FL", null], ["Hialeah, FL", 60.94], ["St. Petersburg, FL", null], ["Durham, NC", null], ["Raleigh, NC", null], ["Tulsa, OK", null], ["Oklahoma City, OK", null], ["Miami, FL", null]],
+      "facts": ["U.S. business applications, Oct 2026: 501,609 (seasonally adjusted), down 6.0% from Sept (Census BFS, released Nov 12, 2026)."],
+      "sources": [["WalletHub: Best Large Cities to Start a Business 2026 (KTVU)", "https://www.ktvu.com/news/best-large-cities-to-start-business-2026"], ["Census Business Formation Statistics", "https://www.census.gov/econ/bfs/current/index.html"]],
+      "refresh": "Monthly: Census BFS (mid-month). Yearly: WalletHub (spring)"
+    },
+    "horoscope": {
+      "question": "What do the stars say about moving there?",
+      "says": "Monie pairs the person's sun sign with their top cities for fun. Horoscopes are entertainment, not data. Location astrology (astrocartography) needs birth date, time and place.",
+      "liveOptions": [["API Ninjas Horoscope (daily, by sign; key needed)", "https://api-ninjas.com/api/horoscope"], ["RoxyAPI Horoscope + Astrocartography (key needed; MCP server available)", "https://roxyapi.com/apis/astrocartography-api"], ["Astro.com free relocation charts (link out only)", "https://www.astro.com/cgi/h.cgi?f=gch&h=gch22"]],
+      "refresh": "On request (live API call), never stored"
+    }
+  }
+}
