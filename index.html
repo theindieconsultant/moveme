@@ -776,6 +776,11 @@
   .chat-send svg{width:18px;height:18px}
   .chat-fine{max-width:640px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--text-subtle)}
   @media (max-width:560px){ .chat-suggest.many{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:calc(-1 * clamp(12px,4vw,40px));padding-inline:clamp(12px,4vw,40px)} .chat-suggest.many .sug{flex:none} .chat-fine{display:none} .chat-head{padding:10px 8px 8px 14px} }
+  /* "Continue the Convo", beside "Retake Quiz" */
+  .retake.convo{background:var(--chartreuse)}
+  .retake.convo path{stroke-width:6}
+  .retake.convo:hover svg{transform:rotate(-10deg) scale(1.1)}
+  .retake.convo circle{fill:var(--ink)}
 </style>
 </head>
 <body>
@@ -816,7 +821,7 @@
       <h1 aria-label="fifty states of maybe.">fifty states <span class="refresh-wrap"><button class="refresh" id="refresh" type="button" aria-label="Refresh 10 hot spots" aria-describedby="refreshTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="r-under" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-dots" d="M50.5 22.5 A21 21 0 1 0 53 34"/><path class="r-head" d="M52.5 9.5 L51.6 23.6 L38 21.2"/><path class="r-head-dots" d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="refreshTip" role="tooltip">refresh 10 hot spots</span></span>f <span class="hl">maybe</span>.</h1>
       <p class="lede" id="lede"><span id="ledeText">Your person might be 1,000 miles away. So might your dream job. Hover &amp; tap a state for its love and career snapshot.</span> <span id="quizCta">Or start with <a class="quiz" href="#quiz" id="quizLink">a quick quiz</a>,<span class="convo-br">or, have a <a class="quiz" href="#chat" id="chatLink">quick convo</a> with Monie.</span></span></p>
       <div class="quiz-result" id="quizResult" hidden>
-        <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button>
+        <button class="retake" id="retake" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg>Retake Quiz</button><button class="retake convo" id="convoBtn" type="button"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 12h36a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8H32L18 56V46h-4a8 8 0 0 1-8-8V20a8 8 0 0 1 8-8Z"/><circle cx="22" cy="29" r="3.5"/><circle cx="32" cy="29" r="3.5"/><circle cx="42" cy="29" r="3.5"/></svg>Continue the Convo</button>
         <span id="resLove"><span>You’re a <b id="resSign">Virgo</b></span><span id="resIcon"></span><span class="sep" aria-hidden="true">|</span><span>you pair nicely with: <b id="resPairs"></b></span></span>
         <span id="resJobs" hidden><span id="resIndIcon" aria-hidden="true"></span><span>You work in <b id="resInd"></b></span></span>
       </div>
@@ -2261,6 +2266,7 @@ const MONIE_SAYS = {
   afterChips: other => [["show me the map", "map"], [other === "jobs" ? "now do work 💼" : "now do love ♥", "other"], ["start over", "restart"]],
   afterBoth: [["show me the map", "map"], ["start over", "restart"]],
   people: { "Mountains": "mountain people", "Beach fronts": "beach people", "City skylines": "city people", "Trees & Trails": "trees-and-trails people" },
+  hiAgain: (reason, both) => [`hey again 👋 your ${reason === "jobs" ? "career" : "love"} map is all set.`, both ? "want to see it, or start fresh?" : `want to see it, do the ${reason === "jobs" ? "love" : "work"} side too, or start fresh?`],
   idle: "i’m still here whenever you’re ready."
 };
 
@@ -2480,6 +2486,13 @@ function startChat(opts = {}){
   }
   STEPS[stepName()].ask();
 }
+// reopened after a result (from the quiz or an earlier chat that was cleared): pick up from the finish line
+function greetBack(){
+  chatGen++; chatLog.innerHTML = ""; clearChips(); chatQueue = Promise.resolve();
+  const r = getRes(modeReason()), other = otherReason(r.reason), both = !!getRes(other);
+  CH = { A: Object.assign(blank(), r), flow: [], i: 0, pick: [], done: true };
+  say(MONIE_SAYS.hiAgain(r.reason, both)).then(() => chips(both ? MONIE_SAYS.afterBoth : MONIE_SAYS.afterChips(other)));
+}
 function answer(text, val, shown){
   if (!CH) return;
   if (!(CH.flow && STEPS[stepName()] === STEPS.industry && val && val !== "__done")) { const c = CH; chatQueue = chatQueue.then(() => { if (CH === c) answerNow(text, val, shown); }); return; }
@@ -2536,12 +2549,12 @@ function openChat(){
   document.body.classList.add("chatting");
   holdHovers();
   fitMapAbove();
-  if (!CH || (CH.done && !chatLog.children.length)) startChat();
+  if (!CH || !chatLog.children.length) { if (getRes(modeReason())) greetBack(); else startChat(); }
   setTimeout(() => chatInput.focus({ preventScroll: true }), 80);
 }
 function hideChat(){
   if (chatEl.hidden) return;
-  const done = () => { chatEl.hidden = true; chatEl.classList.remove("closing"); document.body.classList.remove("chatting"); if (CH && CH.done) CH = null; };
+  const done = () => { chatEl.hidden = true; chatEl.classList.remove("closing"); document.body.classList.remove("chatting"); };
   if (reduceMotion()) done(); else { chatEl.classList.add("closing"); setTimeout(done, 280); }
   const f = CH && CH.done ? document.getElementById("retake") : lastFocusChat;
   if (f && f.focus && !f.closest("[hidden]")) f.focus({ preventScroll: true });
@@ -2549,6 +2562,7 @@ function hideChat(){
 
 document.getElementById("chatLink").addEventListener("click", e => { e.preventDefault(); openChat(); });
 document.getElementById("chatHide").addEventListener("click", hideChat);
+document.getElementById("convoBtn").addEventListener("click", openChat);
 document.getElementById("chatRestart").addEventListener("click", () => { startChat(); chatInput.focus(); });
 chatEl.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); hideChat(); } });
 chatSug.addEventListener("click", e => {
