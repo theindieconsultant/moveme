@@ -939,6 +939,23 @@
     body.has-card h1[aria-label^="fifty"]{font-size:20px;line-height:1.2;white-space:nowrap;margin:0}
     body.has-card h1[aria-label^="fifty"] .hl{background-size:100% .4em}
   }
+  /* chip: a little black refresh arrow that spins every few seconds */
+  .now-ico{flex:none;display:inline-grid;place-items:center;width:20px;height:20px;margin-right:-2px}
+  .now-ico svg{width:20px;height:20px;fill:none;stroke:var(--ink,#1B1B2F);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  [data-theme="dark"] .now-ico svg{stroke:var(--text)}
+  @media (prefers-reduced-motion:no-preference){
+    .now-ico svg{animation:nowSpin 4s cubic-bezier(.5,0,.3,1) infinite}
+    .now:hover .now-ico svg{animation-duration:1.2s}
+  }
+  @keyframes nowSpin{0%,70%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+  @media (max-width:760px){
+    .you-card{margin-bottom:18px}
+    /* small headline: the "o" refresh button stays big and obvious */
+    body.has-card h1[aria-label^="fifty"] .refresh-wrap{font-size:1.3em;margin:0 .06em 0 .04em;vertical-align:-.32em}
+    body.has-card h1[aria-label^="fifty"] .refresh svg{display:block}
+    body.has-card h1[aria-label^="fifty"] .refresh::before{content:"";position:absolute;inset:-4%;border-radius:50%;background:#D4F25A;z-index:-1}
+    body.has-card h1[aria-label^="fifty"] .refresh{z-index:0}
+  }
 </style>
 </head>
 <body>
@@ -1041,7 +1058,7 @@
     </div>
   </header>
   <div class="stage" id="stage">
-    <button class="now" id="now" type="button" aria-label="Refresh for 10 new hot spots" aria-describedby="nowTip"><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span><span class="tip" id="nowTip" role="tooltip">refresh for 10 new hotspots</span></button>
+    <button class="now" id="now" type="button" aria-label="Refresh for 10 new hot spots" aria-describedby="nowTip"><span class="now-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19.4 8.6A8 8 0 1 0 20 13"/><path d="M20.2 3.8 19.6 8.9 14.6 8"/></svg></span><span class="now-n" id="nowN">#1 of 20</span><span id="nowName">best cities for singles</span><span class="tip" id="nowTip" role="tooltip">refresh for 10 new hotspots</span></button>
     <svg class="map intro" id="map" role="group" aria-label="Map of the United States. Hover or tap a state for its love snapshot."></svg>
     <div class="cpeek" id="cpeek" aria-hidden="true"><p class="over" id="cpOver">hot spot</p><h3 id="cpName">city</h3><div class="set-chips sm" id="cpSets"></div><div class="cm-shape" id="cpShapeWrap"><svg id="cpShape" preserveAspectRatio="xMidYMid meet"></svg></div><p class="hint">Click for 3 local facts</p></div>
     <div class="peek" id="peek" role="dialog" aria-label="State love snapshot">
