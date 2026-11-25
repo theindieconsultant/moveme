@@ -872,6 +872,25 @@
   .you-av.is-monie{background:#FFE3DA}
   .you-av.is-monie img{width:128%;height:auto;max-width:none;object-fit:initial;margin:2% 0 0 -12%}
   [data-theme="dark"] .you-av.is-monie{background:#3A2E3A}
+  /* softer avatar: neon (light) / cobalt (dark) circle, no outline */
+  .you-av{border:0;background:#D4F25A}
+  [data-theme="dark"] .you-av{background:#2F4BFF}
+  /* industry Monie: ears pop out of the top of the circle */
+  .you-av.is-monie{position:relative;overflow:visible;background:none}
+  .you-av.is-monie::before{content:"";position:absolute;inset:0;border-radius:50%;background:#D4F25A}
+  [data-theme="dark"] .you-av.is-monie::before{background:#2F4BFF}
+  .you-av.is-monie img{position:absolute;left:-19px;top:-27px;width:102px;height:auto;max-width:none;margin:0;object-fit:initial;
+    clip-path:path("M19 0H83V59A32 32 0 0 1 19 59Z")}
+  .you-av-wrap{padding-top:6px}
+  /* no "your move ♥ me" label on the front of the card */
+  .you-front .you-eyebrow{display:none}
+  /* sign + industry icons 25% bigger */
+  .you-badge{width:35px;height:35px}
+  .you-badge svg,.you-badge .ico{width:35px;height:35px}
+  .you-av > svg > rect:first-child{fill:#D4F25A}
+  [data-theme="dark"] .you-av > svg > rect:first-child{fill:#2F4BFF}
+  .you-av.is-monie.bg-blue::before{background:#2F4BFF}
+  [data-theme="dark"] .you-av.is-monie.bg-blue::before{background:#D4F25A}
 </style>
 </head>
 <body>
@@ -2354,10 +2373,10 @@ const MONIE_OTHER = [{"src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDov
 function monieFor(J){   // the visitor's first industry; a written-in answer always gets one of the "Other" looks
   const ind = J && (J.industries || [])[0];
   if (!ind) return null;
-  if (ind !== "Other" && MONIE_WORK[ind]) return MONIE_WORK[ind];
+  if (ind !== "Other" && MONIE_WORK[ind]) return { ...MONIE_WORK[ind], blue: ind === "Tech & software" };   // neon hoodie → blue circle
   const t = String(J.industryOther || "other").toLowerCase(); let h = 0;
   for (const ch of t) h = (h * 31 + ch.charCodeAt(0)) >>> 0;   // same words → same look, every visit
-  return MONIE_OTHER[h % MONIE_OTHER.length];
+  const k = h % MONIE_OTHER.length; return { ...MONIE_OTHER[k], blue: k === 0 };   // neon sleeves → blue circle
 }
 
 // ===== results card, plain-text links, one intro for both maps (Monie chat opens from the "quick convo" links) =====
@@ -2383,6 +2402,7 @@ function renderCard(){
   const avEl = document.getElementById("youAv"); if (avEl.dataset.base == null) avEl.dataset.base = avEl.innerHTML;
   const mon = hasJ ? monieFor(J) : null, own = LS.get("mm-avatar");
   avEl.classList.toggle("is-monie", !!mon && !(own && /^data:image\//.test(own)));
+  avEl.classList.toggle("bg-blue", !!(mon && mon.blue));
   avEl.innerHTML = own && /^data:image\//.test(own) ? `<img src="${own}" alt="">`
     : mon ? `<img src="${mon.src}" alt="Monie dressed for ${esc(J.industries[0] === "Other" ? "work" : J.industries[0].toLowerCase())}">` : avEl.dataset.base;
 }
