@@ -849,6 +849,21 @@
   .li-ask .you-li-in{font-size:15px;padding:11px 14px}
   .li-ask-btns{margin-top:14px}
   .li-ask .you-li-err{margin-top:6px}
+  /* thank-you: little heart + sparkle burst */
+  .li-pop-card{overflow:hidden}
+  .li-pop-hearts{position:absolute;left:0;right:0;top:18px;height:60px;pointer-events:none}
+  .li-pop-hearts i{position:absolute;top:30px;font-style:normal;font-size:16px;opacity:0;animation:liFloat 1.6s ease-out .15s both}
+  .li-pop-hearts i:nth-child(1){left:30%;color:#FF8A65}
+  .li-pop-hearts i:nth-child(2){left:38%;color:#2F4BFF;font-size:12px;animation-delay:.3s}
+  .li-pop-hearts i:nth-child(3){left:60%;color:#FF8A65;font-size:13px;animation-delay:.25s}
+  .li-pop-hearts i:nth-child(4){left:67%;color:#9DBB1F;font-size:14px;animation-delay:.4s}
+  .li-pop-hearts i:nth-child(5){left:49%;color:#2F4BFF;font-size:11px;animation-delay:.5s}
+  @keyframes liFloat{0%{opacity:0;transform:translateY(10px) scale(.6)}25%{opacity:1}100%{opacity:0;transform:translateY(-34px) scale(1.1)}}
+  .li-pop-badge{animation:liPopBadge .5s cubic-bezier(.3,1.6,.5,1) both}
+  @keyframes liPopBadge{from{transform:scale(.4) rotate(-12deg)}}
+  .li-pop-card #liPopText{margin-bottom:10px;color:var(--text)}
+  .li-pop-fine{font-size:13px !important;color:var(--text-subtle) !important;margin:0 0 20px !important}
+  @media (prefers-reduced-motion:reduce){ .li-pop-hearts{display:none} .li-pop-badge{animation:none} }
 </style>
 </head>
 <body>
@@ -937,10 +952,12 @@
       <div class="li-pop" id="liPop" hidden>
         <div class="li-pop-bg" id="liPopBg"></div>
         <div class="li-pop-card" role="dialog" aria-modal="true" aria-labelledby="liPopTitle" aria-describedby="liPopText">
+          <span class="li-pop-hearts" aria-hidden="true"><i>♥</i><i>✦</i><i>♥</i><i>✦</i><i>♥</i></span>
           <span class="li-pop-badge" aria-hidden="true"><svg class="li-ico" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M6.6 9.6h2.6V18H6.6zM7.9 5.6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.8 9.6h2.5v1.15h.04c.35-.66 1.2-1.36 2.47-1.36 2.64 0 3.13 1.74 3.13 4V18h-2.6v-4.1c0-.98-.02-2.24-1.37-2.24-1.37 0-1.58 1.07-1.58 2.17V18h-2.6z" fill="#fff"/></svg><span class="li-check"><svg viewBox="0 0 16 16"><path d="M4 8.4l2.6 2.6L12 5.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-          <h2 id="liPopTitle">thank you for connecting</h2>
-          <p id="liPopText">We are working on integrating LinkedIn profile information with map data. Thank you for connecting your profile, this helps strengthen the experience for everyone.</p>
-          <button class="btn btn-primary" id="liPopClose" type="button">Close</button>
+          <h2 id="liPopTitle">you just made the map smarter ✨</h2>
+          <p id="liPopText">Thank you for connecting your LinkedIn! Real career paths like yours help us check our data, so every city snapshot gets a little more accurate for everyone who visits.</p>
+          <p class="li-pop-fine">Only the Move ♥ Me team sees your link. It’s kept apart from your answers, and we never post anything for you.</p>
+          <button class="btn btn-primary" id="liPopClose" type="button">back to the map</button>
         </div>
       </div>
     </div>
