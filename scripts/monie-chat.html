@@ -956,6 +956,14 @@
     body.has-card h1[aria-label^="fifty"] .refresh::before{content:"";position:absolute;inset:-4%;border-radius:50%;background:#D4F25A;z-index:-1}
     body.has-card h1[aria-label^="fifty"] .refresh{z-index:0}
   }
+  /* header mode switch is a quiet text link everywhere (neon dot stays) */
+  .site .toggle{border:0;background:none;box-shadow:none;padding:6px 4px;font-weight:600;text-decoration:underline;text-underline-offset:4px;text-decoration-color:color-mix(in srgb,var(--text-subtle) 50%,transparent)}
+  .site .toggle:hover,.site .toggle:active{transform:none;box-shadow:none;text-decoration-color:var(--text)}
+  /* desktop: once the card is up, the headline drops to one line so more map shows */
+  @media (min-width:761px){
+    body.has-card h1[aria-label^="fifty"]{font-size:clamp(34px,3.6vw,52px);line-height:1.1;white-space:nowrap;margin-top:6px}
+    body.has-card .lede{margin-top:8px}
+  }
 </style>
 </head>
 <body>
