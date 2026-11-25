@@ -212,7 +212,7 @@ function saveContact(ss, d) {
   return ContentService.createTextOutput('ok');
 }
 
-const WHERE = { Card: 'the "your move ♥ me" card on the map', Quiz: 'the end of the quick quiz', Chat: 'the end of the Monie chat' };
+const WHERE = { Card: 'the "your move ♥ me" card on the map', Map: 'the pop-up after exploring the map', Quiz: 'the end of the quick quiz', Chat: 'the end of the Monie chat' };
 function emailContact(url, d, isTest) {
   const when = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "EEE, MMM d, yyyy 'at' h:mm:ss a z");
   const lines = [
