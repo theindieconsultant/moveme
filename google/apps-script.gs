@@ -26,7 +26,7 @@ function doGet(e) {
     emailContact('https://www.linkedin.com/in/heatherleenguyen/', { from: 'Card', map: 'love', reason: 'love', home: 'Chicago, IL', source: 'GitHub' }, true);
     return ContentService.createTextOutput('test email sent to ' + FEEDBACK_TO);
   }
-  return ContentService.createTextOutput('Move ♥ Me script: chats version + contacts + email (Nov 2026)');
+  return ContentService.createTextOutput('Move ♥ Me script: chats version + contacts + email + remove (Nov 2026)');
 }
 
 function doPost(e) {
@@ -38,7 +38,7 @@ function doPost(e) {
     if (d.type === 'feedback' || d.placeType === 'feedback') return saveFeedback(ss, d);
     if (d.type === 'question' || d.type === 'comment') return saveNote(ss, d);
     if (d.type === 'chat') return saveChat(ss, d);
-    if (d.type === 'contact') return saveContact(ss, d);
+    if (d.type === 'contact') return d.remove ? removeContact(ss, d) : saveContact(ss, d);
     return saveQuiz(ss, d);
   } finally {
     lock.releaseLock();
@@ -229,4 +229,21 @@ function emailContact(url, d, isTest) {
   lines.push('', 'It\'s also saved in the Contacts tab of your Move ♥ Me Sheet.');
   try { MailApp.sendEmail({ to: FEEDBACK_TO, subject: (isTest ? '[Test] ' : '') + LINKEDIN_SUBJECT, body: lines.join('\n') }); }
   catch (err) { console.error('LinkedIn email failed: ' + err); }
+}
+
+// "remove link" on the site: delete that person's LinkedIn row(s) from Contacts
+function removeContact(ss, d) {
+  const m = String(d.linkedin || '').match(/linkedin\.com\/in\/([A-Za-z0-9\-_%]{2,100})/i);
+  const sheet = ss.getSheetByName('Contacts');
+  if (!m || !sheet || sheet.getLastRow() < 2) return ContentService.createTextOutput('nothing to remove');
+  const want = m[1].toLowerCase();
+  const heads = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).toLowerCase());
+  const col = heads.findIndex(h => h.includes('linkedin')) + 1;
+  if (!col) return ContentService.createTextOutput('no LinkedIn column');
+  const vals = sheet.getRange(2, col, sheet.getLastRow() - 1, 1).getValues();
+  for (let i = vals.length - 1; i >= 0; i--) {   // bottom up, so row numbers stay right
+    const v = String(vals[i][0]).match(/linkedin\.com\/in\/([A-Za-z0-9\-_%]{2,100})/i);
+    if (v && v[1].toLowerCase() === want) sheet.deleteRow(i + 2);
+  }
+  return ContentService.createTextOutput('removed');
 }

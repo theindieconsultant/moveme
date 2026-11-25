@@ -864,6 +864,10 @@
   .li-pop-card #liPopText{margin-bottom:10px;color:var(--text)}
   .li-pop-fine{font-size:13px !important;color:var(--text-subtle) !important;margin:0 0 20px !important}
   @media (prefers-reduced-motion:reduce){ .li-pop-hearts{display:none} .li-pop-badge{animation:none} }
+  .you-li-remove{margin-right:auto;background:none;border:0;padding:0;font:inherit;font-size:13px;color:#C2410C;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  [data-theme="dark"] .you-li-remove{color:#FF9B7A}
+  .you-li-remove[hidden]{display:none}
+  .you-li-remove:focus-visible{outline:2px solid var(--focus,#2F4BFF);outline-offset:3px;border-radius:6px}
 </style>
 </head>
 <body>
@@ -920,6 +924,7 @@
           <p class="you-row" id="resJobs" hidden><span>You work in <b id="resInd"></b></span></p>
           <button class="you-li-add" id="youLiAdd" type="button" aria-controls="youBack">+ LinkedIn profile</button>
           <button class="you-li-on" id="youLiOn" type="button" hidden aria-label="LinkedIn connected. Change your LinkedIn link"><span class="li-badge" aria-hidden="true"><svg class="li-ico" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M6.6 9.6h2.6V18H6.6zM7.9 5.6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.8 9.6h2.5v1.15h.04c.35-.66 1.2-1.36 2.47-1.36 2.64 0 3.13 1.74 3.13 4V18h-2.6v-4.1c0-.98-.02-2.24-1.37-2.24-1.37 0-1.58 1.07-1.58 2.17V18h-2.6z" fill="#fff"/></svg><span class="li-check"><svg viewBox="0 0 16 16"><path d="M4 8.4l2.6 2.6L12 5.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span>LinkedIn connected</span></button>
+          <span class="sr-only" id="youLiStatus" role="status"></span>
         </div>
         </div>
         <form class="you-face you-back" id="youBack" aria-hidden="true" inert novalidate>
@@ -928,6 +933,7 @@
           <input class="you-li-in" id="youLiIn" type="url" inputmode="url" maxlength="200" placeholder="linkedin.com/in/yourname" autocomplete="url" aria-describedby="youLiErr">
           <p class="you-li-err" id="youLiErr" role="alert" hidden>That should look like linkedin.com/in/yourname</p>
           <div class="you-li-btns">
+            <button class="you-li-remove" id="youLiRemove" type="button" hidden>remove link</button>
             <button class="you-li-cancel" id="youLiCancel" type="button">cancel</button>
             <button class="you-li-done" id="youLiDone" type="submit" aria-disabled="true">done</button>
           </div>
@@ -2411,12 +2417,22 @@ openSheet = abbr => { openSheetBase(abbr); const s = byAbbr[abbr] && byAbbr[abbr
 const LI_RE = /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/([A-Za-z0-9\-_%]{2,100})\/?/i;
 const linkedInUrl = t => { const m = String(t || "").match(LI_RE); return m ? `https://www.linkedin.com/in/${m[1]}/` : ""; };
 let contactsOn = null;   // the Sheet's script gets a Contacts tab in its "contacts" version
-const contactsCheck = fetch(RESPONSES_URL).then(r => r.text()).then(t => contactsOn = /contacts/i.test(t)).catch(() => contactsOn = false);
+let removeOn = false;     // …and can delete a link again in its "remove" version
+const contactsCheck = fetch(RESPONSES_URL).then(r => r.text()).then(t => { removeOn = /remove/i.test(t); return contactsOn = /contacts/i.test(t); }).catch(() => contactsOn = false);
+const postScript = body => { try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }).catch(() => {}); } catch (e) {} };
+// "remove link": forget it here and take it out of the Sheet's Contacts tab
+function removeContact(){
+  const url = LS.get("mm-li-url"); if (!url) return;
+  LS.set("mm-li-url", ""); LS.set("mm-li-declined", true); renderLi();   // don't ask again after they removed it
+  contactsCheck.finally(() => postScript(removeOn
+    ? { type: "contact", remove: true, linkedin: url, source: SITE_SOURCE }
+    // older script: note it in Comments (never Responses) so the row can be deleted by hand
+    : { type: "comment", map: MODE, topic: "LinkedIn REMOVED – please delete from Contacts", place: "LinkedIn", placeType: "contact", state: "", text: url, source: SITE_SOURCE }));
+}
 function saveContact(url, from, r){
   if (!url) return;
   LS.set("mm-li-shared", true); LS.set("mm-li-url", url); renderLi();
-  const post = body => { try { fetch(RESPONSES_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }).catch(() => {}); } catch (e) {} };
-  contactsCheck.finally(() => post(contactsOn
+  contactsCheck.finally(() => postScript(contactsOn
     ? { type: "contact", linkedin: url, from, map: MODE, reason: (r && r.reason) || "", industries: r ? industryLabels(r).join(", ") : "", home: (r && r.home) || "", source: SITE_SOURCE }
     // older script: keep it out of Responses by filing it as a comment
     : { type: "comment", map: MODE, topic: "LinkedIn contact (" + from + ")", place: "LinkedIn", placeType: "contact", state: "", text: url, source: SITE_SOURCE }));
@@ -2434,8 +2450,8 @@ closeQuiz = (opts = {}) => { const out = closeQuizBase(opts); runLiAsk(opts.spir
 // "+ LinkedIn profile" on the results card: flip to a paste box, flip back connected, then a thank-you note
 const yc = document.getElementById("youCard"), ycBack = document.getElementById("youBack"), ycFront = document.getElementById("youFront");
 const liIn = document.getElementById("youLiIn"), liDone = document.getElementById("youLiDone"), liErr = document.getElementById("youLiErr");
-const liAdd = document.getElementById("youLiAdd"), liOn = document.getElementById("youLiOn"), liPop = document.getElementById("liPop");
-function renderLi(){ const on = !!LS.get("mm-li-url"); liAdd.hidden = on; liOn.hidden = !on; }
+const liRemove = document.getElementById("youLiRemove"), liAdd = document.getElementById("youLiAdd"), liOn = document.getElementById("youLiOn"), liPop = document.getElementById("liPop");
+function renderLi(){ const on = !!LS.get("mm-li-url"); liAdd.hidden = on; liOn.hidden = !on; liRemove.hidden = !on; }
 function flipCard(back){
   yc.classList.toggle("flipped", back);
   ycBack.toggleAttribute("inert", !back); ycBack.setAttribute("aria-hidden", String(!back));
@@ -2448,6 +2464,10 @@ liIn.addEventListener("input", () => { liErr.hidden = true; liCheck(); });
 liAdd.addEventListener("click", () => flipCard(true));
 liOn.addEventListener("click", () => flipCard(true));
 document.getElementById("youLiCancel").addEventListener("click", () => { flipCard(false); (LS.get("mm-li-url") ? liOn : liAdd).focus({ preventScroll: true }); });
+liRemove.addEventListener("click", () => {
+  removeContact(); flipCard(false); liAdd.focus({ preventScroll: true });
+  const st = document.getElementById("youLiStatus"); st.textContent = "LinkedIn link removed"; setTimeout(() => st.textContent = "", 4000);
+});
 ycBack.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); document.getElementById("youLiCancel").click(); } });
 ycBack.addEventListener("submit", e => {
   e.preventDefault();
