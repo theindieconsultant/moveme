@@ -929,6 +929,16 @@
   }
 
   .lede-br{display:block}
+  .foot-sep{margin:0 6px;opacity:.6}
+  .foot-about{color:inherit;text-decoration:underline;text-underline-offset:3px}
+  .foot-about:hover{color:var(--text)}
+  @media (max-width:760px){
+    #navAbout{display:none}
+    .you-links a{display:table;margin:2px 0}
+    /* once the card is up, the headline shrinks to logo size on one line */
+    body.has-card h1[aria-label^="fifty"]{font-size:20px;line-height:1.2;white-space:nowrap;margin:0}
+    body.has-card h1[aria-label^="fifty"] .hl{background-size:100% .4em}
+  }
 </style>
 </head>
 <body>
@@ -982,7 +992,7 @@
         <div class="you-rows">
           <p class="you-eyebrow">your move ♥ me</p>
           <p class="you-row" id="resLove"><span>You’re a <b id="resSign">Virgo</b><span class="you-sub">you pair nicely with: <b id="resPairs"></b></span></span></p>
-          <p class="you-links" id="youLinks"><a href="#quiz" id="cardRetake">retake the quiz</a> <span aria-hidden="true">·</span> <a href="#chat" id="cardConvo">continue the convo</a></p>
+          <p class="you-links" id="youLinks"><a href="#quiz" id="cardRetake">retake the quiz</a> <a href="#chat" id="cardConvo">continue the convo</a></p>
           <p class="you-row" id="resJobs" hidden><span>You work in <b id="resInd"></b></span></p>
           <button class="you-li-add" id="youLiAdd" type="button" aria-controls="youBack" aria-label="Add your LinkedIn profile"><span class="li-add-ico" aria-hidden="true"><svg class="li-ico" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M6.6 9.6h2.6V18H6.6zM7.9 5.6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.8 9.6h2.5v1.15h.04c.35-.66 1.2-1.36 2.47-1.36 2.64 0 3.13 1.74 3.13 4V18h-2.6v-4.1c0-.98-.02-2.24-1.37-2.24-1.37 0-1.58 1.07-1.58 2.17V18h-2.6z" fill="#fff"/></svg><span class="li-plus">+</span></span><span class="li-add-txt">+ LinkedIn profile</span></button>
           <button class="you-li-on" id="youLiOn" type="button" hidden aria-label="LinkedIn connected. Change your LinkedIn link"><span class="li-badge" aria-hidden="true"><svg class="li-ico" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M6.6 9.6h2.6V18H6.6zM7.9 5.6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.8 9.6h2.5v1.15h.04c.35-.66 1.2-1.36 2.47-1.36 2.64 0 3.13 1.74 3.13 4V18h-2.6v-4.1c0-.98-.02-2.24-1.37-2.24-1.37 0-1.58 1.07-1.58 2.17V18h-2.6z" fill="#fff"/></svg><span class="li-check"><svg viewBox="0 0 16 16"><path d="M4 8.4l2.6 2.6L12 5.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span>LinkedIn connected</span></button>
@@ -1056,7 +1066,7 @@
 
   <footer>
     <span class="key"><span class="refresh-wrap foot-refresh"><button class="foot-btn" id="footRefresh" type="button" aria-label="Refresh to 10 new hot spots" aria-describedby="footTip"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50.5 22.5 A21 21 0 1 0 53 34"/><path d="M52.5 9.5 L51.6 23.6 L38 21.2"/></svg></button><span class="tip" id="footTip" role="tooltip">refresh to 10 new hot spots</span></span><span aria-live="polite"><i></i><span id="routeLabel">10 hot spots, for inspiration: #1 best cities for singles (WalletHub, 2026)</span></span></span>
-    <span>move ♥ me</span>
+    <span class="foot-brand">move ♥ me <span class="foot-sep" aria-hidden="true">|</span> <a href="#about" class="foot-about" id="footAbout">about</a></span>
   </footer>
 </div>
 
@@ -2622,6 +2632,12 @@ liAsk.querySelector("form").addEventListener("submit", e => {
 // phone: retake / continue links live inside the results card
 document.getElementById("cardRetake").addEventListener("click", e => { e.preventDefault(); document.getElementById("retakeLink").click(); });
 document.getElementById("cardConvo").addEventListener("click", e => { e.preventDefault(); document.getElementById("convoLink").click(); });
+
+// footer "about" link opens the About page, same as the header link
+document.getElementById("footAbout").addEventListener("click", e => { e.preventDefault(); document.getElementById("navAbout").click(); });
+// theme link always names the mode you'd switch TO ("light mode" while dark, and the reverse)
+new MutationObserver(() => { const l = document.getElementById("themeLabel"); if (l) l.textContent = document.documentElement.getAttribute("data-theme") === "dark" ? "light mode" : "dark mode"; })
+  .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
 document.getElementById("retake").addEventListener("click", () => { delRes(modeReason()); showResult(null); openQuiz({ full: true }); });
 // state badges: most common zodiac sign (Love) and pay rank of 50 (Career), right under each abbreviation
